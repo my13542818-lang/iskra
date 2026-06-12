@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина — Куки</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .cart-item { display: flex; gap: 20px; background: #0f0e13; border-radius: 20px; padding: 16px; margin-bottom: 16px; border: 1px solid #2d1e32; align-items: center; flex-wrap: wrap; }
+        .cart-item-img { width: 80px; height: 80px; background: #1a1620; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .cart-item-info { flex: 1; }
+        .cart-item-title { font-weight: 600; }
+        .cart-item-price { color: #ff6b4a; font-weight: bold; }
+        .remove-btn { background: #7a1a2e; border: none; padding: 6px 12px; border-radius: 20px; color: white; cursor: pointer; }
+        .total { text-align: right; padding: 20px; background: #0f0e13; border-radius: 20px; margin-top: 20px; }
+        .total-amount { font-size: 28px; font-weight: 800; color: #ff6b4a; }
+        .delivery-form { background: #0f0e13; border-radius: 20px; padding: 24px; margin-top: 20px; }
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
+        .form-row input, .form-row select { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; }
+        .empty-cart { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <a href="index.html" class="btn">🏠 На главную</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 style="margin-bottom: 24px;">🛒 Корзина</h1>
+    <div id="cartItems"></div>
+    <div id="cartTotal" class="total" style="display: none;">
+        <p>Итого: <span class="total-amount" id="totalAmount">0</span> ₽</p>
+        <button class="btn-primary" id="checkoutBtn" style="margin-top: 16px;">✅ Оформить заказ</button>
+    </div>
+    <div id="deliveryForm" class="delivery-form" style="display: none;">
+        <h3>🚚 Доставка от Куки</h3>
+        <div class="form-row">
+            <label>ФИО получателя</label>
+            <input type="text" id="recipientName" placeholder="Иванов Иван Иванович">
+        </div>
+        <div class="form-row">
+            <label>Адрес доставки</label>
+            <input type="text" id="deliveryAddress" placeholder="Город, улица, дом, квартира">
+        </div>
+        <div class="form-row">
+            <label>Транспортная компания</label>
+            <select id="deliveryCompany">
+                <option value="СДЭК">СДЭК</option>
+                <option value="Почта России">Почта России</option>
+                <option value="Boxberry">Boxberry</option>
+                <option value="Яндекс Доставка">Яндекс Доставка</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Телефон</label>
+            <input type="tel" id="contactPhone" placeholder="+7 XXX XXX XX XX">
+        </div>
+        <div class="form-row">
+            <label>Применить промокод</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="orderPromoCode" placeholder="Введите промокод">
+                <button class="btn" id="applyOrderPromoBtn">Применить</button>
+            </div>
+        </div>
+        <div id="promoDiscount" style="color: #5cb85c; margin: 10px 0; display: none;"></div>
+        <button class="btn-primary" id="confirmOrderBtn" style="width:100%; padding:14px;">✅ Подтвердить заказ</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
+    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    let cart = [];
+    let appliedDiscount = 0;
+    let appliedPromoCode = null;
+    
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        
+        await loadCart();
+        await loadPromoCodes();
+    });
+    
+    async function loadPromoCodes() {
+        const promoSnapshot = await db.collection("promocodes")
+            .where("active", "==", true)
+            .get();
+        window.activePromoCodes = promoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+    
+    function loadCart() {
+        cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        renderCart();
+    }
+    
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    }
+    
+    async function renderCart() {
+        const container = document.getElementById('cartItems');
+        const totalDiv = document.getElementById('cartTotal');
+        const deliveryForm = document.getElementById('deliveryForm');
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<div class="empty-cart"><h3>🛒 Корзина пуста</h3><a href="index.html" class="btn-primary" style="margin-top:16px; display:inline-block;">Перейти к покупкам</a></div>';
+            totalDiv.style.display = 'none';
+            deliveryForm.style.display = 'none';
+            return;
+        }
+        
+        let itemsHtml = '';
+        let total = 0;
+        
+        for (const item of cart) {
+            const listing = await getListingById(item.id);
+            if (listing) {
+                const price = listing.price;
+                total += price;
+                itemsHtml += `
+                    <div class="cart-item">
+                        <div class="cart-item-img">${listing.image || '📦'}</div>
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">${listing.title}</div>
+                            <div class="cart-item-price">${price.toLocaleString()} ₽</div>
+                        </div>
+                        <button class="remove-btn" data-id="${item.id}">🗑️ Удалить</button>
+                    </div>
+                `;
+            }
+        }
+        
+        container.innerHTML = itemsHtml;
+        
+        const finalTotal = total - appliedDiscount;
+        document.getElementById('totalAmount').innerHTML = finalTotal.toLocaleString();
+        totalDiv.style.display = 'block';
+        deliveryForm.style.display = 'block';
+        
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.onclick = () => {
+                cart = cart.filter(i => i.id !== btn.dataset.id);
+                saveCart();
+            };
+        });
+    }
+    
+    async function getListingById(id) {
+        const doc = await db.collection("listings").doc(id).get();
+        return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    }
+    
+    document.getElementById('applyOrderPromoBtn')?.addEventListener('click', async () => {
+        const code = document.getElementById('orderPromoCode').value.trim().toUpperCase();
+        if (!code) { alert('Введите промокод'); return; }
+        
+        const promo = window.activePromoCodes?.find(p => p.code === code);
+        if (!promo) {
+            alert('❌ Промокод не найден');
+            return;
+        }
+        
+        let total = 0;
+        for (const item of cart) {
+            const listing = await getListingById(item.id);
+            if (listing) total += listing.price;
+        }
+        
+        const discount = Math.min(promo.discount, total);
+        appliedDiscount = discount;
+        appliedPromoCode = code;
+        
+        const finalTotal = total - discount;
+        document.getElementById('totalAmount').innerHTML = finalTotal.toLocaleString();
+        document.getElementById('promoDiscount').innerHTML = `🎁 Промокод ${code} применён! Скидка: ${discount} ₽`;
+        document.getElementById('promoDiscount').style.display = 'block';
+    });
+    
+    document.getElementById('confirmOrderBtn')?.addEventListener('click', async () => {
+        const recipientName = document.getElementById('recipientName').value;
+        const deliveryAddress = document.getElementById('deliveryAddress').value;
+        const deliveryCompany = document.getElementById('deliveryCompany').value;
+        const contactPhone = document.getElementById('contactPhone').value;
+        
+        if (!recipientName || !deliveryAddress || !contactPhone) {
+            alert('Заполните все поля');
+            return;
+        }
+        
+        let total = 0;
+        const orderItems = [];
+        for (const item of cart) {
+            const listing = await getListingById(item.id);
+            if (listing) {
+                total += listing.price;
+                orderItems.push({
+                    id: listing.id,
+                    title: listing.title,
+                    price: listing.price,
+                    sellerId: listing.sellerId
+                });
+            }
+        }
+        
+        const finalTotal = total - appliedDiscount;
+        
+        // Проверяем баланс
+        const userDoc = await db.collection("users").doc(auth.currentUser.uid).get();
+        const balance = userDoc.data()?.balance || 0;
+        
+        if (balance < finalTotal) {
+            alert(`❌ Недостаточно средств на балансе! Ваш баланс: ${balance} ₽. Пополните кошелёк.`);
+            window.location.href = "wallet.html";
+            return;
+        }
+        
+        // Списываем средства
+        await db.collection("users").doc(auth.currentUser.uid).update({
+            balance: balance - finalTotal
+        });
+        
+        // Создаём заказ
+        await db.collection("orders").add({
+            userId: auth.currentUser.uid,
+            userName: auth.currentUser.displayName,
+            items: orderItems,
+            total: finalTotal,
+            discount: appliedDiscount,
+            promoCode: appliedPromoCode,
+            recipientName,
+            deliveryAddress,
+            deliveryCompany,
+            contactPhone,
+            status: "pending",
+            createdAt: new Date().toISOString()
+        });
+        
+        // Записываем транзакцию
+        await db.collection("transactions").add({
+            userId: auth.currentUser.uid,
+            amount: -finalTotal,
+            description: `Оплата заказа (${orderItems.length} товаров)`,
+            createdAt: new Date().toISOString()
+        });
+        
+        alert(`✅ Заказ оформлен! Сумма: ${finalTotal} ₽. Деньги списаны с кошелька.`);
+        localStorage.removeItem('cart');
+        window.location.href = "index.html";
+    });
+</script>
+</body>
+</html>

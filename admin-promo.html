@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ — Промокоды</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .btn-danger { background: #7a1a2e; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .promo-table { width: 100%; border-collapse: collapse; background: #0f0e13; border-radius: 20px; overflow: hidden; }
+        .promo-table th, .promo-table td { padding: 12px; text-align: left; border-bottom: 1px solid #2d1e32; }
+        .promo-table th { background: #1a1620; color: #ffcfbf; }
+        .form-card { background: #0f0e13; border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
+        .form-row input { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 АДМИН</a>
+        <a href="index.html" class="btn">🏠 На главную</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="container">
+    <h1 style="margin-bottom: 24px;">🎁 Управление промокодами</h1>
+    
+    <div class="form-card">
+        <h3>➕ Создать промокод</h3>
+        <div class="form-row">
+            <label>Код промокода</label>
+            <input type="text" id="promoCode" placeholder="SUMMER2024">
+        </div>
+        <div class="form-row">
+            <label>Тип скидки</label>
+            <select id="promoType">
+                <option value="fixed">Фиксированная сумма</option>
+                <option value="percent">Процент</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Значение скидки</label>
+            <input type="number" id="promoValue" placeholder="500">
+        </div>
+        <div class="form-row">
+            <label>Бонус на баланс (при активации)</label>
+            <input type="number" id="promoBonus" placeholder="100">
+        </div>
+        <button class="btn-primary" id="createPromoBtn">✅ Создать промокод</button>
+    </div>
+    
+    <div class="form-card">
+        <h3>📋 Активные промокоды</h3>
+        <div id="promosList"></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
+    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        
+        // Проверка прав администратора
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        if (userDoc.data()?.role !== 'admin') {
+            document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>⛔ Доступ запрещён</h2><a href="index.html" class="btn">На главную</a></div>';
+            return;
+        }
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>👑 ${user.displayName}</span>
+            </div>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        
+        await loadPromos();
+    });
+    
+    async function loadPromos() {
+        const snapshot = await db.collection("promocodes").orderBy("createdAt", "desc").get();
+        const promos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const container = document.getElementById('promosList');
+        if (promos.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px;">Нет промокодов</div>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="promo-table">
+                <thead>
+                    <tr><th>Код</th><th>Скидка</th><th>Бонус</th><th>Статус</th><th>Действия</th></tr>
+                </thead>
+                <tbody>
+                    ${promos.map(p => `
+                        <tr>
+                            <td><strong>${p.code}</strong></td>
+                            <td>${p.type === 'fixed' ? `${p.value} ₽` : `${p.value}%`}</td>
+                            <td>${p.bonus || 0} ₽</td>
+                            <td>${p.active ? '✅ Активен' : '❌ Неактивен'}</td>
+                            <td>
+                                <button class="btn" onclick="togglePromo('${p.id}', ${!p.active})">${p.active ? 'Деактивировать' : 'Активировать'}</button>
+                                <button class="btn-danger" onclick="deletePromo('${p.id}')">Удалить</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+    
+    document.getElementById('createPromoBtn').onclick = async () => {
+        const code = document.getElementById('promoCode').value.trim().toUpperCase();
+        const type = document.getElementById('promoType').value;
+        const value = parseInt(document.getElementById('promoValue').value);
+        const bonus = parseInt(document.getElementById('promoBonus').value) || 0;
+        
+        if (!code || !value) {
+            alert('Заполните все поля');
+            return;
+        }
+        
+        await db.collection("promocodes").add({
+            code: code,
+            type: type,
+            value: value,
+            bonus: bonus,
+            active: true,
+            createdAt: new Date().toISOString()
+        });
+        
+        document.getElementById('promoCode').value = '';
+        document.getElementById('promoValue').value = '';
+        document.getElementById('promoBonus').value = '';
+        await loadPromos();
+        alert('✅ Промокод создан!');
+    };
+    
+    window.togglePromo = async (id, active) => {
+        await db.collection("promocodes").doc(id).update({ active: active });
+        await loadPromos();
+    };
+    
+    window.deletePromo = async (id) => {
+        if (confirm('Удалить промокод?')) {
+            await db.collection("promocodes").doc(id).delete();
+            await loadPromos();
+        }
+    };
+</script>
+</body>
+</html>

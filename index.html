@@ -2,81 +2,534 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Куки — доска объявлений</title>
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: #0a0a0c; color: white; min-height: 100vh; display: flex; flex-direction: column; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         
-        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; position: sticky; top: 0; z-index: 100; }
-        .header-container { max-width: 1200px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; }
-        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        body {
+            background: #0a0a0c;
+            color: #ededee;
+            min-height: 100vh;
+        }
         
-        .search-wrapper { flex: 1; max-width: 500px; margin: 0 auto; }
-        .search-bar { display: flex; gap: 8px; background: #121114; border: 1px solid #2f2332; border-radius: 60px; padding: 4px 4px 4px 18px; }
-        .search-bar input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 15px; padding: 10px 0; }
-        .search-bar button { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; padding: 8px 24px; border-radius: 60px; color: white; cursor: pointer; font-weight: bold; }
+        /* Анимированный градиентный фон */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,59,47,0.05) 0%, rgba(176,44,230,0.05) 50%, transparent 80%);
+            pointer-events: none;
+            z-index: -1;
+            animation: pulse 8s ease-in-out infinite;
+        }
         
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
-        .btn-primary { background: #ac2f3a; border-color: #d44545; color: white; }
-        .btn-admin { background: #2a4b7a; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
         
-        .user-actions { display: flex; align-items: center; gap: 10px; }
-        .user-info { display: flex; align-items: center; gap: 10px; background: #121114; padding: 5px 12px 5px 8px; border-radius: 40px; cursor: pointer; }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; }
+        /* Хедер */
+        .header {
+            background: rgba(11,11,14,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(42,26,44,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
         
-        .filters { background: #0c0b10f2; border-bottom: 1px solid #291e2c; padding: 10px 20px; position: sticky; top: 70px; z-index: 99; overflow-x: auto; }
-        .filters-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .filter-group { display: inline-flex; align-items: center; gap: 6px; background: #18141c; padding: 6px 14px; border-radius: 40px; border: 1px solid #3a253e; }
-        .filter-group span { font-size: 12px; color: #ffcfbf; }
-        .filter-group select, .filter-group input { background: transparent; border: none; color: white; padding: 5px 0; outline: none; font-size: 12px; }
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
         
-        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; flex: 1; }
-        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; cursor: pointer; transition: 0.2s; }
-        .listing-card:hover { border-color: #b6474a; transform: translateY(-3px); }
-        .listing-img { height: 170px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; overflow: hidden; }
-        .listing-img img { width: 100%; height: 100%; object-fit: cover; }
-        .listing-info { padding: 12px; }
-        .listing-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; color: #ffddd3; }
-        .listing-price { font-size: 18px; font-weight: 800; color: #ff6b4a; margin: 5px 0; }
-        .card-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; }
-        .small-btn.fav-active { background: #b52b2b; }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff3b2f, #b02ce6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
         
-        .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
+        .logo:hover {
+            transform: scale(1.05);
+            text-shadow: 0 0 20px rgba(255,59,47,0.5);
+        }
+        
+        /* Поиск */
+        .search-wrapper {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            background: rgba(18,17,20,0.9);
+            backdrop-filter: blur(5px);
+            border: 1px solid #2f2332;
+            border-radius: 60px;
+            padding: 4px 4px 4px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar:focus-within {
+            border-color: #ff6b4a;
+            box-shadow: 0 0 0 3px rgba(255,107,74,0.2);
+            transform: scale(1.01);
+        }
+        
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-size: 15px;
+            padding: 12px 0;
+        }
+        
+        .search-bar button {
+            background: linear-gradient(95deg, #b52b1a, #8a1c50);
+            border: none;
+            padding: 8px 28px;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar button:hover {
+            transform: scale(0.98);
+            box-shadow: 0 0 15px rgba(255,107,74,0.5);
+        }
+        
+        /* Кнопки */
+        .btn {
+            padding: 8px 18px;
+            border-radius: 40px;
+            border: 1px solid #441d46;
+            background: rgba(17,16,20,0.9);
+            color: #f0e6f0;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-color: #ff6b4a;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(95deg, #b52b1a, #8a1c50);
+            border: none;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,74,0.4);
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .balance-badge {
+            background: linear-gradient(135deg, #2a7a4b, #1a4a2b);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .balance-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(42,122,75,0.5);
+        }
+        
+        /* Фильтры */
+        .filters {
+            background: rgba(12,11,16,0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #291e2c;
+            padding: 15px 24px;
+            position: sticky;
+            top: 70px;
+            z-index: 99;
+            overflow-x: auto;
+        }
+        
+        .filters-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(24,20,28,0.8);
+            padding: 8px 18px;
+            border-radius: 48px;
+            border: 1px solid #3a253e;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-group:hover {
+            border-color: #ff6b4a;
+            transform: translateY(-2px);
+        }
+        
+        .filter-group span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffcfbf;
+        }
+        
+        .filter-group select, .filter-group input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 0;
+            outline: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .filter-reset {
+            background: #ac2f3a;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 48px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-reset:hover {
+            background: #c13a44;
+            transform: scale(0.98);
+        }
+        
+        /* Лента */
+        .main-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        
+        .listing-card {
+            background: rgba(15,14,19,0.9);
+            backdrop-filter: blur(5px);
+            border-radius: 24px;
+            border: 1px solid #2d1e32;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .listing-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff6b4a;
+            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.5);
+        }
+        
+        .listing-img {
+            height: 180px;
+            background: #1a1620;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .listing-card:hover .listing-img {
+            transform: scale(1.05);
+        }
+        
+        .listing-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .listing-info {
+            padding: 16px;
+        }
+        
+        .listing-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #ffddd3;
+        }
+        
+        .listing-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ff6b4a;
+            margin: 8px 0;
+        }
+        
+        .listing-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #a492b0;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px;
+            background: rgba(15,14,19,0.8);
+            border-radius: 32px;
+        }
+        
+        /* Мобильная версия кнопка */
+        .mobile-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff3b2f, #b02ce6);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 20px;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .mobile-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 25px rgba(255,59,47,0.5);
+        }
         
         /* Футер */
-        .footer { background: #0b0b0e; border-top: 1px solid #2a1a2c; padding: 30px 20px; margin-top: 40px; }
-        .footer-container { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; }
-        .footer-section { flex: 1; min-width: 180px; }
-        .footer-section h4 { color: #ffcfbf; margin-bottom: 15px; font-size: 16px; }
-        .footer-section p, .footer-section a { color: #a492b0; font-size: 13px; text-decoration: none; line-height: 1.8; display: block; }
-        .footer-section a:hover { color: #ff6b4a; }
-        .footer-bottom { text-align: center; padding-top: 20px; margin-top: 20px; border-top: 1px solid #2a1a2c; color: #666; font-size: 12px; }
+        .footer {
+            background: rgba(11,11,14,0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #2a1a2c;
+            padding: 40px 24px;
+            margin-top: 60px;
+        }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: #0f0e13; border-radius: 32px; padding: 32px; max-width: 500px; width: 90%; border: 1px solid #b6474a; }
-        .form-row { margin-bottom: 16px; }
-        .form-row input { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; outline: none; }
-        .divider { text-align: center; margin: 20px 0; position: relative; }
-        .divider::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #2d1e32; }
-        .divider span { background: #0f0e13; padding: 0 15px; position: relative; color: #a492b0; }
-        .google-btn { background: #111014; border: 1px solid #3a253e; width: 100%; padding: 12px; border-radius: 40px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .close-modal { float: right; font-size: 24px; cursor: pointer; color: #a492b0; }
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 30px;
+        }
         
-        .user-dropdown { position: absolute; top: 60px; right: 20px; background: #0f0e13; border: 1px solid #2d1e32; border-radius: 20px; width: 200px; z-index: 200; overflow: hidden; }
-        .dropdown-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; color: white; }
-        .dropdown-item:hover { background: #1a1620; }
-        .dropdown-divider { height: 1px; background: #2d1e32; margin: 4px 0; }
+        .footer-section {
+            flex: 1;
+            min-width: 180px;
+        }
         
-        .timer { color: #ff6b4a; font-size: 12px; text-align: center; margin-top: 10px; }
+        .footer-section h4 {
+            color: #ffcfbf;
+            margin-bottom: 15px;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #a492b0;
+            font-size: 13px;
+            text-decoration: none;
+            line-height: 1.8;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-section a:hover {
+            color: #ff6b4a;
+            transform: translateX(5px);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid #2a1a2c;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: #0f0e13;
+            border-radius: 32px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #ff6b4a;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a492b0;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            color: #ff6b4a;
+            transform: rotate(90deg);
+        }
+        
+        .form-row {
+            margin-bottom: 20px;
+        }
+        
+        .form-row label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #a492b0;
+        }
+        
+        .form-row input, .form-row select {
+            width: 100%;
+            padding: 14px;
+            background: #121114;
+            border: 1px solid #2f2332;
+            border-radius: 24px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .form-row input:focus, .form-row select:focus {
+            border-color: #ff6b4a;
+            transform: scale(1.02);
+        }
+        
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            .search-wrapper {
+                max-width: 100%;
+                width: 100%;
+            }
+            .user-actions {
+                justify-content: center;
+            }
+            .listings-grid {
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            }
+            .filters-container {
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .listings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Анимация для кнопок */
+        @keyframes buttonPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,107,74,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255,107,74,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,107,74,0); }
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        
+        .cart-count {
+            background: #ff3b2f;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        
+        .relative {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -90,16 +543,32 @@
                 <button id="searchBtn">Найти</button>
             </div>
         </div>
-        <div id="userActions"></div>
+        <div class="user-actions" id="userActions"></div>
     </div>
 </div>
 
 <div class="filters">
     <div class="filters-container">
-        <div class="filter-group"><span>📂 Категория</span><select id="categoryFilter"><option value="all">Все</option><option value="электроника">Электроника</option><option value="одежда">Одежда</option><option value="обувь">Обувь</option><option value="авто">Авто</option><option value="недвижимость">Недвижимость</option><option value="для дома">Для дома</option><option value="спорт">Спорт</option><option value="игрушки">Игрушки</option></select></div>
+        <div class="filter-group">
+            <span>📂 Категория</span>
+            <select id="categoryFilter">
+                <option value="all">Все</option>
+                <option value="электроника">📱 Электроника</option>
+                <option value="одежда">👕 Одежда</option>
+                <option value="обувь">👟 Обувь</option>
+                <option value="авто">🚗 Авто</option>
+                <option value="недвижимость">🏠 Недвижимость</option>
+                <option value="для дома">🛋️ Для дома</option>
+                <option value="спорт">⚽ Спорт</option>
+                <option value="игрушки">🧸 Игрушки</option>
+                <option value="услуги">🔧 Услуги</option>
+            </select>
+        </div>
         <div class="filter-group"><span>💰 Цена до</span><input type="number" id="priceFilter" placeholder="Любая"></div>
-        <div class="filter-group"><span>📌 Состояние</span><select id="conditionFilter"><option value="all">Любое</option><option value="new">Новое</option><option value="used">Б/У</option></select></div>
+        <div class="filter-group"><span>📌 Состояние</span><select id="conditionFilter"><option value="all">Любое</option><option value="new">✨ Новое</option><option value="used">🔄 Б/У</option></select></div>
         <div class="filter-group"><span>🌍 Город</span><input type="text" id="locationFilter" placeholder="Город"></div>
+        <div class="filter-group"><span>⭐ Рейтинг</span><select id="ratingFilter"><option value="0">Любой</option><option value="4">4+</option><option value="3">3+</option></select></div>
+        <button class="filter-reset" id="resetFiltersBtn">🔄 Сбросить</button>
     </div>
 </div>
 
@@ -107,7 +576,6 @@
     <div id="listingsContainer" class="listings-grid"></div>
 </div>
 
-<!-- ФУТЕР С КНОПКОЙ ОФЕРТЫ -->
 <div class="footer">
     <div class="footer-container">
         <div class="footer-section">
@@ -135,29 +603,9 @@
     </div>
 </div>
 
-<div id="authModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
-        <h2 style="text-align:center;">🍪 Добро пожаловать</h2>
-        <div id="phoneLoginView">
-            <div class="form-row"><input type="tel" id="phoneNumber" placeholder="+7 999 123-45-67"></div>
-            <button class="btn-primary" id="sendCodeBtn" style="width:100%; padding:12px;">📨 Отправить код</button>
-        </div>
-        <div id="codeVerifyView" style="display: none;">
-            <div class="form-row"><input type="text" id="verificationCode" placeholder="6-значный код"></div>
-            <button class="btn-primary" id="verifyCodeBtn" style="width:100%; padding:12px;">✅ Войти</button>
-            <div id="codeTimer" class="timer"></div>
-            <button id="backBtn" style="margin-top:15px; width:100%; background:none; border:none; color:#a492b0; cursor:pointer;">← Назад</button>
-        </div>
-        <div class="divider"><span>или</span></div>
-        <button class="google-btn" id="googleSignInBtn">📧 Войти через Google</button>
-    </div>
-</div>
-
-<div id="recaptcha-container"></div>
+<button class="mobile-toggle" id="mobileToggleBtn">📱 Мобильная версия</button>
 
 <script>
-    // Firebase конфигурация
     const firebaseConfig = {
         apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
         authDomain: "kyki-5e91a.firebaseapp.com",
@@ -176,140 +624,72 @@
     const db = firebase.firestore();
     
     let currentUser = null;
-    let favorites = [];
-    let allListings = [];
-    let confirmationResult = null;
-    let isAdmin = false;
-    let timerInterval = null;
+    let userBalance = 0;
     
-    const authModal = document.getElementById('authModal');
-    const userActions = document.getElementById('userActions');
-    const phoneLoginView = document.getElementById('phoneLoginView');
-    const codeVerifyView = document.getElementById('codeVerifyView');
-    
-    // Фильтры
-    document.getElementById('categoryFilter')?.addEventListener('change', loadListings);
-    document.getElementById('priceFilter')?.addEventListener('input', loadListings);
-    document.getElementById('conditionFilter')?.addEventListener('change', loadListings);
-    document.getElementById('locationFilter')?.addEventListener('input', loadListings);
-    document.getElementById('searchBtn')?.addEventListener('click', loadListings);
-    document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
-    
-    // Телефонный вход
-    let recaptchaVerifier = null;
-    function initRecaptcha() {
-        if (!recaptchaVerifier) {
-            recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = "login.html";
+            return;
         }
-    }
+        
+        currentUser = user;
+        
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        userBalance = userData.balance || 0;
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="balance-badge" id="balanceBtn">
+                💰 ${userBalance.toLocaleString()} ₽
+            </div>
+            <a href="cart.html" class="btn relative">🛒 Корзина<span id="cartCount" style="display:none;" class="cart-count">0</span></a>
+            <a href="wallet.html" class="btn">💳 Кошелёк</a>
+            <a href="promotion.html" class="btn">🚀 Продвижение</a>
+            <a href="profile.html" class="btn">👤 Профиль</a>
+            <button class="btn" id="logoutBtn">🚪</button>
+        `;
+        
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        document.getElementById('balanceBtn').onclick = () => window.location.href = "wallet.html";
+        
+        await loadListings();
+        await updateCartCount();
+    });
     
-    document.getElementById('sendCodeBtn').onclick = async () => {
-        let phone = document.getElementById('phoneNumber').value.trim();
-        if (!phone) { alert('Введите номер телефона'); return; }
-        if (!phone.startsWith('+')) phone = '+' + phone;
-        try {
-            initRecaptcha();
-            const result = await auth.signInWithPhoneNumber(phone, recaptchaVerifier);
-            confirmationResult = result;
-            phoneLoginView.style.display = 'none';
-            codeVerifyView.style.display = 'block';
-            startTimer();
-        } catch (error) {
-            alert('Ошибка: ' + error.message);
-        }
-    };
-    
-    document.getElementById('verifyCodeBtn').onclick = async () => {
-        const code = document.getElementById('verificationCode').value.trim();
-        if (!code) { alert('Введите код'); return; }
-        try {
-            const result = await confirmationResult.confirm(code);
-            const userRef = db.collection("users").doc(result.user.uid);
-            const userSnap = await userRef.get();
-            if (!userSnap.exists) {
-                await userRef.set({
-                    uid: result.user.uid,
-                    name: result.user.phoneNumber,
-                    phone: result.user.phoneNumber,
-                    role: "user",
-                    createdAt: new Date().toISOString(),
-                    rating: 0,
-                    completedDeals: 0
-                });
-            }
-            authModal.style.display = 'none';
-            window.location.reload();
-        } catch (error) {
-            alert('Неверный код');
-        }
-    };
-    
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        let seconds = 60;
-        const timerDiv = document.getElementById('codeTimer');
-        timerInterval = setInterval(() => {
-            if (seconds <= 0) {
-                clearInterval(timerInterval);
-                timerDiv.innerHTML = '';
-            } else {
-                timerDiv.innerHTML = `Повторная отправка через ${seconds} сек`;
-                seconds--;
-            }
-        }, 1000);
-    }
-    
-    document.getElementById('backBtn').onclick = () => {
-        codeVerifyView.style.display = 'none';
-        phoneLoginView.style.display = 'block';
-        if (timerInterval) clearInterval(timerInterval);
-    };
-    
-    document.getElementById('googleSignInBtn').onclick = async () => {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            const result = await auth.signInWithPopup(provider);
-            const user = result.user;
-            const userRef = db.collection("users").doc(user.uid);
-            const userSnap = await userRef.get();
-            if (!userSnap.exists) {
-                await userRef.set({
-                    uid: user.uid,
-                    name: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    role: "user",
-                    createdAt: new Date().toISOString(),
-                    rating: 0,
-                    completedDeals: 0,
-                    phone: "",
-                    location: ""
-                });
-            }
-            authModal.style.display = 'none';
-            window.location.reload();
-        } catch (error) {
-            alert('Ошибка: ' + error.message);
-        }
-    };
-    
-    // Основные функции
     async function loadListings() {
-        try {
-            const snapshot = await db.collection("listings").where("status", "==", "active").get();
-            let listings = [];
-            snapshot.forEach(doc => listings.push({ id: doc.id, ...doc.data() }));
-            listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            renderListings(listings);
-        } catch (error) {
-            console.error("Ошибка:", error);
+        const category = document.getElementById('categoryFilter')?.value || 'all';
+        const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
+        const condition = document.getElementById('conditionFilter')?.value || 'all';
+        const location = document.getElementById('locationFilter')?.value || '';
+        const minRating = parseInt(document.getElementById('ratingFilter')?.value) || 0;
+        const search = document.getElementById('searchInput')?.value || '';
+        
+        let query = db.collection("listings").where("status", "==", "active");
+        const snapshot = await query.get();
+        let listings = [];
+        snapshot.forEach(doc => {
+            listings.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Фильтрация
+        if (category !== 'all') listings = listings.filter(l => l.category === category);
+        if (maxPrice !== Infinity) listings = listings.filter(l => l.price <= maxPrice);
+        if (condition !== 'all') listings = listings.filter(l => l.condition === condition);
+        if (location) listings = listings.filter(l => l.location && l.location.toLowerCase().includes(location.toLowerCase()));
+        if (minRating > 0) listings = listings.filter(l => (l.sellerRating || 0) >= minRating);
+        if (search) {
+            const searchLower = search.toLowerCase();
+            listings = listings.filter(l => l.title.toLowerCase().includes(searchLower));
         }
+        
+        listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        renderListings(listings);
     }
     
     function renderListings(listings) {
         const container = document.getElementById('listingsContainer');
         if (!listings || listings.length === 0) {
-            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте другой поиск</p></div>`;
+            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте изменить параметры поиска</p></div>`;
             return;
         }
         container.innerHTML = listings.map(ad => `
@@ -324,45 +704,53 @@
         `).join('');
     }
     
+    async function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.length;
+        const cartCountEl = document.getElementById('cartCount');
+        if (cartCountEl) {
+            if (count > 0) {
+                cartCountEl.style.display = 'inline-block';
+                cartCountEl.textContent = count;
+            } else {
+                cartCountEl.style.display = 'none';
+            }
+        }
+    }
+    
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
     
-    function showUserDropdown() {
-        const existing = document.querySelector('.user-dropdown');
-        if (existing) { existing.remove(); return; }
-        const dropdown = document.createElement('div');
-        dropdown.className = 'user-dropdown';
-        dropdown.innerHTML = `
-            <a href="profile.html" class="dropdown-item">👤 Мой профиль</a>
-            <a href="post-ad.html" class="dropdown-item">➕ Создать объявление</a>
-            <a href="favorites.html" class="dropdown-item">❤️ Избранное</a>
-            <div class="dropdown-divider"></div>
-            <a href="messages.html" class="dropdown-item">💬 Сообщения</a>
-            ${isAdmin ? '<a href="admin.html" class="dropdown-item">👑 Админ-панель</a>' : ''}
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="dropdownLogout">🚪 Выйти</div>
-        `;
-        document.body.appendChild(dropdown);
-        document.getElementById('dropdownLogout').onclick = () => auth.signOut().then(() => window.location.href = 'index.html');
-        setTimeout(() => document.addEventListener('click', function remove(e) { if (!dropdown.contains(e.target) && !e.target.closest('.user-info')) { dropdown.remove(); document.removeEventListener('click', remove); } }), 0);
-    }
+    // Сброс фильтров
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+        document.getElementById('categoryFilter').value = 'all';
+        document.getElementById('priceFilter').value = '';
+        document.getElementById('conditionFilter').value = 'all';
+        document.getElementById('locationFilter').value = '';
+        document.getElementById('ratingFilter').value = '0';
+        document.getElementById('searchInput').value = '';
+        loadListings();
+    });
     
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            authModal.style.display = 'none';
-            const userDoc = await db.collection("users").doc(user.uid).get();
-            isAdmin = userDoc.data()?.role === 'admin';
-            userActions.innerHTML = `<div class="user-info"><div class="user-avatar">👤</div><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><a href="messages.html" class="btn">💬</a>`;
-            document.querySelector('.user-info').onclick = showUserDropdown;
-            await loadListings();
+    document.getElementById('categoryFilter')?.addEventListener('change', loadListings);
+    document.getElementById('priceFilter')?.addEventListener('input', loadListings);
+    document.getElementById('conditionFilter')?.addEventListener('change', loadListings);
+    document.getElementById('locationFilter')?.addEventListener('input', loadListings);
+    document.getElementById('ratingFilter')?.addEventListener('change', loadListings);
+    document.getElementById('searchBtn')?.addEventListener('click', loadListings);
+    document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
+    
+    // Мобильная версия
+    document.getElementById('mobileToggleBtn')?.addEventListener('click', () => {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport.getAttribute('content').includes('width=device-width')) {
+            viewport.setAttribute('content', 'width=1200, user-scalable=yes');
+            alert('Десктопная версия');
         } else {
-            currentUser = null;
-            userActions.innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
-            document.getElementById('loginBtn')?.addEventListener('click', () => authModal.style.display = 'flex');
-            await loadListings();
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+            alert('Мобильная версия');
         }
     });
 </script>
