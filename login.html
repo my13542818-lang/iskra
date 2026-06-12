@@ -200,7 +200,6 @@
             50% { transform: translateY(-100px) translateX(50px); opacity: 0.5; }
         }
         
-        /* Сообщение об успехе */
         .success-message {
             background: #2a7a4b;
             color: white;
@@ -316,6 +315,7 @@
             }, 1000);
         }
         
+        // ============ ВХОД ПО ТЕЛЕФОНУ ============
         document.getElementById('sendCodeBtn').onclick = async () => {
             let phone = document.getElementById('phoneNumber').value.trim();
             if (!phone) { showError('Введите номер телефона'); return; }
@@ -353,7 +353,6 @@
                         completedDeals: 0
                     });
                 }
-                // Показываем сообщение и перенаправляем
                 showSuccessAndRedirect();
             } catch (error) {
                 showError('Неверный код');
@@ -366,17 +365,28 @@
             if (timerInterval) clearInterval(timerInterval);
         };
         
+        // ============ ВХОД ЧЕРЕЗ GOOGLE ============
         document.getElementById('googleSignInBtn').onclick = async () => {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                provider.setCustomParameters({
+                    'prompt': 'select_account'
+                });
+                
                 const result = await auth.signInWithPopup(provider);
                 const user = result.user;
+                
+                console.log("Google вход успешен:", user.uid, user.displayName);
+                
                 const userRef = db.collection("users").doc(user.uid);
                 const userSnap = await userRef.get();
+                
                 if (!userSnap.exists()) {
                     await userRef.set({
                         uid: user.uid,
-                        name: user.displayName,
+                        name: user.displayName || 'Пользователь',
                         email: user.email,
                         photoURL: user.photoURL,
                         role: "user",
@@ -387,11 +397,34 @@
                         phone: "",
                         location: ""
                     });
+                    console.log("Создан новый пользователь в Firestore");
+                } else {
+                    console.log("Пользователь уже существует в Firestore");
                 }
-                // Показываем сообщение и перенаправляем
+                
                 showSuccessAndRedirect();
+                
             } catch (error) {
-                showError('Ошибка: ' + error.message);
+                console.error("Ошибка входа через Google:", error);
+                let errorMsg = 'Ошибка входа через Google: ';
+                
+                switch (error.code) {
+                    case 'auth/popup-blocked':
+                        errorMsg += 'Всплывающее окно заблокировано. Разрешите всплывающие окна для этого сайта.';
+                        break;
+                    case 'auth/popup-closed-by-user':
+                        errorMsg += 'Окно входа было закрыто. Попробуйте снова.';
+                        break;
+                    case 'auth/unauthorized-domain':
+                        errorMsg += 'Домен не авторизован. Добавьте домен в Firebase Console → Authentication → Authorized domains';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMsg += 'Проверьте подключение к интернету';
+                        break;
+                    default:
+                        errorMsg += error.message;
+                }
+                alert(errorMsg);
             }
         };
         
