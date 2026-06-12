@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сообщения — Куки</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #0a0a0c; color: white; }
@@ -11,26 +17,22 @@
         .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
         .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
-        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .main-container { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
         
-        .messages-layout { display: flex; gap: 30px; flex-wrap: wrap; }
+        .messages-layout { display: flex; gap: 24px; flex-wrap: wrap; }
         .chats-column { flex: 2; min-width: 300px; }
         .notifications-column { flex: 1; min-width: 280px; }
-        
-        .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 2px solid #c53a1f; display: inline-block; }
-        
+        .section-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #c53a1f; display: inline-block; }
         .chat-card { background: #0f0e13; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #2d1e32; cursor: pointer; transition: 0.2s; }
         .chat-card:hover { background: #1a1620; border-color: #b6474a; transform: translateX(3px); }
         .chat-title { font-weight: 600; margin-bottom: 5px; }
         .chat-preview { font-size: 13px; color: #a492b0; }
         .chat-time { font-size: 11px; color: #666; margin-top: 5px; }
-        
         .notification-card { background: #0f0e13; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #2d1e32; cursor: pointer; transition: 0.2s; }
         .notification-card:hover { background: #1a1620; }
         .notification-card.unread { border-left: 3px solid #ff6b4a; background: #131118; }
         .notification-message { font-size: 14px; }
         .notification-time { font-size: 11px; color: #666; margin-top: 5px; }
-        
         .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; color: #a492b0; }
         .user-info { display: flex; align-items: center; gap: 10px; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
@@ -48,7 +50,7 @@
 </div>
 
 <div class="main-container">
-    <h1 style="margin-bottom: 30px;">💬 Сообщения</h1>
+    <h1 style="margin-bottom: 24px;">💬 Сообщения</h1>
     
     <div class="messages-layout">
         <div class="chats-column">
@@ -62,20 +64,56 @@
     </div>
 </div>
 
-<script type="module">
-    import { auth, onAuthStateChanged, signOutUser, getUserChats, getUserNotifications, markNotificationAsRead, doc, getDoc } from './firebase-config.js';
-
-    let currentUser = null;
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
     
-    onAuthStateChanged(auth, async (user) => {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    async function getUserChats() {
+        const user = auth.currentUser;
+        if (!user) return [];
+        
+        const snapshot = await db.collection("chats").where("participants", "array-contains", user.uid).get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+    
+    async function getUserNotifications(userId) {
+        const snapshot = await db.collection("notifications").where("userId", "==", userId).orderBy("createdAt", "desc").get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+    
+    async function markNotificationAsRead(notificationId) {
+        await db.collection("notifications").doc(notificationId).update({ read: true });
+        return true;
+    }
+    
+    auth.onAuthStateChanged(async (user) => {
         if (!user) {
             window.location.href = 'index.html';
             return;
         }
-        currentUser = user;
         
-        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
-        document.getElementById('logoutBtn').onclick = signOutUser;
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = 'index.html');
         
         await loadChats();
         await loadNotifications();
@@ -84,7 +122,12 @@
     async function loadChats() {
         const chats = await getUserChats();
         const container = document.getElementById('chatsList');
-        if (chats.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет чатов</div>'; return; }
+        
+        if (chats.length === 0) {
+            container.innerHTML = '<div class="empty-state">У вас пока нет чатов</div>';
+            return;
+        }
+        
         container.innerHTML = chats.map(chat => `
             <div class="chat-card" data-chat-id="${chat.id}" data-listing-id="${chat.listingId}" data-seller="${chat.sellerId}">
                 <div class="chat-title">${chat.listingTitle || 'Товар'}</div>
@@ -92,26 +135,34 @@
                 <div class="chat-time">${chat.lastMessageTime ? new Date(chat.lastMessageTime).toLocaleString() : ''}</div>
             </div>
         `).join('');
+        
         document.querySelectorAll('.chat-card').forEach(card => {
-            card.onclick = () => window.location.href = `chat.html?sellerId=${card.dataset.seller}&listingId=${card.dataset.listingId}&title=${encodeURIComponent(card.querySelector('.chat-title')?.innerText || '')}`;
+            card.onclick = () => {
+                window.location.href = `chat.html?sellerId=${card.dataset.seller}&listingId=${card.dataset.listingId}&title=${encodeURIComponent(card.querySelector('.chat-title')?.innerText || '')}`;
+            };
         });
     }
     
     async function loadNotifications() {
-        const notifications = await getUserNotifications(currentUser.uid);
+        const notifications = await getUserNotifications(auth.currentUser.uid);
         const container = document.getElementById('notificationsList');
-        if (notifications.length === 0) { container.innerHTML = '<div class="empty-state">Нет уведомлений</div>'; return; }
+        
+        if (notifications.length === 0) {
+            container.innerHTML = '<div class="empty-state">Нет уведомлений</div>';
+            return;
+        }
+        
         container.innerHTML = notifications.map(n => `
             <div class="notification-card ${n.read ? '' : 'unread'}" data-id="${n.id}" data-link="${n.linkId || ''}" data-type="${n.type || ''}">
                 <div class="notification-message">${n.message}</div>
                 <div class="notification-time">${new Date(n.createdAt).toLocaleString()}</div>
             </div>
         `).join('');
+        
         document.querySelectorAll('.notification-card').forEach(notif => {
             notif.onclick = async () => {
                 await markNotificationAsRead(notif.dataset.id);
                 notif.classList.remove('unread');
-                if (notif.dataset.type === 'ticket' && notif.dataset.link) window.location.href = `support-chat.html?ticketId=${notif.dataset.link}`;
                 notif.classList.add('fade-out');
                 setTimeout(() => notif.remove(), 300);
             };

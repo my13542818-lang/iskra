@@ -4,44 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Карточка товара — Куки</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; color: white; }
+        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .product-card { background: #0f0e13; border-radius: 28px; border: 1px solid #2d1e32; overflow: hidden; }
+        .product-images { background: #1a1620; min-height: 400px; display: flex; align-items: center; justify-content: center; font-size: 100px; }
+        .product-images img { width: 100%; height: 400px; object-fit: contain; }
+        .product-info { padding: 24px; }
+        .product-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; color: #ffddd3; }
+        .product-price { font-size: 36px; font-weight: 800; color: #ff6b4a; margin: 16px 0; }
+        .product-meta { display: flex; gap: 24px; font-size: 14px; color: #a492b0; margin-bottom: 16px; }
+        .product-description { margin: 20px 0; padding-top: 20px; border-top: 1px solid #2d1e32; }
+        .product-description h3 { margin-bottom: 12px; }
+        .seller-info { background: #1a1620; border-radius: 20px; padding: 20px; margin-top: 20px; }
+        .reviews-section { margin-top: 30px; }
+        .review-card { background: #1a1620; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .empty-state { text-align: center; padding: 60px; }
+    </style>
 </head>
 <body>
 
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
-        <div class="user-actions" id="userActions"></div>
+        <div id="userActions"></div>
     </div>
 </div>
 
-<div class="main-container" id="productContainer">
-    <div class="empty-state">Загрузка...</div>
+<div class="main-container">
+    <div id="productContainer" class="product-card">
+        <div class="empty-state">Загрузка...</div>
+    </div>
 </div>
 
-<script type="module">
-    import { auth, db, onAuthStateChanged, signOutUser, getListingById, addToFavorites, removeFromFavorites, getFavorites, addReview, getReviews, reportListing } from './firebase-config.js';
-    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
     
     const urlParams = new URLSearchParams(window.location.search);
     const listingId = urlParams.get('id');
-    let listing = null;
-    let isFavorite = false;
     
-    onAuthStateChanged(auth, async (user) => {
+    let currentUser = null;
+    let listing = null;
+    
+    async function getListingById(id) {
+        const doc = await db.collection("listings").doc(id).get();
+        return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    }
+    
+    async function addToFavorites(listingId) {
+        const user = auth.currentUser;
+        if (!user) return false;
+        await db.collection("favorites").add({
+            userId: user.uid,
+            listingId: listingId,
+            addedAt: new Date().toISOString()
+        });
+        return true;
+    }
+    
+    async function removeFromFavorites(listingId) {
+        const user = auth.currentUser;
+        if (!user) return false;
+        const snapshot = await db.collection("favorites")
+            .where("userId", "==", user.uid)
+            .where("listingId", "==", listingId).get();
+        snapshot.forEach(async (doc) => { await doc.ref.delete(); });
+        return true;
+    }
+    
+    async function getFavorites() {
+        const user = auth.currentUser;
+        if (!user) return [];
+        const snapshot = await db.collection("favorites").where("userId", "==", user.uid).get();
+        return snapshot.docs.map(doc => doc.data().listingId);
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
+    
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        
         if (user) {
             document.getElementById('userActions').innerHTML = `
                 <div class="user-info">
-                    <img src="${user.photoURL || 'https://via.placeholder.com/40'}" class="user-avatar">
-                    <span>${user.displayName}</span>
+                    <img src="${user.photoURL || ''}" class="user-avatar">
+                    <span>${user.displayName?.split(' ')[0] || 'User'}</span>
                 </div>
-                <a href="index.html" class="btn">🏠 Главная</a>
-                <a href="post-ad.html" class="btn btn-primary">➕ Подать</a>
-                <button class="btn" id="logoutBtn">Выйти</button>
+                <a href="post-ad.html" class="btn">➕</a>
+                <a href="profile.html" class="btn">👤</a>
+                <button class="btn" id="logoutBtn">🚪</button>
             `;
-            document.getElementById('logoutBtn')?.addEventListener('click', signOutUser);
+            document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = 'index.html');
         } else {
-            document.getElementById('userActions').innerHTML = `<button class="btn" id="loginBtn">Войти</button>`;
+            document.getElementById('userActions').innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
             document.getElementById('loginBtn')?.addEventListener('click', () => window.location.href = 'index.html');
         }
         
@@ -51,107 +138,67 @@
     async function loadProduct() {
         listing = await getListingById(listingId);
         if (!listing) {
-            document.getElementById('productContainer').innerHTML = '<div class="empty-state"><h3>❌ Товар не найден</h3></div>';
+            document.getElementById('productContainer').innerHTML = '<div class="empty-state">❌ Товар не найден</div>';
             return;
         }
         
-        if (auth.currentUser) {
+        let isFavorite = false;
+        if (currentUser) {
             const favorites = await getFavorites();
-            isFavorite = favorites.some(f => f.id === listingId);
+            isFavorite = favorites.includes(listingId);
         }
         
-        const reviews = await getReviews(listing.sellerId);
-        
         document.getElementById('productContainer').innerHTML = `
-            <div class="listing-card" style="flex-direction: column; gap: 24px;">
-                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-                    <div class="listing-img" style="width: 200px; height: 200px; font-size: 80px;">${listing.image || '📦'}</div>
-                    <div style="flex: 1;">
-                        <h1 class="listing-title" style="font-size: 28px;">${listing.title}</h1>
-                        <div class="listing-price" style="font-size: 36px;">${listing.price.toLocaleString()} ₽</div>
-                        <div class="listing-meta" style="margin: 16px 0;">
-                            <span>📍 ${listing.location || 'Не указан'}</span>
-                            <span>📦 ${listing.condition === 'new' ? 'Новое' : 'Б/У'}</span>
-                            <span>⭐ ${listing.sellerRating || 0}%</span>
-                        </div>
-                        <div class="seller-badge" style="margin-bottom: 16px;">👤 Продавец: ${listing.sellerName || listing.seller}</div>
-                        <div class="card-actions">
-                            ${auth.currentUser && auth.currentUser.uid !== listing.sellerId ? `<button class="btn-primary" id="chatBtn">💬 Написать продавцу</button>` : ''}
-                            <button class="btn" id="favBtn">❤️ ${isFavorite ? 'В избранном' : 'В избранное'}</button>
-                            <button class="btn" id="safeBtn">🛡️ Куки Доставка</button>
-                        </div>
-                    </div>
+            <div class="product-images">
+                ${listing.image && listing.image.startsWith('http') ? `<img src="${listing.image}" alt="${escapeHtml(listing.title)}">` : (listing.image || '📦')}
+            </div>
+            <div class="product-info">
+                <div class="product-title">${escapeHtml(listing.title)}</div>
+                <div class="product-price">${Number(listing.price).toLocaleString()} ₽</div>
+                <div class="product-meta">
+                    <span>📍 ${listing.location || 'Не указан'}</span>
+                    <span>📦 ${listing.condition === 'new' ? 'Новое' : 'Б/У'}</span>
+                    <span>⭐ ${listing.sellerRating || 0}%</span>
                 </div>
-                <div>
+                <div class="product-description">
                     <h3>📝 Описание</h3>
-                    <p style="margin-top: 12px; color: #a492b0;">${listing.description || 'Описание отсутствует'}</p>
+                    <p>${escapeHtml(listing.description) || 'Описание отсутствует'}</p>
                 </div>
-                <div>
-                    <h3>⭐ Отзывы о продавце (${reviews.length})</h3>
-                    <div id="reviewsList" style="margin-top: 12px;"></div>
-                    ${auth.currentUser && auth.currentUser.uid !== listing.sellerId ? `
-                        <div style="margin-top: 24px;">
-                            <h4>Оставить отзыв</h4>
-                            <select id="ratingSelect" style="padding: 10px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white;">
-                                <option value="5">⭐⭐⭐⭐⭐</option>
-                                <option value="4">⭐⭐⭐⭐</option>
-                                <option value="3">⭐⭐⭐</option>
-                                <option value="2">⭐⭐</option>
-                                <option value="1">⭐</option>
-                            </select>
-                            <textarea id="reviewComment" rows="3" placeholder="Ваш отзыв..." style="width: 100%; margin-top: 12px; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white;"></textarea>
-                            <button class="btn-primary" id="submitReviewBtn" style="margin-top: 12px;">Отправить отзыв</button>
-                        </div>
-                    ` : ''}
+                <div class="seller-info">
+                    <h3>👤 Продавец</h3>
+                    <p>${escapeHtml(listing.sellerName) || 'Продавец'}</p>
+                    <p class="text-muted">${listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : ''}</p>
+                </div>
+                <div class="card-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button class="btn-primary" id="chatBtn">💬 Написать продавцу</button>
+                    <button class="btn" id="favBtn">❤️ ${isFavorite ? 'В избранном' : 'В избранное'}</button>
                 </div>
             </div>
         `;
         
-        // Отзывы
-        const reviewsList = document.getElementById('reviewsList');
-        if (reviews.length === 0) {
-            reviewsList.innerHTML = '<p style="color: #a492b0;">Нет отзывов</p>';
-        } else {
-            reviewsList.innerHTML = reviews.map(r => `
-                <div style="background: #1a1620; padding: 16px; border-radius: 20px; margin-bottom: 12px;">
-                    <div><strong>${r.fromUserName}</strong> ${'⭐'.repeat(r.rating)}</div>
-                    <div style="margin-top: 8px; color: #a492b0;">${r.comment}</div>
-                    <div style="font-size: 12px; color: #666; margin-top: 8px;">${new Date(r.createdAt).toLocaleDateString()}</div>
-                </div>
-            `).join('');
-        }
-        
-        // Обработчики
-        document.getElementById('favBtn')?.addEventListener('click', async () => {
-            if (!auth.currentUser) { window.location.href = 'index.html'; return; }
-            if (isFavorite) {
-                await removeFromFavorites(listingId);
-            } else {
-                await addToFavorites(listingId);
-            }
-            isFavorite = !isFavorite;
-            document.getElementById('favBtn').textContent = isFavorite ? '❤️ В избранном' : '❤️ В избранное';
-        });
-        
         document.getElementById('chatBtn')?.addEventListener('click', () => {
-            if (!auth.currentUser) { window.location.href = 'index.html'; return; }
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
             window.location.href = `chat.html?sellerId=${listing.sellerId}&listingId=${listing.id}&title=${encodeURIComponent(listing.title)}`;
         });
         
-        document.getElementById('safeBtn')?.addEventListener('click', () => {
-            alert('✅ Куки Доставка: деньги заморожены до получения. Возврат в ПВЗ в течение 14 дней.');
-        });
-        
-        document.getElementById('submitReviewBtn')?.addEventListener('click', async () => {
-            const rating = parseInt(document.getElementById('ratingSelect').value);
-            const comment = document.getElementById('reviewComment').value;
-            if (!comment) { alert('Напишите текст отзыва'); return; }
-            await addReview(listing.sellerId, listingId, rating, comment);
-            alert('Спасибо за отзыв!');
-            await loadProduct();
+        document.getElementById('favBtn')?.addEventListener('click', async () => {
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+            if (isFavorite) {
+                await removeFromFavorites(listingId);
+                document.getElementById('favBtn').innerHTML = '❤️ В избранное';
+            } else {
+                await addToFavorites(listingId);
+                document.getElementById('favBtn').innerHTML = '❤️ В избранном';
+            }
+            isFavorite = !isFavorite;
         });
     }
 </script>
-
 </body>
 </html>
