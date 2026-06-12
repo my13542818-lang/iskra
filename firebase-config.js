@@ -1,13 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { 
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-    RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { 
-    getFirestore, collection, addDoc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, 
-    query, where, orderBy, onSnapshot, increment 
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+// Firebase конфигурация для GitHub Pages (НЕ использует import/export)
+// Подключается через обычные script теги
 
+// Конфигурация Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
     authDomain: "kyki-5e91a.firebaseapp.com",
@@ -18,36 +12,35 @@ const firebaseConfig = {
     measurementId: "G-ETWXCGL9HK"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+// Инициализация Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Сервисы
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Провайдер Google
+const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // Коллекции
 const USERS_COLLECTION = "users";
 const LISTINGS_COLLECTION = "listings";
 const FAVORITES_COLLECTION = "favorites";
-const REVIEWS_COLLECTION = "reviews";
-const REPORTS_COLLECTION = "reports";
-const CHATS_COLLECTION = "chats";
-const MESSAGES_COLLECTION = "messages";
 const ORDERS_COLLECTION = "orders";
-const NOTIFICATIONS_COLLECTION = "notifications";
-const SUPPORT_TICKETS_COLLECTION = "support_tickets";
 
 let currentUser = null;
 
 // ============ АВТОРИЗАЦИЯ ============
-async function signInWithGoogle() {
+window.signInWithGoogle = async function() {
     try {
-        const result = await signInWithPopup(auth, googleProvider);
+        const result = await auth.signInWithPopup(googleProvider);
         const user = result.user;
         
-        const userRef = doc(db, USERS_COLLECTION, user.uid);
-        const userSnap = await getDoc(userRef);
+        const userRef = db.collection(USERS_COLLECTION).doc(user.uid);
+        const userSnap = await userRef.get();
         
-        if (!userSnap.exists()) {
-            await setDoc(userRef, {
+        if (!userSnap.exists) {
+            await userRef.set({
                 uid: user.uid,
                 name: user.displayName,
                 email: user.email,
@@ -61,8 +54,7 @@ async function signInWithGoogle() {
             });
         }
         
-        currentUser = user;
-        localStorage.setItem("currentUser", JSON.stringify({ uid: user.uid, name: user.displayName, email: user.email, photoURL: user.photoURL }));
+        localStorage.setItem("currentUser", JSON.stringify({ uid: user.uid, name: user.displayName }));
         window.location.href = "index.html";
         return true;
     } catch (error) {
@@ -70,44 +62,26 @@ async function signInWithGoogle() {
         alert("Ошибка: " + error.message);
         return false;
     }
-}
+};
 
-async function signOutUser() {
+window.signOutUser = async function() {
     try {
-        await signOut(auth);
-        currentUser = null;
+        await auth.signOut();
         localStorage.removeItem("currentUser");
         window.location.href = "index.html";
     } catch (error) {
         console.error("Ошибка выхода:", error);
     }
-}
+};
+
+window.onAuthStateChanged = function(callback) {
+    return auth.onAuthStateChanged(callback);
+};
 
 // ============ ОБЪЯВЛЕНИЯ ============
-async function addListing(listing) {
-    const user = currentUser || auth.currentUser;
-    if (!user) { alert("Войдите в аккаунт!"); return null; }
+window.getListings = async function(filters = {}) {
     try {
-        const docRef = await addDoc(collection(db, LISTINGS_COLLECTION), {
-            ...listing,
-            sellerId: user.uid,
-            sellerName: user.displayName || user.phoneNumber,
-            sellerPhoto: user.photoURL || "",
-            createdAt: new Date().toISOString(),
-            views: 0,
-            status: "active"
-        });
-        return docRef.id;
-    } catch (error) {
-        console.error("Ошибка добавления:", error);
-        return null;
-    }
-}
-
-async function getListings(filters = {}) {
-    try {
-        const q = query(collection(db, LISTINGS_COLLECTION), where("status", "==", "active"));
-        const snapshot = await getDocs(q);
+        const snapshot = await db.collection(LISTINGS_COLLECTION).where("status", "==", "active").get();
         let listings = [];
         snapshot.forEach(doc => listings.push({ id: doc.id, ...doc.data() }));
         listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -123,76 +97,57 @@ async function getListings(filters = {}) {
         console.error("Ошибка получения:", error);
         return [];
     }
-}
+};
 
-async function getListingById(id) {
+window.getListingById = async function(id) {
     try {
-        const docRef = doc(db, LISTINGS_COLLECTION, id);
-        const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+        const docSnap = await db.collection(LISTINGS_COLLECTION).doc(id).get();
+        return docSnap.exists ? { id: docSnap.id, ...docSnap.data() } : null;
     } catch (error) {
         console.error("Ошибка:", error);
         return null;
     }
-}
+};
 
-async function getUserListings(userId) {
-    try {
-        const q = query(collection(db, LISTINGS_COLLECTION), where("sellerId", "==", userId));
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Ошибка:", error);
-        return [];
-    }
-}
-
-async function deleteListing(id) {
-    try {
-        await deleteDoc(doc(db, LISTINGS_COLLECTION, id));
-        return true;
-    } catch (error) {
-        console.error("Ошибка удаления:", error);
-        return false;
-    }
-}
-
-// ============ ИЗБРАННОЕ ============
-async function addToFavorites(listingId) {
-    const user = currentUser || auth.currentUser;
+window.addToFavorites = async function(listingId) {
+    const user = auth.currentUser;
     if (!user) return false;
     try {
-        await addDoc(collection(db, FAVORITES_COLLECTION), { userId: user.uid, listingId, addedAt: new Date().toISOString() });
+        await db.collection(FAVORITES_COLLECTION).add({
+            userId: user.uid,
+            listingId: listingId,
+            addedAt: new Date().toISOString()
+        });
         return true;
     } catch (error) {
         console.error("Ошибка:", error);
         return false;
     }
-}
+};
 
-async function removeFromFavorites(listingId) {
-    const user = currentUser || auth.currentUser;
+window.removeFromFavorites = async function(listingId) {
+    const user = auth.currentUser;
     if (!user) return false;
     try {
-        const q = query(collection(db, FAVORITES_COLLECTION), where("userId", "==", user.uid), where("listingId", "==", listingId));
-        const snapshot = await getDocs(q);
-        snapshot.forEach(async (doc) => { await deleteDoc(doc.ref); });
+        const snapshot = await db.collection(FAVORITES_COLLECTION)
+            .where("userId", "==", user.uid)
+            .where("listingId", "==", listingId).get();
+        snapshot.forEach(async (doc) => { await doc.ref.delete(); });
         return true;
     } catch (error) {
         console.error("Ошибка:", error);
         return false;
     }
-}
+};
 
-async function getFavorites() {
-    const user = currentUser || auth.currentUser;
+window.getFavorites = async function() {
+    const user = auth.currentUser;
     if (!user) return [];
     try {
-        const q = query(collection(db, FAVORITES_COLLECTION), where("userId", "==", user.uid));
-        const snapshot = await getDocs(q);
+        const snapshot = await db.collection(FAVORITES_COLLECTION).where("userId", "==", user.uid).get();
         const favorites = [];
         for (const favDoc of snapshot.docs) {
-            const listing = await getListingById(favDoc.data().listingId);
+            const listing = await window.getListingById(favDoc.data().listingId);
             if (listing) favorites.push(listing);
         }
         return favorites;
@@ -200,36 +155,6 @@ async function getFavorites() {
         console.error("Ошибка:", error);
         return [];
     }
-}
-
-// ============ ЗАКАЗЫ ============
-async function createOrder(orderData) {
-    const user = currentUser || auth.currentUser;
-    if (!user) return null;
-    try {
-        const orderRef = await addDoc(collection(db, ORDERS_COLLECTION), {
-            ...orderData,
-            buyerId: user.uid,
-            buyerName: user.displayName || user.phoneNumber,
-            status: "pending",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        });
-        return orderRef.id;
-    } catch (error) {
-        console.error("Ошибка создания заказа:", error);
-        return null;
-    }
-}
-
-// ============ ЭКСПОРТ ============
-export {
-    auth, db,
-    collection, addDoc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, increment,
-    signInWithGoogle, signOutUser, onAuthStateChanged,
-    RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider,
-    addListing, getListings, getListingById, getUserListings, deleteListing,
-    addToFavorites, removeFromFavorites, getFavorites,
-    createOrder,
-    USERS_COLLECTION, LISTINGS_COLLECTION, FAVORITES_COLLECTION, ORDERS_COLLECTION
 };
+
+console.log("✅ Firebase загружен (GitHub Pages версия)");
