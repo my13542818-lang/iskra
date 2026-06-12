@@ -18,7 +18,6 @@
             min-height: 100vh;
         }
         
-        /* Анимированный фон */
         body::before {
             content: '';
             position: fixed;
@@ -37,7 +36,6 @@
             50% { opacity: 1; }
         }
         
-        /* Хедер */
         .header {
             background: rgba(11,11,14,0.95);
             backdrop-filter: blur(10px);
@@ -74,10 +72,9 @@
             text-shadow: 0 0 20px rgba(255,59,47,0.5);
         }
         
-        /* КРАСИВЫЙ ПОИСК КАК В АВИРОНЕ */
         .search-wrapper {
             flex: 1;
-            max-width: 600px;
+            max-width: 500px;
             position: relative;
         }
         
@@ -108,11 +105,6 @@
             display: flex;
             align-items: center;
             color: #a492b0;
-            transition: color 0.3s ease;
-        }
-        
-        .search-input-wrapper:focus-within .search-icon {
-            color: #ff6b4a;
         }
         
         .search-input {
@@ -127,7 +119,6 @@
         
         .search-input::placeholder {
             color: #6b6b7a;
-            font-weight: 400;
         }
         
         .search-clear {
@@ -138,12 +129,10 @@
             cursor: pointer;
             font-size: 18px;
             display: none;
-            transition: all 0.3s ease;
         }
         
         .search-clear:hover {
             color: #ff6b4a;
-            transform: scale(1.1);
         }
         
         .search-button {
@@ -167,77 +156,6 @@
             box-shadow: 0 4px 15px rgba(255,59,47,0.4);
         }
         
-        /* Подсказки поиска */
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: rgba(15,14,19,0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            margin-top: 12px;
-            border: 1px solid rgba(255,107,74,0.2);
-            overflow: hidden;
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-        
-        .search-suggestions.show {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-        
-        .suggestion-section {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .suggestion-header {
-            padding: 12px 16px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #a492b0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .suggestion-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .suggestion-item:hover {
-            background: rgba(255,107,74,0.1);
-        }
-        
-        .suggestion-icon {
-            font-size: 16px;
-            color: #a492b0;
-        }
-        
-        .suggestion-text {
-            flex: 1;
-            font-size: 14px;
-            color: #ededee;
-        }
-        
-        .suggestion-count {
-            font-size: 12px;
-            color: #a492b0;
-            background: rgba(255,255,255,0.05);
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-        
-        /* Быстрые категории */
         .search-categories {
             display: flex;
             gap: 8px;
@@ -263,7 +181,6 @@
             transform: translateY(-1px);
         }
         
-        /* Кнопки */
         .btn {
             padding: 8px 18px;
             border-radius: 40px;
@@ -321,7 +238,6 @@
             box-shadow: 0 0 15px rgba(42,122,75,0.5);
         }
         
-        /* Фильтры */
         .filters {
             background: rgba(12,11,16,0.9);
             backdrop-filter: blur(8px);
@@ -389,7 +305,6 @@
             transform: scale(0.98);
         }
         
-        /* Боковой фильтр */
         .sidebar-filter {
             width: 280px;
             flex-shrink: 0;
@@ -404,12 +319,6 @@
             border-radius: 20px;
             border: 1px solid rgba(255,107,74,0.15);
             overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-card:hover {
-            border-color: rgba(255,107,74,0.3);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
         }
         
         .filter-header {
@@ -425,7 +334,6 @@
             font-weight: 700;
             color: #a492b0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .filter-category-list {
@@ -453,15 +361,12 @@
         
         .filter-category-icon {
             font-size: 20px;
-            line-height: 1;
-            flex-shrink: 0;
         }
         
         .filter-category-name {
             flex: 1;
             font-size: 14px;
             color: #a492b0;
-            transition: color 0.3s ease;
         }
         
         .filter-category-item:hover .filter-category-name {
@@ -470,12 +375,10 @@
         
         .filter-category-count {
             font-size: 12px;
-            font-weight: 500;
             color: #a492b0;
             background: rgba(255,255,255,0.05);
             padding: 2px 8px;
             border-radius: 20px;
-            flex-shrink: 0;
         }
         
         .filter-category-item.active {
@@ -488,7 +391,6 @@
             font-weight: 500;
         }
         
-        /* Рекомендации */
         .recommendations-section {
             margin-bottom: 30px;
         }
@@ -552,7 +454,6 @@
             margin-top: 4px;
         }
         
-        /* Основная лента */
         .main-layout {
             display: flex;
             gap: 24px;
@@ -592,7 +493,6 @@
             font-size: 60px;
             overflow: hidden;
             transition: all 0.3s ease;
-            position: relative;
         }
         
         .listing-card:hover .listing-img {
@@ -632,7 +532,6 @@
             flex-wrap: wrap;
         }
         
-        /* Кнопки объявления (позвонить/написать) */
         .listing-actions {
             display: flex;
             gap: 10px;
@@ -679,7 +578,6 @@
             border-radius: 32px;
         }
         
-        /* Футер */
         .footer {
             background: rgba(11,11,14,0.95);
             backdrop-filter: blur(10px);
@@ -713,7 +611,6 @@
             text-decoration: none;
             line-height: 1.8;
             display: block;
-            transition: all 0.3s ease;
         }
         
         .footer-section a:hover {
@@ -730,64 +627,24 @@
             font-size: 12px;
         }
         
-        /* Адаптив */
         @media (max-width: 1024px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .sidebar-filter {
-                width: 100%;
-            }
-            .filter-category-list {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                padding: 12px;
-            }
-            .filter-category-item {
-                width: auto;
-                padding: 8px 16px;
-                border-radius: 40px;
-                background: rgba(255,255,255,0.05);
-            }
-            .filter-category-item.active {
-                background: linear-gradient(95deg, #b52b1a, #8a1c50);
-            }
-            .filter-category-item.active .filter-category-name {
-                color: white;
-            }
+            .main-layout { flex-direction: column; }
+            .sidebar-filter { width: 100%; }
+            .filter-category-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+            .filter-category-item { width: auto; padding: 8px 16px; border-radius: 40px; background: rgba(255,255,255,0.05); }
+            .filter-category-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); }
+            .filter-category-item.active .filter-category-name { color: white; }
         }
         
         @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                text-align: center;
-            }
-            .search-wrapper {
-                max-width: 100%;
-                width: 100%;
-            }
-            .user-actions {
-                justify-content: center;
-            }
-            .listings-grid {
-                grid-template-columns: 1fr;
-            }
+            .header-container { flex-direction: column; text-align: center; }
+            .search-wrapper { max-width: 100%; width: 100%; }
+            .user-actions { justify-content: center; }
+            .listings-grid { grid-template-columns: 1fr; }
         }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        
-        .user-avatar-small {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         
         .user-dropdown {
             position: absolute;
@@ -809,18 +666,10 @@
             cursor: pointer;
             text-decoration: none;
             color: white;
-            transition: all 0.3s ease;
         }
         
-        .dropdown-item:hover {
-            background: #1a1620;
-        }
-        
-        .dropdown-divider {
-            height: 1px;
-            background: #2d1e32;
-            margin: 4px 0;
-        }
+        .dropdown-item:hover { background: #1a1620; }
+        .dropdown-divider { height: 1px; background: #2d1e32; margin: 4px 0; }
     </style>
 </head>
 <body>
@@ -838,26 +687,10 @@
                     </div>
                     <input type="text" class="search-input" id="searchInput" placeholder="Найти товары, услуги и мастеров..." autocomplete="off">
                     <button class="search-clear" id="searchClearBtn" style="display: none;">✕</button>
-                    <button class="search-button" id="searchBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        Найти
-                    </button>
+                    <button class="search-button" id="searchBtn">Найти</button>
                 </div>
                 
-                <div class="search-suggestions" id="searchSuggestions">
-                    <div class="suggestion-section" id="recentSearchesSection" style="display: none;">
-                        <div class="suggestion-header">🔍 Недавние запросы</div>
-                        <div id="recentSearchesList"></div>
-                    </div>
-                    <div class="suggestion-section">
-                        <div class="suggestion-header">🔥 Популярные запросы</div>
-                        <div id="popularSearchesList"></div>
-                    </div>
-                </div>
-                
-                <div class="search-categories" id="quickCategories">
+                <div class="search-categories">
                     <span class="search-category-chip" data-cat="электроника">📱 Электроника</span>
                     <span class="search-category-chip" data-cat="одежда">👕 Одежда</span>
                     <span class="search-category-chip" data-cat="авто">🚗 Авто</span>
@@ -881,12 +714,11 @@
 </div>
 
 <div class="main-layout">
-    <!-- БОКОВОЙ ФИЛЬТР -->
     <aside class="sidebar-filter">
         <div class="filter-card">
             <div class="filter-header">
                 <span class="filter-title">📂 Категории</span>
-                <span class="filter-link">Все · <span id="totalListingsCount">0</span></span>
+                <span>Все · <span id="totalListingsCount">0</span></span>
             </div>
             <div class="filter-category-list">
                 <button class="filter-category-item active" data-cat="all">
@@ -943,44 +775,24 @@
         </div>
     </aside>
     
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main style="flex: 1; min-width: 0;">
-        <!-- Рекомендации под вас -->
         <div class="recommendations-section" id="recommendationsSection" style="display: none;">
             <div class="section-title">🎯 Рекомендации под вас</div>
             <div class="recommendations-grid" id="recommendationsGrid"></div>
         </div>
         
-        <!-- Лента объявлений -->
         <div id="listingsContainer" class="listings-grid"></div>
     </main>
 </div>
 
 <div class="footer">
     <div class="footer-container">
-        <div class="footer-section">
-            <h4>🍪 КУКИ</h4>
-            <p>Доска объявлений<br>Покупайте и продавайте<br>безопасно и удобно</p>
-        </div>
-        <div class="footer-section">
-            <h4>📞 Контакты</h4>
-            <p>Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p>
-            <p>Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p>
-        </div>
-        <div class="footer-section">
-            <h4>📜 Документы</h4>
-            <a href="#" id="offerLink">📄 Договор оферты</a>
-            <a href="#" id="privacyLink">🔒 Политика конфиденциальности</a>
-        </div>
-        <div class="footer-section">
-            <h4>💰 Реквизиты</h4>
-            <p>Самозанятая Вагина Нина Васильевна</p>
-            <p>ИНН: 233501711069</p>
-        </div>
+        <div class="footer-section"><h4>🍪 КУКИ</h4><p>Доска объявлений<br>Покупайте и продавайте<br>безопасно и удобно</p></div>
+        <div class="footer-section"><h4>📞 Контакты</h4><p>Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p><p>Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p></div>
+        <div class="footer-section"><h4>📜 Документы</h4><a href="offer.html">📄 Договор оферты</a><a href="privacy.html">🔒 Политика конфиденциальности</a></div>
+        <div class="footer-section"><h4>💰 Реквизиты</h4><p>Самозанятая Вагина Нина Васильевна<br>ИНН: 233501711069</p></div>
     </div>
-    <div class="footer-bottom">
-        <p>© 2024-2025 Куки. Все права защищены.</p>
-    </div>
+    <div class="footer-bottom"><p>© 2024-2025 Куки. Все права защищены.</p></div>
 </div>
 
 <script>
@@ -1000,137 +812,25 @@
     const db = firebase.firestore();
     
     let currentUser = null;
-    let userBalance = 0;
     let allListings = [];
+    let viewHistory = JSON.parse(localStorage.getItem('viewHistory') || '[]');
     
-    // Популярные запросы
-    const popularSearches = [
-        { query: 'iPhone', count: '15.2K' },
-        { query: 'Samsung', count: '12.8K' },
-        { query: 'Квартира', count: '9.4K' },
-        { query: 'Ноутбук', count: '8.1K' },
-        { query: 'Авто', count: '7.6K' }
-    ];
-    
-    let recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
-    
-    function saveRecentSearch(query) {
-        if (!query.trim()) return;
-        recentSearches = recentSearches.filter(s => s !== query);
-        recentSearches.unshift(query);
-        if (recentSearches.length > 5) recentSearches.pop();
-        localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    function saveToHistory(id) {
+        viewHistory = [id, ...viewHistory.filter(i => i !== id)].slice(0, 10);
+        localStorage.setItem('viewHistory', JSON.stringify(viewHistory));
     }
     
-    function renderPopularSearches() {
-        const container = document.getElementById('popularSearchesList');
-        container.innerHTML = popularSearches.map(item => `
-            <div class="suggestion-item trending" data-suggestion="${item.query}">
-                <span class="suggestion-icon">🔥</span>
-                <span class="suggestion-text">${item.query}</span>
-                <span class="suggestion-count">${item.count}</span>
-            </div>
-        `).join('');
-    }
-    
-    function renderRecentSearches() {
-        const section = document.getElementById('recentSearchesSection');
-        const container = document.getElementById('recentSearchesList');
-        if (recentSearches.length === 0) {
-            section.style.display = 'none';
-            return;
-        }
-        section.style.display = 'block';
-        container.innerHTML = recentSearches.map(s => `
-            <div class="suggestion-item history" data-suggestion="${s}">
-                <span class="suggestion-icon">🕐</span>
-                <span class="suggestion-text">${escapeHtml(s)}</span>
-            </div>
-        `).join('');
-    }
-    
-    function showSuggestions() {
-        renderRecentSearches();
-        renderPopularSearches();
-        document.getElementById('searchSuggestions').classList.add('show');
-    }
-    
-    // Поиск
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const searchClearBtn = document.getElementById('searchClearBtn');
-    
-    searchInput.addEventListener('input', () => {
-        searchClearBtn.style.display = searchInput.value.length > 0 ? 'block' : 'none';
-        showSuggestions();
-    });
-    
-    searchInput.addEventListener('focus', () => showSuggestions());
-    searchClearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        searchClearBtn.style.display = 'none';
-        loadListings();
-    });
-    
-    searchBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        if (query) saveRecentSearch(query);
-        document.getElementById('searchSuggestions').classList.remove('show');
-        loadListings();
-    });
-    
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const query = searchInput.value.trim();
-            if (query) saveRecentSearch(query);
-            document.getElementById('searchSuggestions').classList.remove('show');
-            loadListings();
-        }
-    });
-    
-    document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target) && !document.getElementById('searchSuggestions').contains(e.target)) {
-            document.getElementById('searchSuggestions').classList.remove('show');
-        }
-    });
-    
-    document.getElementById('searchSuggestions').addEventListener('click', (e) => {
-        const item = e.target.closest('[data-suggestion]');
-        if (item) {
-            const suggestion = item.dataset.suggestion;
-            searchInput.value = suggestion;
-            saveRecentSearch(suggestion);
-            document.getElementById('searchSuggestions').classList.remove('show');
-            loadListings();
-        }
-    });
-    
-    document.querySelectorAll('.search-category-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const category = chip.dataset.cat;
-            document.getElementById('categoryFilter').value = category;
-            searchInput.value = category;
-            saveRecentSearch(category);
-            loadListings();
-        });
-    });
-    
-    // Авторизация
     auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = "login.html";
-            return;
-        }
-        
+        if (!user) { window.location.href = "login.html"; return; }
         currentUser = user;
+        
         const userDoc = await db.collection("users").doc(user.uid).get();
-        userBalance = userDoc.data()?.balance || 0;
+        const balance = userDoc.data()?.balance || 0;
         
         document.getElementById('userActions').innerHTML = `
-            <div class="balance-badge" id="balanceBtn">💰 ${userBalance.toLocaleString()} ₽</div>
+            <div class="balance-badge" id="balanceBtn">💰 ${balance.toLocaleString()} ₽</div>
             <a href="cart.html" class="btn">🛒 Корзина</a>
             <a href="wallet.html" class="btn">💳 Кошелёк</a>
-            <a href="promotion.html" class="btn">🚀 Продвижение</a>
             <div class="user-info" id="userMenuBtn">
                 <img src="${user.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar-small">
                 <span>${user.displayName?.split(' ')[0] || 'User'}</span>
@@ -1142,13 +842,12 @@
         
         await loadListings();
         await updateCategoryCounts();
-        await loadRecommendations();
+        loadRecommendations();
     });
     
     function showUserDropdown() {
         const existing = document.querySelector('.user-dropdown');
         if (existing) { existing.remove(); return; }
-        
         const dropdown = document.createElement('div');
         dropdown.className = 'user-dropdown';
         dropdown.innerHTML = `
@@ -1159,7 +858,6 @@
         `;
         document.body.appendChild(dropdown);
         document.getElementById('dropdownLogout').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        
         setTimeout(() => {
             document.addEventListener('click', function remove(e) {
                 if (!dropdown.contains(e.target) && !e.target.closest('#userMenuBtn')) {
@@ -1171,12 +869,12 @@
     }
     
     async function loadListings() {
-        const category = document.getElementById('categoryFilter')?.value || 'all';
+        const category = document.querySelector('.filter-category-item.active')?.dataset.cat || 'all';
         const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
         const condition = document.getElementById('conditionFilter')?.value || 'all';
         const location = document.getElementById('locationFilter')?.value || '';
         const minRating = parseInt(document.getElementById('ratingFilter')?.value) || 0;
-        const search = searchInput.value.trim();
+        const search = document.getElementById('searchInput')?.value.trim();
         
         let query = db.collection("listings").where("status", "==", "active");
         const snapshot = await query.get();
@@ -1217,19 +915,21 @@
         `).join('');
         
         document.querySelectorAll('.listing-card').forEach(card => {
-            card.addEventListener('click', () => window.location.href = `product.html?id=${card.dataset.id}`);
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.action-btn')) {
+                    saveToHistory(card.dataset.id);
+                    window.location.href = `product.html?id=${card.dataset.id}`;
+                }
+            });
         });
     }
     
-    async function loadRecommendations() {
-        // Рекомендации на основе просмотров
-        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
-        if (history.length === 0) {
+    function loadRecommendations() {
+        if (viewHistory.length === 0) {
             document.getElementById('recommendationsSection').style.display = 'none';
             return;
         }
-        
-        const lastViewed = history[history.length - 1];
+        const lastViewed = viewHistory[0];
         const lastItem = allListings.find(l => l.id === lastViewed);
         if (lastItem && lastItem.category) {
             const similar = allListings.filter(l => l.category === lastItem.category && l.id !== lastViewed).slice(0, 6);
@@ -1244,8 +944,6 @@
                         </div>
                     </div>
                 `).join('');
-            } else {
-                document.getElementById('recommendationsSection').style.display = 'none';
             }
         }
     }
@@ -1253,7 +951,6 @@
     async function updateCategoryCounts() {
         const snapshot = await db.collection("listings").where("status", "==", "active").get();
         const listings = snapshot.docs.map(doc => doc.data());
-        
         const counts = {
             all: listings.length,
             электроника: listings.filter(l => l.category === 'электроника').length,
@@ -1266,7 +963,6 @@
             игрушки: listings.filter(l => l.category === 'игрушки').length,
             услуги: listings.filter(l => l.category === 'услуги').length
         };
-        
         document.getElementById('allCount').textContent = counts.all;
         document.getElementById('electronicsCount').textContent = counts.электроника;
         document.getElementById('clothingCount').textContent = counts.одежда;
@@ -1280,14 +976,19 @@
         document.getElementById('totalListingsCount').textContent = counts.all;
     }
     
-    // Обработчики категорий
     document.querySelectorAll('.filter-category-item').forEach(item => {
         item.addEventListener('click', () => {
-            const category = item.dataset.cat;
             document.querySelectorAll('.filter-category-item').forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-            document.getElementById('categoryFilter').value = category;
             loadListings();
+        });
+    });
+    
+    document.querySelectorAll('.search-category-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const category = chip.dataset.cat;
+            const categoryBtn = Array.from(document.querySelectorAll('.filter-category-item')).find(btn => btn.dataset.cat === category);
+            if (categoryBtn) categoryBtn.click();
         });
     });
     
@@ -1296,11 +997,20 @@
         document.getElementById('conditionFilter').value = 'all';
         document.getElementById('locationFilter').value = '';
         document.getElementById('ratingFilter').value = '0';
-        searchInput.value = '';
-        document.getElementById('categoryFilter').value = 'all';
-        document.querySelectorAll('.filter-category-item').forEach(i => i.classList.remove('active'));
-        document.querySelector('.filter-category-item[data-cat="all"]').classList.add('active');
+        document.getElementById('searchInput').value = '';
+        document.querySelector('.filter-category-item[data-cat="all"]').click();
         loadListings();
+    });
+    
+    document.getElementById('searchBtn').addEventListener('click', () => loadListings());
+    document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
+    document.getElementById('searchClearBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
+        loadListings();
+    });
+    document.getElementById('searchInput').addEventListener('input', () => {
+        document.getElementById('searchClearBtn').style.display = document.getElementById('searchInput').value.length > 0 ? 'block' : 'none';
     });
     
     document.getElementById('priceFilter').addEventListener('input', loadListings);
@@ -1308,14 +1018,7 @@
     document.getElementById('locationFilter').addEventListener('input', loadListings);
     document.getElementById('ratingFilter').addEventListener('change', loadListings);
     
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-    }
-    
-    // Документы
-    document.getElementById('offerLink').onclick = (e) => { e.preventDefault(); window.open('offer.html', '_blank'); };
-    document.getElementById('privacyLink').onclick = (e) => { e.preventDefault(); window.open('privacy.html', '_blank'); };
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 </script>
 </body>
 </html>
