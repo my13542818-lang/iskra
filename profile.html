@@ -13,7 +13,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #0a0a0c; color: #ededee; }
         
-        /* Хедер */
         .header { background: rgba(11,11,14,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(42,26,44,0.5); position: sticky; top: 0; z-index: 100; }
         .header-container { max-width: 1400px; margin: 0 auto; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
@@ -21,13 +20,11 @@
         .btn-primary { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,74,0.4); }
         
-        /* Основной контент */
         .profile-container { max-width: 1400px; margin: 30px auto; padding: 0 24px; }
         .profile-layout { display: flex; gap: 30px; flex-wrap: wrap; }
         .profile-sidebar { width: 280px; flex-shrink: 0; }
         .profile-content { flex: 1; min-width: 0; }
         
-        /* Боковое меню */
         .profile-menu { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); overflow: hidden; position: sticky; top: 90px; }
         .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: all 0.3s ease; border-left: 3px solid transparent; color: #a492b0; }
         .menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
@@ -35,7 +32,6 @@
         .menu-icon { font-size: 20px; width: 28px; }
         .menu-text { font-size: 14px; font-weight: 500; }
         
-        /* Карточки контента */
         .content-card { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); padding: 28px; margin-bottom: 24px; }
         .content-card h2 { font-size: 22px; margin-bottom: 24px; color: #ffcfbf; display: flex; align-items: center; gap: 10px; }
         .form-row { margin-bottom: 20px; }
@@ -47,12 +43,10 @@
         .stat-value { font-size: 32px; font-weight: 800; color: #ff6b4a; }
         .stat-label { font-size: 12px; color: #a492b0; margin-top: 8px; }
         
-        /* Аватар */
         .avatar-section { text-align: center; margin-bottom: 24px; }
         .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #ff6b4a; margin: 0 auto 12px; overflow: hidden; cursor: pointer; }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Таблицы */
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -61,7 +55,6 @@
         .status-active { background: #2a7a4b; }
         .status-pending { background: #f0ad4e; color: #000; }
         
-        /* Пустое состояние */
         .empty-state { text-align: center; padding: 40px; color: #a492b0; }
         
         .user-info { display: flex; align-items: center; gap: 10px; }
@@ -109,23 +102,7 @@
                 </div>
                 <div class="menu-item" data-tab="orders">
                     <span class="menu-icon">📦</span>
-                    <span class="menu-text">Мои сделки и заказы</span>
-                </div>
-                <div class="menu-item" data-tab="posts">
-                    <span class="menu-icon">📝</span>
-                    <span class="menu-text">Мои посты</span>
-                </div>
-                <div class="menu-item" data-tab="stories">
-                    <span class="menu-icon">🎬</span>
-                    <span class="menu-text">Мои истории</span>
-                </div>
-                <div class="menu-item" data-tab="bookings">
-                    <span class="menu-icon">📅</span>
-                    <span class="menu-text">Мои бронирования</span>
-                </div>
-                <div class="menu-item" data-tab="subscriptions">
-                    <span class="menu-icon">🔔</span>
-                    <span class="menu-text">Мои подписки</span>
+                    <span class="menu-text">Сделки и заказы</span>
                 </div>
                 <div class="menu-item" data-tab="wallet">
                     <span class="menu-icon">💰</span>
@@ -147,21 +124,9 @@
                     <span class="menu-icon">🕐</span>
                     <span class="menu-text">История просмотров</span>
                 </div>
-                <div class="menu-item" data-tab="crm">
-                    <span class="menu-icon">🔌</span>
-                    <span class="menu-text">CRM и интеграции</span>
-                </div>
-                <div class="menu-item" data-tab="auto-upload">
-                    <span class="menu-icon">📤</span>
-                    <span class="menu-text">Автозагрузка</span>
-                </div>
-                <div class="menu-item" data-tab="voting">
-                    <span class="menu-icon">🗳️</span>
-                    <span class="menu-text">Народное голосование</span>
-                </div>
-                <div class="menu-item" data-tab="docs">
-                    <span class="menu-icon">📄</span>
-                    <span class="menu-text">Документы</span>
+                <div class="menu-item" data-tab="blacklist">
+                    <span class="menu-icon">🚫</span>
+                    <span class="menu-text">Чёрный список</span>
                 </div>
                 <div class="menu-item" data-tab="settings">
                     <span class="menu-icon">⚙️</span>
@@ -256,38 +221,6 @@
                 </div>
             </div>
             
-            <!-- Мои посты -->
-            <div id="postsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📝 Мои посты</h2>
-                    <div class="empty-state">Нет постов. Создайте первый пост!</div>
-                </div>
-            </div>
-            
-            <!-- Мои истории -->
-            <div id="storiesTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🎬 Мои истории</h2>
-                    <div class="empty-state">Нет историй. Добавьте первую историю!</div>
-                </div>
-            </div>
-            
-            <!-- Мои бронирования -->
-            <div id="bookingsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📅 Мои бронирования</h2>
-                    <div class="empty-state">Нет активных бронирований</div>
-                </div>
-            </div>
-            
-            <!-- Мои подписки -->
-            <div id="subscriptionsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🔔 Мои подписки</h2>
-                    <div class="empty-state">Вы ни на что не подписаны</div>
-                </div>
-            </div>
-            
             <!-- Мой кошелёк -->
             <div id="walletTab" class="tab-content">
                 <div class="content-card">
@@ -351,44 +284,12 @@
                 </div>
             </div>
             
-            <!-- CRM и интеграции -->
-            <div id="crmTab" class="tab-content">
+            <!-- Чёрный список -->
+            <div id="blacklistTab" class="tab-content">
                 <div class="content-card">
-                    <h2>🔌 CRM и интеграции</h2>
-                    <div class="form-row"><label>API ключ</label><input type="text" id="apiKey" readonly value="Сгенерируйте ключ в настройках"></div>
-                    <button class="btn-primary" id="generateApiBtn">🔑 Сгенерировать API ключ</button>
-                </div>
-            </div>
-            
-            <!-- Автозагрузка -->
-            <div id="autoUploadTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📤 Автозагрузка</h2>
-                    <div class="form-row"><label>Ссылка на XML фид</label><input type="url" id="feedUrl" placeholder="https://example.com/feed.xml"></div>
-                    <button class="btn-primary" id="saveFeedBtn">💾 Сохранить</button>
-                </div>
-            </div>
-            
-            <!-- Народное голосование -->
-            <div id="votingTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🗳️ Народное голосование</h2>
-                    <div class="empty-state">Активных голосований нет</div>
-                </div>
-            </div>
-            
-            <!-- Документы -->
-            <div id="docsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📄 Документы</h2>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <a href="#" id="offerLink" style="color: #ff6b4a;">📜 Правила АВИРОНА</a>
-                        <a href="#" id="offerServiceLink" style="color: #ff6b4a;">📄 Оферта на оказание услуг</a>
-                        <a href="#" id="licenseLink" style="color: #ff6b4a;">📑 Лицензионное соглашение</a>
-                        <a href="#" id="privacyLink" style="color: #ff6b4a;">🔒 Политика конфиденциальности</a>
-                        <a href="#" id="recommendLink" style="color: #ff6b4a;">🤖 Рекомендательные технологии</a>
-                        <a href="#" id="consentLink" style="color: #ff6b4a;">✅ Согласие на обработку данных</a>
-                    </div>
+                    <h2>🚫 Чёрный список</h2>
+                    <div class="empty-state">Нет заблокированных пользователей</div>
+                    <button class="btn-primary" id="blockUserBtn">➕ Заблокировать пользователя</button>
                 </div>
             </div>
             
@@ -603,7 +504,7 @@
         if (snapshot.empty) {
             container.innerHTML = '<div class="empty-state">Нет избранных объявлений</div>';
         } else {
-            container.innerHTML = snapshot.docs.map(doc => `<div class="favorite-item">Избранное #${doc.id}</div>`).join('');
+            container.innerHTML = '<div class="empty-state">Избранные объявления будут здесь</div>';
         }
     }
     
@@ -625,18 +526,12 @@
     
     document.getElementById('clearHistoryBtn').onclick = () => { localStorage.removeItem('viewHistory'); loadHistory(); alert('История очищена'); };
     
-    document.getElementById('generateApiBtn').onclick = () => {
-        const key = 'kuki_' + Math.random().toString(36).substring(2, 15);
-        document.getElementById('apiKey').value = key;
-        alert('API ключ сгенерирован: ' + key);
-    };
-    
     document.getElementById('enableDeliveryBtn').onclick = () => alert('✅ Доставка через ПВЗ включена для всех объявлений');
     document.getElementById('disableDeliveryBtn').onclick = () => alert('❌ Доставка отключена');
-    
-    // Документы (оферта)
-    document.getElementById('offerLink').onclick = (e) => { e.preventDefault(); window.open('offer.html', '_blank'); };
-    document.getElementById('privacyLink').onclick = (e) => { e.preventDefault(); window.open('privacy.html', '_blank'); };
+    document.getElementById('blockUserBtn').onclick = () => {
+        const userId = prompt('Введите ID пользователя для блокировки:');
+        if (userId) alert(`Пользователь ${userId} добавлен в чёрный список`);
+    };
     
     document.getElementById('logoutAllBtn').onclick = async () => { await auth.signOut(); window.location.href = "login.html"; };
     document.getElementById('deleteAccountBtn').onclick = async () => { if(confirm('Удалить аккаунт навсегда?')) { await currentUser.delete(); window.location.href = "login.html"; } };
