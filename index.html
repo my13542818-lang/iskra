@@ -4,90 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Куки — доска объявлений</title>
+    
+    <!-- Firebase SDK (через CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Конфигурация Firebase -->
+    <script src="firebase-config.js"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; min-height: 100vh; display: flex; flex-direction: column; }
         
-        body { background: #0a0a0c; color: #ededee; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e1a1f; }
-        ::-webkit-scrollbar-thumb { background: #c53a1f; border-radius: 8px; }
-        
-        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(2px); }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; position: sticky; top: 0; z-index: 100; }
         .header-container { max-width: 1200px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; }
-        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; letter-spacing: -1px; }
+        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
         
-        .search-wrapper { flex: 1; max-width: 500px; margin: 0 auto; position: relative; }
-        .search-bar { display: flex; gap: 8px; background: #121114; border: 1px solid #2f2332; border-radius: 60px; padding: 4px 4px 4px 18px; transition: 0.2s; }
-        .search-bar:focus-within { border-color: #d43c1c; box-shadow: 0 0 0 2px rgba(212, 60, 28, 0.3); }
+        .search-wrapper { flex: 1; max-width: 500px; margin: 0 auto; }
+        .search-bar { display: flex; gap: 8px; background: #121114; border: 1px solid #2f2332; border-radius: 60px; padding: 4px 4px 4px 18px; }
         .search-bar input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 15px; padding: 10px 0; }
-        .search-bar input::placeholder { color: #666; text-align: center; }
-        .search-bar button { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; padding: 8px 24px; border-radius: 60px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .search-bar button:hover { background: linear-gradient(95deg, #ce3a26, #a12460); transform: scale(0.97); }
+        .search-bar button { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; padding: 8px 24px; border-radius: 60px; color: white; cursor: pointer; font-weight: bold; }
         
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: #f0e6f0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: 0.2s; }
-        .btn:hover { background: #1a1620; transform: translateY(-1px); }
-        .btn-primary { background: #ac2f3a; border-color: #d44545; color: white; box-shadow: 0 2px 8px rgba(180, 40, 70, 0.4); }
-        .btn-primary:hover { background: #c13a44; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; color: white; }
         
         .user-actions { display: flex; align-items: center; gap: 10px; }
-        .user-info { display: flex; align-items: center; gap: 10px; background: #121114; padding: 5px 12px 5px 8px; border-radius: 40px; border: 1px solid #2f2332; cursor: pointer; transition: 0.2s; }
-        .user-info:hover { background: #1a1620; border-color: #c53a1f; }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #c53a1f; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .user-name { font-size: 13px; font-weight: 500; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .user-info { display: flex; align-items: center; gap: 10px; background: #121114; padding: 5px 12px 5px 8px; border-radius: 40px; cursor: pointer; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; }
         
-        .user-dropdown { position: absolute; top: 60px; right: 20px; background: #0f0e13; border: 1px solid #2d1e32; border-radius: 20px; width: 220px; z-index: 200; overflow: hidden; }
-        .dropdown-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; text-decoration: none; color: white; }
-        .dropdown-item:hover { background: #1a1620; }
-        .dropdown-divider { height: 1px; background: #2d1e32; margin: 4px 0; }
-        
-        .filters { background: #0c0b10f2; backdrop-filter: blur(8px); border-bottom: 1px solid #291e2c; padding: 10px 20px; position: sticky; top: 70px; z-index: 99; overflow-x: auto; }
+        .filters { background: #0c0b10f2; border-bottom: 1px solid #291e2c; padding: 10px 20px; position: sticky; top: 70px; z-index: 99; overflow-x: auto; }
         .filters-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         .filter-group { display: inline-flex; align-items: center; gap: 6px; background: #18141c; padding: 6px 14px; border-radius: 40px; border: 1px solid #3a253e; }
         .filter-group span { font-size: 12px; color: #ffcfbf; }
-        .filter-group select, .filter-group input { background: transparent; border: none; color: white; padding: 5px 0; outline: none; cursor: pointer; font-size: 12px; }
-        .filter-group option { background: #1a1620; }
+        .filter-group select, .filter-group input { background: transparent; border: none; color: white; padding: 5px 0; outline: none; font-size: 12px; }
         
         .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; flex: 1; }
         .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; cursor: pointer; transition: 0.2s; }
-        .listing-card:hover { border-color: #b6474a; transform: translateY(-3px); background: #131118; }
+        .listing-card:hover { border-color: #b6474a; transform: translateY(-3px); }
         .listing-img { height: 170px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; overflow: hidden; }
-        .listing-img img { width: 100%; height: 100%; object-fit: cover; }
         .listing-info { padding: 12px; }
         .listing-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; color: #ffddd3; }
-        .listing-price { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #ff6b4a, #d94f8a); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 6px 0; }
-        .listing-meta { display: flex; gap: 12px; font-size: 11px; color: #a492b0; margin-bottom: 8px; flex-wrap: wrap; }
-        .card-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; transition: 0.2s; }
-        .small-btn:hover { background: #2a1f36; border-color: #b6474a; }
-        .small-btn.fav-active { background: #b52b2b; border-color: #ff7b5c; }
+        .listing-price { font-size: 20px; font-weight: 800; color: #ff6b4a; margin: 6px 0; }
+        .card-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; }
+        .small-btn.fav-active { background: #b52b2b; }
         
         .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
         
         .footer { background: #0b0b0e; border-top: 1px solid #2a1a2c; padding: 30px 20px; margin-top: 40px; }
         .footer-container { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; }
         .footer-section { flex: 1; min-width: 200px; }
-        .footer-section h4 { color: #ffcfbf; margin-bottom: 15px; font-size: 16px; }
-        .footer-section p, .footer-section a { color: #a492b0; font-size: 13px; line-height: 1.8; text-decoration: none; }
-        .footer-section a:hover { color: #ff6b4a; }
+        .footer-section h4 { color: #ffcfbf; margin-bottom: 15px; }
+        .footer-section p, .footer-section a { color: #a492b0; font-size: 13px; text-decoration: none; }
         .footer-bottom { text-align: center; padding-top: 20px; margin-top: 20px; border-top: 1px solid #2a1a2c; color: #666; font-size: 12px; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: #0f0e13; border-radius: 32px; padding: 32px; max-width: 700px; width: 90%; border: 1px solid #b6474a; max-height: 80vh; overflow-y: auto; }
-        .modal-content h2 { margin-bottom: 20px; color: #ffcfbf; }
-        .modal-content h3 { margin: 20px 0 10px; color: #ff6b4a; }
-        .modal-content p { margin-bottom: 12px; line-height: 1.6; color: #a492b0; }
+        .modal-content { background: #0f0e13; border-radius: 32px; padding: 32px; max-width: 450px; width: 90%; border: 1px solid #b6474a; }
         .form-row { margin-bottom: 16px; }
-        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
         .form-row input { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; outline: none; }
         .divider { text-align: center; margin: 20px 0; position: relative; }
         .divider::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #2d1e32; }
-        .divider span { background: #0f0e13; padding: 0 15px; position: relative; color: #a492b0; font-size: 13px; }
+        .divider span { background: #0f0e13; padding: 0 15px; position: relative; color: #a492b0; }
         .google-btn { background: #111014; border: 1px solid #3a253e; width: 100%; padding: 12px; border-radius: 40px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .close-modal { float: right; font-size: 24px; cursor: pointer; color: #a492b0; }
-        .close-modal:hover { color: #ff6b4a; }
-        .timer { color: #ff6b4a; font-size: 12px; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -107,7 +88,7 @@
 
 <div class="filters">
     <div class="filters-container">
-        <div class="filter-group"><span>📂 Категория</span><select id="categoryFilter"><option value="all">Все</option><option value="электроника">Электроника</option><option value="одежда">Одежда</option><option value="обувь">Обувь</option><option value="авто">Авто</option><option value="недвижимость">Недвижимость</option><option value="для дома">Для дома</option><option value="спорт">Спорт</option><option value="игрушки">Игрушки</option></select></div>
+        <div class="filter-group"><span>📂 Категория</span><select id="categoryFilter"><option value="all">Все</option><option value="электроника">Электроника</option><option value="одежда">Одежда</option><option value="авто">Авто</option></select></div>
         <div class="filter-group"><span>💰 Цена до</span><input type="number" id="priceFilter" placeholder="Любая"></div>
         <div class="filter-group"><span>📌 Состояние</span><select id="conditionFilter"><option value="all">Любое</option><option value="new">Новое</option><option value="used">Б/У</option></select></div>
         <div class="filter-group"><span>🌍 Город</span><input type="text" id="locationFilter" placeholder="Город"></div>
@@ -118,373 +99,124 @@
     <div id="listingsContainer" class="listings-grid"></div>
 </div>
 
-<!-- ФУТЕР С РЕКВИЗИТАМИ И КОНТАКТАМИ -->
 <div class="footer">
     <div class="footer-container">
-        <div class="footer-section">
-            <h4>🍪 КУКИ</h4>
-            <p>Доска объявлений<br>Покупайте и продавайте<br>безопасно и удобно</p>
-        </div>
-        <div class="footer-section">
-            <h4>📞 Контакты</h4>
-            <p>Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p>
-            <p>Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p>
-            <p>Режим работы: 24/7</p>
-        </div>
-        <div class="footer-section">
-            <h4>📜 Документы</h4>
-            <p><a href="#" id="offerLink">Договор оферты</a></p>
-            <p><a href="#" id="privacyLink">Политика конфиденциальности</a></p>
-        </div>
-        <div class="footer-section">
-            <h4>💰 Реквизиты</h4>
-            <p>Самозанятая Вагина Нина Васильевна</p>
-            <p>ИНН: 233501711069</p>
-        </div>
+        <div class="footer-section"><h4>🍪 КУКИ</h4><p>Доска объявлений</p></div>
+        <div class="footer-section"><h4>📞 Контакты</h4><p>Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p><p>Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p></div>
+        <div class="footer-section"><h4>💰 Реквизиты</h4><p>Самозанятая Вагина Нина Васильевна</p><p>ИНН: 233501711069</p></div>
     </div>
-    <div class="footer-bottom">
-        <p>© 2024-2025 Куки. Все права защищены. | Сайт не является публичной офертой</p>
-    </div>
+    <div class="footer-bottom"><p>© 2024-2025 Куки. Все права защищены.</p></div>
 </div>
 
-<!-- Модальное окно входа -->
 <div id="authModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
-        <h2 style="text-align:center;">🍪 Добро пожаловать</h2>
-        
-        <div id="phoneLoginView">
-            <div class="form-row">
-                <label>📱 Номер телефона</label>
-                <input type="tel" id="phoneNumber" placeholder="+7 999 123-45-67">
-            </div>
-            <button class="btn-primary" id="sendCodeBtn" style="width:100%; padding:12px;">📨 Отправить код</button>
-        </div>
-        
-        <div id="codeVerifyView" style="display: none;">
-            <div class="form-row">
-                <label>🔐 Код подтверждения</label>
-                <input type="text" id="verificationCode" placeholder="6-значный код">
-            </div>
-            <button class="btn-primary" id="verifyCodeBtn" style="width:100%; padding:12px;">✅ Войти</button>
-            <div id="codeTimer" class="timer"></div>
-            <button id="backBtn" style="margin-top:15px; width:100%; background:none; border:none; color:#a492b0; cursor:pointer;">← Назад</button>
-        </div>
-        
-        <div class="divider"><span>или</span></div>
-        
-        <button class="google-btn" id="googleSignInBtn">
-            <span>📧</span> Войти через Google
-        </button>
+        <h2 style="text-align:center;">🍪 Вход</h2>
+        <button class="google-btn" id="googleSignInBtn">📧 Войти через Google</button>
     </div>
 </div>
 
-<!-- Модальное окно оферты -->
-<div id="offerModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal" onclick="document.getElementById('offerModal').style.display='none'">&times;</span>
-        <h2 style="text-align:center;">📜 Договор публичной оферты</h2>
-        
-        <p style="text-align:center;"><strong>Интернет-площадка «Куки»</strong><br>
-        в лице Самозанятой Вагиной Нины Васильевны<br>
-        ИНН 233501711069</p>
-        
-        <h3>1. Общие положения</h3>
-        <p>1.1. Настоящий документ является официальным предложением (публичной офертой) Самозанятой Вагиной Нины Васильевны (далее — «Продавец») заключить договор купли-продажи товаров, представленных на сайте https://kuki.ru (далее — «Сайт»), на указанных ниже условиях.</p>
-        <p>1.2. Моментом полного и безоговорочного принятия (акцепта) условий настоящей Оферты считается факт оформления Заказа на Сайте и его оплаты Покупателем.</p>
-        
-        <h3>2. Товар и порядок оформления заказа</h3>
-        <p>2.1. Продавец размещает на Сайте информацию о товарах: наименование, цена, описание, фотографии.</p>
-        <p>2.2. Покупатель самостоятельно выбирает товар и оформляет Заказ через форму на Сайте, заполнив все необходимые поля (ФИО, адрес доставки, телефон).</p>
-        <p>2.3. После оформления Заказа Покупателю направляется подтверждение на указанный email или телефон.</p>
-        
-        <h3>3. Цена и порядок оплаты</h3>
-        <p>3.1. Цена товара указывается на Сайте в российских рублях.</p>
-        <p>3.2. Оплата товара производится безналичным способом через платёжные системы, указанные на Сайте.</p>
-        <p>3.3. Покупатель обязан оплатить товар в течение 24 часов после оформления Заказа. При неоплате Заказ аннулируется.</p>
-        
-        <h3>4. Доставка и передача товара</h3>
-        <p>4.1. Доставка товара осуществляется транспортными компаниями: СДЭК, Почта России, Boxberry, Яндекс Доставка.</p>
-        <p>4.2. Срок доставки составляет от 3 до 14 рабочих дней в зависимости от региона.</p>
-        <p>4.3. Право собственности на товар переходит к Покупателю в момент получения товара и подписания документов о передаче.</p>
-        
-        <h3>5. Возврат товара</h3>
-        <p>5.1. Покупатель вправе отказаться от товара в любое время до его получения, а после получения — в течение 7 дней, если товар не был в употреблении, сохранены его потребительские свойства и товарный вид.</p>
-        <p>5.2. Возврат денежных средств осуществляется в течение 10 рабочих дней с момента возврата товара Продавцу.</p>
-        
-        <h3>6. Ответственность сторон</h3>
-        <p>6.1. Продавец не несёт ответственности за задержки в доставке, связанные с работой транспортных компаний.</p>
-        <p>6.2. Продавец не несёт ответственности за несоответствие фактического цвета товара изображению на мониторе Покупателя.</p>
-        
-        <h3>7. Реквизиты Продавца</h3>
-        <p><strong>Самозанятая Вагина Нина Васильевна</strong><br>
-        ИНН: 233501711069<br>
-        Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a><br>
-        Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p>
-        
-        <p style="margin-top: 20px; font-size: 12px; color: #666;">Последнее обновление: 12.06.2025</p>
-    </div>
-</div>
-
-<!-- Модальное окно политики конфиденциальности -->
-<div id="privacyModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal" onclick="document.getElementById('privacyModal').style.display='none'">&times;</span>
-        <h2 style="text-align:center;">🔒 Политика конфиденциальности</h2>
-        
-        <p>Настоящая Политика конфиденциальности регулирует сбор, хранение и обработку персональных данных пользователей сайта https://kuki.ru.</p>
-        
-        <h3>1. Какие данные собираются</h3>
-        <p>- Имя, фамилия, отчество<br>
-        - Номер телефона<br>
-        - Адрес электронной почты<br>
-        - Адрес доставки</p>
-        
-        <h3>2. Цели обработки данных</h3>
-        <p>- Оформление и обработка заказов<br>
-        - Связь с Покупателем<br>
-        - Улучшение качества обслуживания</p>
-        
-        <h3>3. Передача данных третьим лицам</h3>
-        <p>Персональные данные не передаются третьим лицам, за исключением:<br>
-        - Транспортных компаний (для доставки заказов)<br>
-        - Платёжных систем (для обработки платежей)</p>
-        
-        <h3>4. Права пользователя</h3>
-        <p>Пользователь вправе требовать удаления или исправления своих персональных данных, направив запрос на email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p>
-        
-        <h3>5. Контактная информация</h3>
-        <p>По всем вопросам, связанным с обработкой персональных данных, обращайтесь:<br>
-        Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a><br>
-        Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p>
-        
-        <p style="margin-top: 20px; font-size: 12px; color: #666;">Последнее обновление: 12.06.2025</p>
-    </div>
-</div>
-
-<div id="recaptcha-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;"></div>
-
-<script type="module">
-    import { auth, db, onAuthStateChanged, signInWithGoogle, signOutUser, doc, getDoc, setDoc,
-             RecaptchaVerifier, signInWithPhoneNumber,
-             addToFavorites, removeFromFavorites, getFavorites, getListings } from './firebase-config.js';
-
-    let currentUser = null;
-    let favorites = [];
-    let allListings = [];
-    let confirmationResult = null;
-    let recaptchaVerifier = null;
-    let timerInterval = null;
-
-    const authModal = document.getElementById('authModal');
-    const userActions = document.getElementById('userActions');
-    const phoneLoginView = document.getElementById('phoneLoginView');
-    const codeVerifyView = document.getElementById('codeVerifyView');
-    const offerModal = document.getElementById('offerModal');
-    const privacyModal = document.getElementById('privacyModal');
-
-    document.getElementById('offerLink').onclick = (e) => { e.preventDefault(); offerModal.style.display = 'flex'; };
-    document.getElementById('privacyLink').onclick = (e) => { e.preventDefault(); privacyModal.style.display = 'flex'; };
-
-    document.getElementById('categoryFilter')?.addEventListener('change', loadListings);
-    document.getElementById('priceFilter')?.addEventListener('input', loadListings);
-    document.getElementById('conditionFilter')?.addEventListener('change', loadListings);
-    document.getElementById('locationFilter')?.addEventListener('input', loadListings);
-    document.getElementById('searchBtn')?.addEventListener('click', loadListings);
-    document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
-    
-    function initRecaptcha() {
-        if (recaptchaVerifier) return;
-        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-    }
-    
-    document.getElementById('sendCodeBtn').onclick = async () => {
-        let phone = document.getElementById('phoneNumber').value.trim();
-        if (!phone) { alert('Введите номер телефона'); return; }
-        if (!phone.startsWith('+')) phone = '+' + phone;
-        
-        try {
-            initRecaptcha();
-            const result = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-            confirmationResult = result;
-            phoneLoginView.style.display = 'none';
-            codeVerifyView.style.display = 'block';
-            startTimer();
-        } catch (error) {
-            alert('Ошибка: ' + error.message);
-        }
-    };
-    
-    document.getElementById('verifyCodeBtn').onclick = async () => {
-        const code = document.getElementById('verificationCode').value.trim();
-        if (!code) { alert('Введите код'); return; }
-        
-        try {
-            const result = await confirmationResult.confirm(code);
-            const userRef = doc(db, "users", result.user.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                await setDoc(userRef, {
-                    uid: result.user.uid,
-                    name: result.user.phoneNumber,
-                    phone: result.user.phoneNumber,
-                    role: "user",
-                    createdAt: new Date().toISOString(),
-                    rating: 0,
-                    completedDeals: 0
-                });
-            }
-            authModal.style.display = 'none';
-            window.location.reload();
-        } catch (error) {
-            alert('Неверный код');
-        }
-    };
-    
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        let seconds = 60;
-        const timerDiv = document.getElementById('codeTimer');
-        timerInterval = setInterval(() => {
-            if (seconds <= 0) {
-                clearInterval(timerInterval);
-                timerDiv.innerHTML = '';
-            } else {
-                timerDiv.innerHTML = `Повторная отправка через ${seconds} сек`;
-                seconds--;
-            }
-        }, 1000);
-    }
-    
-    document.getElementById('backBtn').onclick = () => {
-        codeVerifyView.style.display = 'none';
-        phoneLoginView.style.display = 'block';
-        if (timerInterval) clearInterval(timerInterval);
-    };
-    
-    document.getElementById('googleSignInBtn').onclick = async () => {
-        await signInWithGoogle();
-    };
-    
-    function renderListings(listings) {
-        const container = document.getElementById('listingsContainer');
-        if (!listings || listings.length === 0) {
-            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте другой поиск</p></div>`;
+<script>
+    // Ждём загрузки страницы и Firebase
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Проверяем, загрузилась ли Firebase
+        if (typeof firebase === 'undefined') {
+            console.error("Firebase не загрузился!");
+            document.getElementById('listingsContainer').innerHTML = '<div class="empty-state">Ошибка загрузки Firebase. Проверьте интернет-соединение.</div>';
             return;
         }
-        container.innerHTML = listings.map(ad => `
-            <div class="listing-card" data-id="${ad.id}">
-                <div class="listing-img">${ad.image || '📦'}</div>
-                <div class="listing-info">
-                    <div class="listing-title">${escapeHtml(ad.title)}</div>
-                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
-                    <div class="listing-meta"><span>📍 ${ad.location || 'Не указан'}</span><span>⭐ ${ad.sellerRating || 0}</span></div>
-                    <div class="card-actions">
-                        <button class="small-btn chat-btn" data-id="${ad.id}" data-seller="${ad.sellerId}" data-title="${ad.title}">💬 Чат</button>
-                        ${currentUser && currentUser.uid !== ad.sellerId ? `<button class="small-btn order-btn" data-id="${ad.id}" data-seller="${ad.sellerId}" data-title="${ad.title}" data-price="${ad.price}">🛒 Купить</button>` : ''}
-                        <button class="small-btn fav-btn ${favorites.some(f => f.id === ad.id) ? 'fav-active' : ''}" data-id="${ad.id}">❤️</button>
+        
+        console.log("Firebase загружен, инициализация...");
+        
+        let currentUser = null;
+        let favorites = [];
+        let allListings = [];
+        
+        const authModal = document.getElementById('authModal');
+        const userActions = document.getElementById('userActions');
+        
+        // Фильтры
+        document.getElementById('categoryFilter')?.addEventListener('change', loadListings);
+        document.getElementById('priceFilter')?.addEventListener('input', loadListings);
+        document.getElementById('conditionFilter')?.addEventListener('change', loadListings);
+        document.getElementById('locationFilter')?.addEventListener('input', loadListings);
+        document.getElementById('searchBtn')?.addEventListener('click', loadListings);
+        
+        document.getElementById('googleSignInBtn').onclick = async () => {
+            if (window.signInWithGoogle) await window.signInWithGoogle();
+        };
+        
+        function renderListings(listings) {
+            const container = document.getElementById('listingsContainer');
+            if (!listings || listings.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте другой поиск</p></div>`;
+                return;
+            }
+            container.innerHTML = listings.map(ad => `
+                <div class="listing-card" data-id="${ad.id}">
+                    <div class="listing-img">${ad.image || '📦'}</div>
+                    <div class="listing-info">
+                        <div class="listing-title">${ad.title}</div>
+                        <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
+                        <div class="card-actions">
+                            <button class="small-btn chat-btn" data-id="${ad.id}" data-seller="${ad.sellerId}" data-title="${ad.title}">💬 Чат</button>
+                            <button class="small-btn fav-btn ${favorites.some(f => f.id === ad.id) ? 'fav-active' : ''}" data-id="${ad.id}">❤️</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
-        
-        attachCardEvents();
-    }
-    
-    function attachCardEvents() {
-        document.querySelectorAll('.listing-card').forEach(card => {
-            card.onclick = (e) => { if (!e.target.closest('.chat-btn') && !e.target.closest('.fav-btn') && !e.target.closest('.order-btn')) window.location.href = `product.html?id=${card.dataset.id}`; };
-        });
-        document.querySelectorAll('.fav-btn').forEach(btn => {
-            btn.onclick = async (e) => { e.stopPropagation(); if (!currentUser) { authModal.style.display = 'flex'; return; }
-                const id = btn.dataset.id;
-                if (favorites.some(f => f.id === id)) { await removeFromFavorites(id); favorites = favorites.filter(f => f.id !== id); }
-                else { await addToFavorites(id); const listing = allListings.find(l => l.id === id); if (listing) favorites.push(listing); }
-                btn.classList.toggle('fav-active', favorites.some(f => f.id === id));
-            };
-        });
-        document.querySelectorAll('.chat-btn').forEach(btn => {
-            btn.onclick = (e) => { e.stopPropagation(); if (!currentUser) { authModal.style.display = 'flex'; return; }
-                window.location.href = `chat.html?sellerId=${btn.dataset.seller}&listingId=${btn.dataset.id}&title=${encodeURIComponent(btn.dataset.title)}`;
-            };
-        });
-        document.querySelectorAll('.order-btn').forEach(btn => {
-            btn.onclick = (e) => { e.stopPropagation(); if (!currentUser) { authModal.style.display = 'flex'; return; }
-                showOrderModal(btn.dataset.id, btn.dataset.seller, btn.dataset.title, btn.dataset.price);
-            };
-        });
-    }
-    
-    function showOrderModal(listingId, sellerId, title, price) {
-        const modalHtml = `
-            <div id="orderModal" class="modal-overlay">
-                <div class="modal-content">
-                    <span class="close-modal" onclick="document.getElementById('orderModal').remove()">&times;</span>
-                    <h2>🛒 Оформление заказа</h2>
-                    <div class="form-row"><label>ФИО получателя</label><input type="text" id="recipientName"></div>
-                    <div class="form-row"><label>Адрес доставки</label><input type="text" id="deliveryAddress"></div>
-                    <div class="form-row"><label>Компания</label><select id="deliveryCompany"><option>СДЭК</option><option>Почта России</option><option>Boxberry</option></select></div>
-                    <div class="form-row"><label>Телефон</label><input type="tel" id="contactPhone"></div>
-                    <div style="display:flex; gap:12px;"><button class="btn" id="closeOrderModal">Отмена</button><button class="btn-primary" id="confirmOrderBtn">✅ Подтвердить</button></div>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        document.getElementById('closeOrderModal').onclick = () => document.getElementById('orderModal').remove();
-        document.getElementById('confirmOrderBtn').onclick = async () => {
-            const recipientName = document.getElementById('recipientName')?.value;
-            const deliveryAddress = document.getElementById('deliveryAddress')?.value;
-            const deliveryCompany = document.getElementById('deliveryCompany')?.value;
-            const contactPhone = document.getElementById('contactPhone')?.value;
-            if (!recipientName || !deliveryAddress || !contactPhone) { alert('Заполните все поля'); return; }
-            const { createOrder } = await import('./firebase-config.js');
-            const orderId = await createOrder({ listingId, listingTitle: title, price, sellerId, recipientName, deliveryAddress, deliveryCompany, contactPhone });
-            if (orderId) { alert('✅ Заказ оформлен!'); document.getElementById('orderModal').remove(); } else alert('❌ Ошибка');
-        };
-    }
-    
-    async function loadListings() {
-        const category = document.getElementById('categoryFilter')?.value || 'all';
-        const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
-        allListings = await getListings({ category, maxPrice });
-        renderListings(allListings);
-    }
-    
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
-    
-    function showUserDropdown() {
-        const existing = document.querySelector('.user-dropdown');
-        if (existing) { existing.remove(); return; }
-        const dropdown = document.createElement('div');
-        dropdown.className = 'user-dropdown';
-        dropdown.innerHTML = `
-            <a href="profile.html" class="dropdown-item">👤 Мой профиль</a>
-            <a href="post-ad.html" class="dropdown-item">➕ Создать объявление</a>
-            <a href="favorites.html" class="dropdown-item">❤️ Избранное</a>
-            <div class="dropdown-divider"></div>
-            <a href="messages.html" class="dropdown-item">💬 Сообщения</a>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="dropdownLogout">🚪 Выйти</div>
-        `;
-        document.body.appendChild(dropdown);
-        document.getElementById('dropdownLogout').onclick = () => signOutUser();
-        setTimeout(() => document.addEventListener('click', function remove(e) { if (!dropdown.contains(e.target) && !e.target.closest('.user-info')) { dropdown.remove(); document.removeEventListener('click', remove); } }), 0);
-    }
-    
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            authModal.style.display = 'none';
-            userActions.innerHTML = `<div class="user-info"><div class="user-avatar">👤</div><span class="user-name">${user.displayName?.split(' ')[0] || user.phoneNumber || 'User'}</span></div><a href="messages.html" class="btn">💬</a>`;
-            document.querySelector('.user-info').onclick = showUserDropdown;
-            favorites = await getFavorites();
-            await loadListings();
-        } else {
-            currentUser = null;
-            userActions.innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
-            document.getElementById('loginBtn')?.addEventListener('click', () => authModal.style.display = 'flex');
-            await loadListings();
+            `).join('');
+            
+            document.querySelectorAll('.fav-btn').forEach(btn => {
+                btn.onclick = async (e) => { e.stopPropagation(); if (!currentUser) { authModal.style.display = 'flex'; return; }
+                    const id = btn.dataset.id;
+                    if (favorites.some(f => f.id === id)) { await window.removeFromFavorites(id); favorites = favorites.filter(f => f.id !== id); }
+                    else { await window.addToFavorites(id); const listing = allListings.find(l => l.id === id); if (listing) favorites.push(listing); }
+                    btn.classList.toggle('fav-active', favorites.some(f => f.id === id));
+                };
+            });
+            document.querySelectorAll('.chat-btn').forEach(btn => {
+                btn.onclick = (e) => { e.stopPropagation(); if (!currentUser) { authModal.style.display = 'flex'; return; }
+                    window.location.href = `chat.html?sellerId=${btn.dataset.seller}&listingId=${btn.dataset.id}&title=${encodeURIComponent(btn.dataset.title)}`;
+                };
+            });
         }
+        
+        async function loadListings() {
+            const category = document.getElementById('categoryFilter')?.value || 'all';
+            const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
+            if (window.getListings) {
+                allListings = await window.getListings({ category, maxPrice });
+                renderListings(allListings);
+            }
+        }
+        
+        function showUserDropdown() {
+            const existing = document.querySelector('.user-dropdown');
+            if (existing) { existing.remove(); return; }
+            const dropdown = document.createElement('div');
+            dropdown.className = 'user-dropdown';
+            dropdown.style.cssText = 'position: absolute; top: 60px; right: 20px; background: #0f0e13; border: 1px solid #2d1e32; border-radius: 20px; width: 180px; z-index: 200;';
+            dropdown.innerHTML = `<div style="padding:12px 16px; cursor:pointer;" id="dropdownLogout">🚪 Выйти</div>`;
+            document.body.appendChild(dropdown);
+            document.getElementById('dropdownLogout').onclick = () => { if(window.signOutUser) window.signOutUser(); };
+            setTimeout(() => document.addEventListener('click', function remove(e) { if (!dropdown.contains(e.target) && !e.target.closest('.user-info')) { dropdown.remove(); document.removeEventListener('click', remove); } }), 0);
+        }
+        
+        window.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                authModal.style.display = 'none';
+                userActions.innerHTML = `<div class="user-info"><div class="user-avatar">👤</div><span>${user.displayName?.split(' ')[0] || 'User'}</span></div>`;
+                document.querySelector('.user-info').onclick = showUserDropdown;
+                if (window.getFavorites) favorites = await window.getFavorites();
+                await loadListings();
+            } else {
+                currentUser = null;
+                userActions.innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
+                document.getElementById('loginBtn')?.addEventListener('click', () => authModal.style.display = 'flex');
+                await loadListings();
+            }
+        });
     });
 </script>
 </body>
