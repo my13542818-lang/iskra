@@ -199,6 +199,17 @@
             0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
             50% { transform: translateY(-100px) translateX(50px); opacity: 0.5; }
         }
+        
+        /* Сообщение об успехе */
+        .success-message {
+            background: #2a7a4b;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -210,6 +221,8 @@
         </div>
         <h1>КУКИ</h1>
         <p class="subtitle">Войдите, чтобы продолжить</p>
+        
+        <div id="successMessage" class="success-message">✅ Вход выполнен! Перенаправление...</div>
         
         <div id="phoneLoginView">
             <div class="form-row">
@@ -280,6 +293,14 @@
             alert(msg);
         }
         
+        function showSuccessAndRedirect() {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+        }
+        
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             let seconds = 60;
@@ -320,7 +341,7 @@
                 const result = await confirmationResult.confirm(code);
                 const userRef = db.collection("users").doc(result.user.uid);
                 const userSnap = await userRef.get();
-                if (!userSnap.exists()) {  // ✅ ИСПРАВЛЕНО: добавлены скобки ()
+                if (!userSnap.exists()) {
                     await userRef.set({
                         uid: result.user.uid,
                         name: result.user.phoneNumber,
@@ -332,7 +353,8 @@
                         completedDeals: 0
                     });
                 }
-                window.location.href = "index.html";
+                // Показываем сообщение и перенаправляем
+                showSuccessAndRedirect();
             } catch (error) {
                 showError('Неверный код');
             }
@@ -351,7 +373,7 @@
                 const user = result.user;
                 const userRef = db.collection("users").doc(user.uid);
                 const userSnap = await userRef.get();
-                if (!userSnap.exists()) {  // ✅ ИСПРАВЛЕНО: добавлены скобки ()
+                if (!userSnap.exists()) {
                     await userRef.set({
                         uid: user.uid,
                         name: user.displayName,
@@ -366,7 +388,8 @@
                         location: ""
                     });
                 }
-                window.location.href = "index.html";
+                // Показываем сообщение и перенаправляем
+                showSuccessAndRedirect();
             } catch (error) {
                 showError('Ошибка: ' + error.message);
             }
