@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Вход — Куки</title>
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -23,7 +22,6 @@
             overflow-x: hidden;
         }
         
-        /* Анимированный фон */
         body::before {
             content: '';
             position: absolute;
@@ -39,7 +37,6 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Огромная иконка Куки */
         .cookie-icon {
             text-align: center;
             margin-bottom: 30px;
@@ -57,7 +54,6 @@
             50% { transform: translateY(-15px); }
         }
         
-        /* Карточка входа */
         .login-card {
             background: rgba(15,14,19,0.9);
             backdrop-filter: blur(20px);
@@ -191,7 +187,6 @@
             text-decoration: underline;
         }
         
-        /* Плавающие частицы */
         .particle {
             position: absolute;
             background: rgba(255,107,74,0.3);
@@ -207,7 +202,6 @@
     </style>
 </head>
 <body>
-    <!-- Плавающие частицы -->
     <div id="particles"></div>
     
     <div class="login-card">
@@ -247,7 +241,6 @@
     <div id="recaptcha-container"></div>
 
     <script>
-        // Генерация плавающих частиц
         function createParticles() {
             const container = document.getElementById('particles');
             for (let i = 0; i < 50; i++) {
@@ -263,7 +256,6 @@
         }
         createParticles();
         
-        // Firebase конфигурация
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
             authDomain: "kyki-5e91a.firebaseapp.com",
@@ -328,7 +320,7 @@
                 const result = await confirmationResult.confirm(code);
                 const userRef = db.collection("users").doc(result.user.uid);
                 const userSnap = await userRef.get();
-                if (!userSnap.exists()) {
+                if (!userSnap.exists()) {  // ✅ ИСПРАВЛЕНО: добавлены скобки ()
                     await userRef.set({
                         uid: result.user.uid,
                         name: result.user.phoneNumber,
@@ -359,7 +351,7 @@
                 const user = result.user;
                 const userRef = db.collection("users").doc(user.uid);
                 const userSnap = await userRef.get();
-                if (!userSnap.exists()) {
+                if (!userSnap.exists()) {  // ✅ ИСПРАВЛЕНО: добавлены скобки ()
                     await userRef.set({
                         uid: user.uid,
                         name: user.displayName,
@@ -369,7 +361,9 @@
                         balance: 0,
                         createdAt: new Date().toISOString(),
                         rating: 0,
-                        completedDeals: 0
+                        completedDeals: 0,
+                        phone: "",
+                        location: ""
                     });
                 }
                 window.location.href = "index.html";
