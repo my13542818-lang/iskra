@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои объявления — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .btn-danger { background: #7a1a2e; }
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; transition: 0.2s; }
+        .listing-card:hover { border-color: #b6474a; }
+        .listing-img { height: 180px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
+        .listing-img .media-count { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 20px; font-size: 11px; }
+        .listing-info { padding: 15px; }
+        .listing-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .listing-price { font-size: 22px; font-weight: 800; color: #ff6b4a; margin: 8px 0; }
+        .listing-meta { display: flex; gap: 15px; font-size: 12px; color: #a492b0; margin-bottom: 10px; }
+        .card-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .small-btn { padding: 6px 14px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 12px; }
+        .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1>📋 Мои объявления</h1>
+        <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
+    </div>
+    <div id="listingsContainer" class="listings-grid"></div>
+</div>
+
+<script type="module">
+    import { auth, onAuthStateChanged, signOutUser, getUserListings, deleteListingWithMedia } from './firebase-config.js';
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <a href="index.html" class="btn">🏠</a>
+            <a href="post-ad.html" class="btn btn-primary">➕</a>
+            <button class="btn" id="logoutBtn">🚪</button>
+        `;
+        document.getElementById('logoutBtn')?.addEventListener('click', () => signOutUser());
+        
+        await loadListings(user.uid);
+    });
+    
+    async function loadListings(userId) {
+        const listings = await getUserListings(userId);
+        const container = document.getElementById('listingsContainer');
+        
+        if (listings.length === 0) {
+            container.innerHTML = `<div class="empty-state"><h3>У вас пока нет объявлений</h3><a href="post-ad.html" class="btn btn-primary" style="margin-top: 20px;">➕ Создать первое объявление</a></div>`;
+            return;
+        }
+        
+        container.innerHTML = listings.map(ad => `
+            <div class="listing-card" data-id="${ad.id}">
+                <div class="listing-img">
+                    ${ad.mediaFiles && ad.mediaFiles.length > 0 ? 
+                        (ad.mediaFiles[0].type === 'image' ? 
+                            `<img src="${ad.mediaFiles[0].url}" style="width:100%;height:100%;object-fit:cover;">` : 
+                            `<video src="${ad.mediaFiles[0].url}" style="width:100%;height:100%;object-fit:cover;"></video>`) : 
+                        '📦'}
+                    ${ad.mediaFiles && ad.mediaFiles.length > 0 ? `<div class="media-count">📷 ${ad.mediaFiles.length}</div>` : ''}
+                </div>
+                <div class="listing-info">
+                    <div class="listing-title">${ad.title}</div>
+                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
+                    <div class="listing-meta">
+                        <span>📍 ${ad.location || 'Не указан'}</span>
+                        <span>${ad.condition === 'new' ? 'Новое' : 'Б/У'}</span>
+                        <span>👁️ ${ad.views || 0}</span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="post-ad.html?edit=${ad.id}" class="small-btn">✏️ Редактировать</a>
+                        <button class="small-btn btn-danger delete-btn" data-id="${ad.id}">🗑️ Удалить</button>
+                        <a href="product.html?id=${ad.id}" class="small-btn">👁️ Просмотр</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                if (confirm('Удалить это объявление навсегда?')) {
+                    await deleteListingWithMedia(btn.dataset.id);
+                    await loadListings(auth.currentUser?.uid);
+                }
+            };
+        });
+    }
+</script>
+</body>
+</html>

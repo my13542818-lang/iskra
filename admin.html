@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .admin-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .admin-stat-card { background: #0f0e13; border-radius: 16px; padding: 15px; text-align: center; border: 1px solid #2d1e32; }
+        .admin-stat-value { font-size: 28px; font-weight: 800; color: #ff6b4a; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid #2a1a2c; padding-bottom: 10px; }
+        .admin-tab { padding: 8px 20px; background: #121114; border: 1px solid #2f2332; border-radius: 40px; cursor: pointer; transition: 0.2s; }
+        .admin-tab:hover { background: #1f1924; }
+        .admin-tab.active { background: #ac2f3a; border-color: #d44545; }
+        .admin-table { background: #0f0e13; border-radius: 16px; overflow-x: auto; border: 1px solid #2d1e32; }
+        .admin-table table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #2a1a2c; }
+        .admin-table th { background: #1a1620; color: #ffcfbf; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .admin-action-btn { padding: 4px 10px; border-radius: 20px; border: none; cursor: pointer; margin: 2px; font-size: 12px; transition: 0.2s; }
+        .admin-delete { background: #7a1a2e; color: white; }
+        .admin-delete:hover { background: #9e253f; }
+        .admin-edit { background: #2a4b7a; color: white; }
+        .admin-edit:hover { background: #3a6b9a; }
+        .ticket-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .status-open { background: #f0ad4e; color: #000; }
+        .status-in-progress { background: #5bc0de; color: #000; }
+        .status-resolved { background: #5cb85c; color: #000; }
+        .status-closed { background: #d9534f; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #0f0e13; border-radius: 32px; padding: 32px; max-width: 600px; width: 90%; border: 1px solid #b6474a; }
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; outline: none; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .priority-high { color: #d9534f; font-weight: bold; }
+        .priority-medium { color: #f0ad4e; font-weight: bold; }
+        .priority-low { color: #5cb85c; font-weight: bold; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .text-muted { color: #a492b0; font-size: 12px; }
+        .mt-2 { margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ ADMIN</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+<div class="admin-container">
+    <div class="admin-stats" id="adminStats">
+        <div class="admin-stat-card"><div class="admin-stat-value" id="totalUsers">0</div><div>Пользователей</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-value" id="totalListings">0</div><div>Объявлений</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-value" id="totalOrders">0</div><div>Заказов</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-value" id="totalTickets">0</div><div>Активных тикетов</div></div>
+    </div>
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="users">👥 Пользователи</button>
+        <button class="admin-tab" data-tab="listings">📦 Объявления</button>
+        <button class="admin-tab" data-tab="orders">🛒 Заказы</button>
+        <button class="admin-tab" data-tab="support">🎧 Техподдержка</button>
+    </div>
+    
+    <div id="usersTab" class="tab-content active">
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Телефон</th><th>Город</th><th>Роль</th><th>Сделок</th><th>Действия</th></tr></thead>
+                <tbody id="usersTable"><tr><td colspan="8" style="text-align:center;">Загрузка...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="listingsTab" class="tab-content">
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>Название</th><th>Продавец</th><th>Цена</th><th>Категория</th><th>Статус</th><th>Действия</th></tr></thead>
+                <tbody id="listingsTable"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="ordersTab" class="tab-content">
+        <div class="admin-table">
+            <table>
+                <thead><tr><th>Товар</th><th>Покупатель</th><th>Сумма</th><th>Статус</th><th>Действия</th></tr></thead>
+                <tbody id="ordersTable"><tr><td colspan="5" style="text-align:center;">Загрузка...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="supportTab" class="tab-content">
+        <div id="ticketsList" class="admin-table">
+            <div style="padding: 20px; text-align: center;">Загрузка тикетов...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db, onAuthStateChanged, signOutUser, doc, getDoc, collection, getDocs, updateDoc, deleteDoc, increment, addDoc, query, orderBy } from './firebase-config.js';
+    
+    let currentAdmin = null;
+    
+    async function addNotification(userId, message, linkId = null, type = null) {
+        try {
+            await addDoc(collection(db, "notifications"), {
+                userId: userId, message: message, linkId: linkId, type: type,
+                read: false, createdAt: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error("Ошибка уведомления:", error);
+        }
+    }
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { 
+            window.location.href = 'index.html'; 
+            return; 
+        }
+        
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+            
+            if (userData?.role !== 'admin' && userData?.role !== 'админ') { 
+                document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>⛔ Доступ запрещён</h2><p>Только для администраторов</p><a href="index.html" class="btn btn-primary">На главную</a></div>';
+                return;
+            }
+        } catch (err) {
+            console.error("Ошибка проверки роли:", err);
+            document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>⛔ Ошибка доступа</h2><a href="index.html" class="btn btn-primary">На главную</a></div>';
+            return;
+        }
+        
+        currentAdmin = user;
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><span>👑 ${user.displayName}</span><button class="btn" id="logoutBtn">Выйти</button></div>`;
+        document.getElementById('logoutBtn').onclick = signOutUser;
+        
+        await loadAllData();
+    });
+    
+    async function loadAllData() {
+        await loadUsers();
+        await loadListings();
+        await loadOrders();
+        await loadTickets();
+        await updateStats();
+    }
+    
+    async function loadUsers() {
+        try {
+            const snapshot = await getDocs(collection(db, "users"));
+            const users = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const tbody = document.getElementById('usersTable');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">Нет пользователей</td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.id.substring(0,12)}...</td>
+                    <td>${u.name || '—'}</td>
+                    <td>${u.email || '—'}</td>
+                    <td>${u.phone || '—'}</td>
+                    <td>${u.location || '—'}</td>
+                    <td>
+                        <select class="admin-action-btn" data-user="${u.id}" data-role style="width:100px;">
+                            <option value="user" ${u.role === 'user' ? 'selected' : ''}>👤 Пользователь</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>👑 Админ</option>
+                            <option value="banned" ${u.role === 'banned' ? 'selected' : ''}>🚫 Заблокирован</option>
+                        </select>
+                    </td>
+                    <td>${u.completedDeals || 0}</td>
+                    <td>
+                        <button class="admin-action-btn admin-delete" onclick="deleteUser('${u.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.querySelectorAll('[data-role]').forEach(select => {
+                select.onchange = async () => {
+                    await updateDoc(doc(db, "users", select.dataset.user), { role: select.value });
+                    await loadUsers();
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка загрузки пользователей:", error);
+            document.getElementById('usersTable').innerHTML = '<tr><td colspan="8">Ошибка загрузки</td></tr>';
+        }
+    }
+    
+    async function loadListings() {
+        try {
+            const snapshot = await getDocs(collection(db, "listings"));
+            const listings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const tbody = document.getElementById('listingsTable');
+            if (listings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Нет объявлений</td></tr>';
+                return;
+            }
+            tbody.innerHTML = listings.map(l => `
+                <tr>
+                    <td>${l.title || '—'}</td>
+                    <td>${l.sellerName || '—'}</td>
+                    <td>${l.price || 0} ₽</td>
+                    <td>${l.category || '—'}</td>
+                    <td>
+                        <select class="admin-action-btn" data-listing="${l.id}" data-lstatus style="width:100px;">
+                            <option value="active" ${l.status === 'active' ? 'selected' : ''}>✅ Активно</option>
+                            <option value="blocked" ${l.status === 'blocked' ? 'selected' : ''}>🔒 Заблокировано</option>
+                            <option value="sold" ${l.status === 'sold' ? 'selected' : ''}>💰 Продано</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="admin-action-btn admin-delete" onclick="deleteListing('${l.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.querySelectorAll('[data-lstatus]').forEach(select => {
+                select.onchange = async () => {
+                    await updateDoc(doc(db, "listings", select.dataset.listing), { status: select.value });
+                    await loadListings();
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка загрузки объявлений:", error);
+            document.getElementById('listingsTable').innerHTML = '<tr><td colspan="6">Ошибка загрузки</td></tr>';
+        }
+    }
+    
+    async function loadOrders() {
+        try {
+            const snapshot = await getDocs(query(collection(db, "orders"), orderBy("createdAt", "desc")));
+            const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const tbody = document.getElementById('ordersTable');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">Нет заказов</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>${o.listingTitle || '—'}</td>
+                    <td>${o.buyerName || '—'}</td>
+                    <td>${o.price || 0} ₽</td>
+                    <td>
+                        <select class="admin-action-btn" data-order="${o.id}" data-ostatus style="width:120px;">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>⏳ Ожидает</option>
+                            <option value="paid" ${o.status === 'paid' ? 'selected' : ''}>💰 Оплачен</option>
+                            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>📦 Отправлен</option>
+                            <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>🏠 Доставлен</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>✅ Завершён</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ Отменён</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="admin-action-btn admin-edit" onclick="viewOrder('${o.id}')">👁️</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.querySelectorAll('[data-ostatus]').forEach(select => {
+                select.onchange = async () => {
+                    await updateDoc(doc(db, "orders", select.dataset.order), { 
+                        status: select.value, 
+                        updatedAt: new Date().toISOString() 
+                    });
+                    if (select.value === 'completed') {
+                        const order = orders.find(o => o.id === select.dataset.order);
+                        if (order) {
+                            await updateDoc(doc(db, "users", order.sellerId), { completedDeals: increment(1) });
+                        }
+                    }
+                    await loadOrders();
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка загрузки заказов:", error);
+            document.getElementById('ordersTable').innerHTML = '<tr><td colspan="5">Ошибка загрузки</td></tr>';
+        }
+    }
+    
+    async function loadTickets() {
+        try {
+            const snapshot = await getDocs(query(collection(db, "support_tickets"), orderBy("createdAt", "desc")));
+            const tickets = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const container = document.getElementById('ticketsList');
+            
+            if (tickets.length === 0) {
+                container.innerHTML = '<div class="admin-table"><div style="padding: 40px; text-align: center;">Нет обращений в техподдержку</div></div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№</th><th>Пользователь</th><th>Тема</th><th>Категория</th><th>Приоритет</th><th>Статус</th><th>Создан</th><th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tickets.map(t => `
+                                <tr>
+                                    <td>#${t.id.substring(0,8)}</td>
+                                    <td><strong>${escapeHtml(t.userName)}</strong><br><small class="text-muted">${t.userEmail}</small></td>
+                                    <td><strong>${escapeHtml(t.subject)}</strong><br><small class="text-muted">${escapeHtml(t.message.substring(0,50))}${t.message.length > 50 ? '...' : ''}</small></td>
+                                    <td>${t.category || 'general'}</td>
+                                    <td>
+                                        <select class="admin-action-btn" data-priority="${t.id}" style="width:90px;">
+                                            <option value="low" ${t.priority === 'low' ? 'selected' : ''} class="priority-low">🟢 Низкий</option>
+                                            <option value="medium" ${t.priority === 'medium' ? 'selected' : ''} class="priority-medium">🟡 Средний</option>
+                                            <option value="high" ${t.priority === 'high' ? 'selected' : ''} class="priority-high">🔴 Высокий</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="ticket-status status-${t.status}" data-ticket="${t.id}" data-status="${t.status}" style="width:120px;">
+                                            <option value="open" ${t.status === 'open' ? 'selected' : ''}>🟡 Открыт</option>
+                                            <option value="in-progress" ${t.status === 'in-progress' ? 'selected' : ''}>🔵 В работе</option>
+                                            <option value="resolved" ${t.status === 'resolved' ? 'selected' : ''}>🟢 Решён</option>
+                                            <option value="closed" ${t.status === 'closed' ? 'selected' : ''}>⚫ Закрыт</option>
+                                        </select>
+                                    </td>
+                                    <td><small>${new Date(t.createdAt).toLocaleDateString()}</small></td>
+                                    <td>
+                                        <button class="admin-action-btn admin-edit" onclick="openTicketModal('${t.id}', '${t.userId}', '${escapeHtml(t.subject).replace(/'/g, "\\'")}', '${escapeHtml(t.message).replace(/'/g, "\\'")}', '${t.status}')">✏️ Ответить</button>
+                                        <button class="admin-action-btn admin-delete" onclick="deleteTicket('${t.id}')">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.querySelectorAll('[data-priority]').forEach(select => {
+                select.onchange = async () => {
+                    const ticketId = select.dataset.priority;
+                    await updateDoc(doc(db, "support_tickets", ticketId), { priority: select.value });
+                    await loadTickets();
+                };
+            });
+            
+            document.querySelectorAll('.ticket-status').forEach(select => {
+                select.onchange = async () => {
+                    const ticketId = select.dataset.ticket;
+                    const newStatus = select.value;
+                    await updateDoc(doc(db, "support_tickets", ticketId), { 
+                        status: newStatus, 
+                        updatedAt: new Date().toISOString() 
+                    });
+                    select.className = `ticket-status status-${newStatus}`;
+                    await loadTickets();
+                    await updateStats();
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка загрузки тикетов:", error);
+            document.getElementById('ticketsList').innerHTML = '<div class="admin-table"><div style="padding: 40px; text-align: center;">Ошибка загрузки тикетов</div></div>';
+        }
+    }
+    
+    async function updateStats() {
+        try {
+            const users = (await getDocs(collection(db, "users"))).size;
+            const listings = (await getDocs(collection(db, "listings"))).size;
+            const orders = (await getDocs(collection(db, "orders"))).size;
+            const tickets = (await getDocs(query(collection(db, "support_tickets")))).docs.filter(d => d.data().status === 'open' || d.data().status === 'in-progress').length;
+            
+            document.getElementById('totalUsers').textContent = users;
+            document.getElementById('totalListings').textContent = listings;
+            document.getElementById('totalOrders').textContent = orders;
+            document.getElementById('totalTickets').textContent = tickets;
+        } catch (error) {
+            console.error("Ошибка обновления статистики:", error);
+        }
+    }
+    
+    window.deleteUser = async (id) => { 
+        if(confirm('Удалить пользователя? Все его данные будут удалены.')){ 
+            await deleteDoc(doc(db, "users", id)); 
+            await loadUsers();
+            await updateStats();
+        } 
+    };
+    
+    window.deleteListing = async (id) => { 
+        if(confirm('Удалить объявление?')){ 
+            await deleteDoc(doc(db, "listings", id)); 
+            await loadListings();
+            await updateStats();
+        } 
+    };
+    
+    window.deleteTicket = async (id) => { 
+        if(confirm('Удалить обращение в техподдержку?')){ 
+            await deleteDoc(doc(db, "support_tickets", id)); 
+            await loadTickets();
+            await updateStats();
+        } 
+    };
+    
+    window.viewOrder = async (orderId) => {
+        try {
+            const orderDoc = await getDoc(doc(db, "orders", orderId));
+            const order = orderDoc.data();
+            alert(`Заказ #${orderId.substring(0,8)}\nТовар: ${order.listingTitle}\nПокупатель: ${order.buyerName}\nАдрес: ${order.deliveryAddress}\nТел: ${order.contactPhone}\nКомпания: ${order.deliveryCompany}\nСтатус: ${order.status}`);
+        } catch (error) {
+            alert("Ошибка получения данных заказа");
+        }
+    };
+    
+    window.openTicketModal = (ticketId, userId, subject, message, currentStatus) => {
+        const modalHtml = `
+            <div id="ticketModal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3>🎧 Ответ на тикет #${ticketId.substring(0,8)}</h3>
+                    <div style="background:#1a1620; border-radius:16px; padding:16px; margin:16px 0;">
+                        <strong>Тема:</strong> ${subject}<br>
+                        <strong>Сообщение:</strong><br>${message}
+                    </div>
+                    <div class="form-row">
+                        <label>Ответ администратора</label>
+                        <textarea id="adminResponse" rows="4" placeholder="Введите ваш ответ..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label>Изменить статус</label>
+                        <select id="ticketStatus" class="admin-action-btn" style="width:100%;">
+                            <option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🟡 Открыт</option>
+                            <option value="in-progress" ${currentStatus === 'in-progress' ? 'selected' : ''}>🔵 В работе</option>
+                            <option value="resolved" ${currentStatus === 'resolved' ? 'selected' : ''}>🟢 Решён</option>
+                            <option value="closed" ${currentStatus === 'closed' ? 'selected' : ''}>⚫ Закрыт</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Приоритет</label>
+                        <select id="ticketPriority" class="admin-action-btn" style="width:100%;">
+                            <option value="low">🟢 Низкий</option>
+                            <option value="medium" selected>🟡 Средний</option>
+                            <option value="high">🔴 Высокий</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:12px; margin-top:24px;">
+                        <button class="btn" id="closeTicketModal">Отмена</button>
+                        <button class="btn-primary" id="sendTicketResponse" style="flex:1;">📨 Отправить ответ</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        document.getElementById('closeTicketModal').onclick = () => document.getElementById('ticketModal').remove();
+        document.getElementById('sendTicketResponse').onclick = async () => {
+            const response = document.getElementById('adminResponse').value;
+            const newStatus = document.getElementById('ticketStatus').value;
+            const newPriority = document.getElementById('ticketPriority').value;
+            
+            if (!response.trim()) { alert('Введите ответ'); return; }
+            
+            try {
+                await updateDoc(doc(db, "support_tickets", ticketId), {
+                    adminResponse: response,
+                    status: newStatus,
+                    priority: newPriority,
+                    adminRespondedAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                
+                await addDoc(collection(db, "support_messages"), {
+                    ticketId: ticketId,
+                    senderId: currentAdmin.uid,
+                    senderName: currentAdmin.displayName,
+                    senderRole: 'admin',
+                    message: response,
+                    timestamp: new Date().toISOString()
+                });
+                
+                await addNotification(userId, `📢 Ответ на тикет #${ticketId.substring(0,8)}: ${response.substring(0,100)}...`, ticketId, "ticket");
+                
+                alert('✅ Ответ отправлен пользователю');
+                document.getElementById('ticketModal').remove();
+                await loadTickets();
+                await updateStats();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        };
+    };
+    
+    function escapeHtml(str) { 
+        if (!str) return ''; 
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); 
+    }
+    
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${tab.dataset.tab}Tab`).classList.add('active');
+        };
+    });
+</script>
+</body>
+</html>

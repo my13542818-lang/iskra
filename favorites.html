@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Избранное — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <div class="user-actions" id="userActions"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <h1 style="margin-bottom: 24px;">❤️ Избранные объявления</h1>
+    <div id="favoritesContainer" class="listings-grid"></div>
+</div>
+
+<script type="module">
+    import { auth, onAuthStateChanged, signOutUser, getFavorites, removeFromFavorites } from './firebase-config.js';
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || 'https://via.placeholder.com/40'}" class="user-avatar">
+                <span>${user.displayName}</span>
+            </div>
+            <a href="index.html" class="btn">🏠 Главная</a>
+            <a href="post-ad.html" class="btn btn-primary">➕ Подать</a>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
+        document.getElementById('logoutBtn')?.addEventListener('click', signOutUser);
+        
+        await loadFavorites();
+    });
+    
+    async function loadFavorites() {
+        const favorites = await getFavorites();
+        const container = document.getElementById('favoritesContainer');
+        
+        if (favorites.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h3>⭐ Нет избранных</h3><p>Добавляйте товары в избранное, чтобы не потерять их</p></div>';
+            return;
+        }
+        
+        container.innerHTML = favorites.map(ad => `
+            <div class="listing-card" onclick="window.location.href='product.html?id=${ad.id}'">
+                <div class="listing-img">${ad.image || '📦'}</div>
+                <div class="listing-info">
+                    <div class="listing-title">${ad.title}</div>
+                    <div class="listing-price">${ad.price.toLocaleString()} ₽</div>
+                    <div class="listing-meta">
+                        <span>📍 ${ad.location || 'Не указан'}</span>
+                        <span>📦 ${ad.condition === 'new' ? 'Новое' : 'Б/У'}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="small-btn remove-fav" data-id="${ad.id}">❤️ Удалить</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.remove-fav').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                await removeFromFavorites(btn.dataset.id);
+                await loadFavorites();
+            };
+        });
+    }
+</script>
+
+</body>
+</html>

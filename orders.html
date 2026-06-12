@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои заказы — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .order-card { background: #0f0e13; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #2d1e32; }
+        .order-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-pending { background: #f0ad4e; color: #000; }
+        .status-paid { background: #5bc0de; color: #000; }
+        .status-shipped { background: #5bc0de; color: #000; }
+        .status-delivered { background: #5bc0de; color: #000; }
+        .status-completed { background: #5cb85c; color: #000; }
+        .status-cancelled { background: #d9534f; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mt-2 { margin-top: 10px; }
+        .text-muted { color: #a492b0; font-size: 12px; }
+        .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <a href="index.html" class="btn">🏠 На главную</a>
+    </div>
+</div>
+<div class="main-container">
+    <h1>📦 Мои заказы</h1>
+    <div id="ordersList"></div>
+</div>
+<script type="module">
+    import { auth, onAuthStateChanged, getUserOrders, getStatusText } from './firebase-config.js';
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'index.html'; return; }
+        const orders = await getUserOrders(user.uid);
+        const container = document.getElementById('ordersList');
+        if (orders.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет заказов</div>'; return; }
+        container.innerHTML = orders.map(order => `
+            <div class="order-card">
+                <div class="flex-between"><strong>${order.listingTitle}</strong><span class="order-status status-${order.status}">${getStatusText(order.status)}</span></div>
+                <div>💰 ${Number(order.price).toLocaleString()} ₽</div>
+                <div>📦 ${order.deliveryCompany || 'Не выбрана'} | ${order.deliveryAddress || 'Адрес не указан'}</div>
+                <div class="text-muted mt-2">Заказ от ${new Date(order.createdAt).toLocaleDateString()}</div>
+                ${order.trackingNumber ? `<div>📮 Трек-номер: ${order.trackingNumber}</div>` : ''}
+            </div>
+        `).join('');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать объявление — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .btn-primary:hover { background: #c13a44; }
+        .main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .post-form { background: #0f0e13; border-radius: 24px; padding: 28px; border: 1px solid #2d1e32; }
+        .post-form h3 { margin-bottom: 24px; }
+        .form-row { margin-bottom: 18px; }
+        .form-row label { display: block; margin-bottom: 8px; font-size: 14px; color: #a492b0; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 12px; background: #191520; border: 1px solid #432e48; border-radius: 20px; color: white; font-size: 14px; }
+        .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: #c53a1f; }
+        
+        /* Загрузка файлов */
+        .file-upload-area { border: 2px dashed #432e48; border-radius: 20px; padding: 30px; text-align: center; cursor: pointer; transition: 0.2s; margin-bottom: 15px; }
+        .file-upload-area:hover { border-color: #c53a1f; background: #1a1620; }
+        .file-upload-area.drag-over { border-color: #5cb85c; background: #1a1620; }
+        .file-list { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
+        .file-preview { position: relative; width: 120px; height: 120px; border-radius: 12px; overflow: hidden; background: #1a1620; border: 1px solid #432e48; }
+        .file-preview img, .file-preview video { width: 100%; height: 100%; object-fit: cover; }
+        .file-preview .remove-file { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: #d9534f; color: white; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .file-preview .file-type { position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 12px; font-size: 10px; }
+        .file-counter { font-size: 12px; color: #a492b0; margin-top: 8px; text-align: center; }
+        
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .error-msg { background: #d9534f; padding: 10px; border-radius: 10px; margin-bottom: 20px; display: none; text-align: center; }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; font-size: 24px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="loading" id="loading">⏳ Загрузка...</div>
+
+<div class="main-container">
+    <div class="post-form">
+        <h3 id="formTitle">📢 Создать объявление</h3>
+        <div id="errorMsg" class="error-msg"></div>
+        
+        <form id="postForm">
+            <div class="form-row">
+                <label>Название товара</label>
+                <input type="text" id="title" placeholder="Например: iPhone 14 Pro" required>
+            </div>
+            <div class="form-row">
+                <label>Цена (₽)</label>
+                <input type="number" id="price" placeholder="74990" required>
+            </div>
+            <div class="form-row">
+                <label>Категория</label>
+                <select id="category" required>
+                    <option value="электроника">Электроника</option>
+                    <option value="одежда">Одежда</option>
+                    <option value="авто">Авто</option>
+                    <option value="недвижимость">Недвижимость</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Состояние</label>
+                <select id="condition" required>
+                    <option value="new">Новое</option>
+                    <option value="used">Б/У</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Город</label>
+                <input type="text" id="location" placeholder="Москва, СПб, ...">
+            </div>
+            <div class="form-row">
+                <label>Описание</label>
+                <textarea id="description" rows="4" placeholder="Подробно опишите товар..."></textarea>
+            </div>
+            
+            <div class="form-row">
+                <label>📷 Фото товара (до 10 шт.)</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                    📁 Нажмите или перетащите фото сюда<br>
+                    <small>Поддерживаются JPG, PNG, GIF, MP4 (до 5 МБ каждый)</small>
+                </div>
+                <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display: none;">
+                <div class="file-counter" id="fileCounter">Выбрано 0 файлов</div>
+                <div class="file-list" id="fileList"></div>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn-primary" style="width: 100%; padding: 14px;">📤 Опубликовать</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, onAuthStateChanged, signOutUser, addListing, updateListing, getListingById, doc, getDoc } from './firebase-config.js';
+
+    let currentUser = null;
+    let editingId = null;
+    let selectedFiles = []; // Храним файлы для загрузки
+    let existingMedia = []; // Храним уже загруженные медиа (при редактировании)
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit');
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        currentUser = user;
+        
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.data();
+        if (userData?.role === 'banned') {
+            alert('Ваш аккаунт заблокирован.');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <a href="index.html" class="btn">🏠</a>
+            <a href="my-listings.html" class="btn">📋 Мои</a>
+            <button class="btn" id="logoutBtn">🚪</button>
+        `;
+        document.getElementById('logoutBtn')?.addEventListener('click', () => signOutUser());
+        
+        if (editId) {
+            editingId = editId;
+            document.getElementById('formTitle').innerHTML = '✏️ Редактировать объявление';
+            document.getElementById('submitBtn').innerHTML = '💾 Сохранить изменения';
+            await loadListingForEdit(editId);
+        }
+    });
+    
+    async function loadListingForEdit(id) {
+        const listing = await getListingById(id);
+        if (listing && listing.sellerId === currentUser?.uid) {
+            document.getElementById('title').value = listing.title;
+            document.getElementById('price').value = listing.price;
+            document.getElementById('category').value = listing.category;
+            document.getElementById('condition').value = listing.condition;
+            document.getElementById('location').value = listing.location || '';
+            document.getElementById('description').value = listing.description || '';
+            
+            if (listing.mediaFiles && listing.mediaFiles.length > 0) {
+                existingMedia = listing.mediaFiles;
+                updateFilePreview();
+            }
+        }
+    }
+    
+    // Конвертация файла в Base64
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+    
+    // Обновление превью выбранных файлов
+    function updateFilePreview() {
+        const container = document.getElementById('fileList');
+        const counter = document.getElementById('fileCounter');
+        const allFiles = [
+            ...existingMedia.map((m, idx) => ({ type: m.type, url: m.url, name: m.name, isExisting: true, index: idx })),
+            ...selectedFiles.map((f, idx) => ({ type: f.type.startsWith('image/') ? 'image' : 'video', url: URL.createObjectURL(f), name: f.name, file: f, isExisting: false, index: idx }))
+        ];
+        
+        counter.textContent = `Выбрано ${allFiles.length} файлов (макс. 10)`;
+        
+        if (allFiles.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#a492b0;">Нет файлов</div>';
+            return;
+        }
+        
+        container.innerHTML = allFiles.map((file, idx) => `
+            <div class="file-preview" data-idx="${idx}">
+                ${file.type === 'image' ? 
+                    `<img src="${file.url}" alt="preview">` : 
+                    `<video src="${file.url}" style="width:100%;height:100%;object-fit:cover;"></video>`}
+                <div class="file-type">${file.type === 'image' ? '📷' : '🎥'}</div>
+                <button class="remove-file" data-idx="${idx}">✕</button>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.remove-file').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.idx);
+                if (allFiles[idx].isExisting) {
+                    existingMedia.splice(allFiles[idx].index, 1);
+                } else {
+                    selectedFiles = selectedFiles.filter((_, i) => i !== allFiles[idx].index);
+                }
+                updateFilePreview();
+            };
+        });
+    }
+    
+    // Загрузка файлов
+    const uploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('fileInput');
+    
+    uploadArea.onclick = () => fileInput.click();
+    
+    uploadArea.ondragover = (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    };
+    
+    uploadArea.ondragleave = () => {
+        uploadArea.classList.remove('drag-over');
+    };
+    
+    uploadArea.ondrop = async (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const files = Array.from(e.dataTransfer.files);
+        await processFiles(files);
+    };
+    
+    fileInput.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        await processFiles(files);
+        fileInput.value = '';
+    };
+    
+    async function processFiles(files) {
+        const remaining = 10 - (selectedFiles.length + existingMedia.length);
+        const validFiles = [];
+        
+        for (const file of files.slice(0, remaining)) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`Файл ${file.name} превышает 5 МБ и будет пропущен`);
+                continue;
+            }
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                alert(`Файл ${file.name} не является фото или видео`);
+                continue;
+            }
+            validFiles.push(file);
+        }
+        
+        if (validFiles.length > 0) {
+            selectedFiles.push(...validFiles);
+            updateFilePreview();
+        }
+        
+        if (files.length > remaining) {
+            alert(`Можно загрузить не более 10 файлов. Добавлено ${validFiles.length} из ${files.length}`);
+        }
+    }
+    
+    async function convertFilesToBase64(files) {
+        const results = [];
+        for (const file of files) {
+            const base64 = await fileToBase64(file);
+            results.push({
+                url: base64,
+                type: file.type.startsWith('image/') ? 'image' : 'video',
+                name: file.name,
+                size: file.size
+            });
+        }
+        return results;
+    }
+    
+    function showError(msg) {
+        const errorDiv = document.getElementById('errorMsg');
+        errorDiv.textContent = msg;
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+    }
+    
+    document.getElementById('postForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById('title').value.trim();
+        const price = parseInt(document.getElementById('price').value);
+        const category = document.getElementById('category').value;
+        const condition = document.getElementById('condition').value;
+        const location = document.getElementById('location').value.trim();
+        const description = document.getElementById('description').value.trim();
+        
+        if (!title) { showError('Введите название товара'); return; }
+        if (!price || isNaN(price) || price <= 0) { showError('Введите корректную цену'); return; }
+        
+        document.getElementById('loading').style.display = 'flex';
+        
+        try {
+            // Конвертируем новые файлы в Base64
+            let mediaFiles = [...existingMedia];
+            if (selectedFiles.length > 0) {
+                const newMedia = await convertFilesToBase64(selectedFiles);
+                mediaFiles = [...mediaFiles, ...newMedia];
+            }
+            
+            const listingData = {
+                title: title,
+                price: price,
+                category: category,
+                condition: condition,
+                location: location || 'Не указан',
+                description: description || '',
+                mediaFiles: mediaFiles,
+                image: mediaFiles.length > 0 ? mediaFiles[0].url : '📦'
+            };
+            
+            let result;
+            if (editingId) {
+                result = await updateListing(editingId, listingData);
+                if (result) {
+                    alert('✅ Объявление обновлено!');
+                    window.location.href = 'my-listings.html';
+                } else {
+                    showError('Ошибка при обновлении');
+                }
+            } else {
+                const newId = await addListing(listingData);
+                if (newId) {
+                    alert('✅ Объявление опубликовано!');
+                    window.location.href = 'index.html';
+                } else {
+                    showError('Ошибка при публикации');
+                }
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
+            showError('Ошибка: ' + error.message);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>

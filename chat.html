@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чаты — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .chat-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: flex; gap: 24px; min-height: 600px; }
+        .chats-list { width: 320px; background: #0f0e13; border-radius: 28px; border: 1px solid #2d1e32; overflow-y: auto; max-height: 600px; }
+        .chat-item { padding: 16px; border-bottom: 1px solid #2a1a2c; cursor: pointer; transition: 0.2s; }
+        .chat-item:hover { background: #1a1620; }
+        .chat-item.active { background: #ac2f3a; }
+        .chat-messages-area { flex: 1; background: #0f0e13; border-radius: 28px; border: 1px solid #2d1e32; display: flex; flex-direction: column; }
+        .messages-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; max-height: 500px; }
+        .message { max-width: 70%; padding: 10px 16px; border-radius: 20px; }
+        .message.my { background: #ac2f3a; align-self: flex-end; }
+        .message.their { background: #1a1620; align-self: flex-start; }
+        .chat-input-area { padding: 16px; border-top: 1px solid #2a1a2c; display: flex; gap: 12px; }
+        .chat-input-area input { flex: 1; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 40px; color: white; }
+        .empty-state { text-align: center; padding: 40px; color: #a492b0; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="chat-container">
+    <div class="chats-list" id="chatsList">
+        <div class="empty-state">Загрузка чатов...</div>
+    </div>
+    <div class="chat-messages-area">
+        <div class="messages-list" id="messagesList">
+            <div class="empty-state">Выберите чат слева</div>
+        </div>
+        <div class="chat-input-area" id="chatInputArea" style="display: none;">
+            <input type="text" id="messageInput" placeholder="Введите сообщение...">
+            <button class="btn-primary" id="sendBtn">➤</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db, onAuthStateChanged, signOutUser, collection, addDoc, query, where, getDocs, onSnapshot, doc, updateDoc, orderBy } from './firebase-config.js';
+
+    const CHATS_COLLECTION = "chats";
+    const MESSAGES_COLLECTION = "messages";
+    
+    let currentUser = null;
+    let currentChatId = null;
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        currentUser = user;
+        
+        const userActions = document.getElementById('userActions');
+        userActions.innerHTML = `
+            <div class="user-info">
+                <img src="${user.photoURL || ''}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <a href="index.html" class="btn">🏠</a>
+            <a href="post-ad.html" class="btn btn-primary">➕</a>
+            <button class="btn" id="logoutBtn">🚪</button>
+        `;
+        document.getElementById('logoutBtn')?.addEventListener('click', () => signOutUser());
+        
+        await loadChats();
+        
+        // Проверяем URL параметры (при переходе из карточки товара)
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerId = urlParams.get('sellerId');
+        const listingId = urlParams.get('listingId');
+        const listingTitle = urlParams.get('title');
+        
+        if (sellerId && listingId && sellerId !== user.uid) {
+            const chat = await getOrCreateChat(sellerId, listingId, listingTitle);
+            if (chat) {
+                currentChatId = chat.id;
+                loadMessages(currentChatId);
+                document.getElementById('chatInputArea').style.display = 'flex';
+                highlightChat(currentChatId);
+            }
+        }
+    });
+    
+    // Получить или создать чат (с массивом участников)
+    async function getOrCreateChat(sellerId, listingId, listingTitle) {
+        try {
+            // Ищем чат по объявлению и участникам
+            const q = query(
+                collection(db, CHATS_COLLECTION), 
+                where("listingId", "==", listingId),
+                where("participants", "array-contains", currentUser.uid)
+            );
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+            }
+            
+            // Создаём чат с двумя участниками
+            const docRef = await addDoc(collection(db, CHATS_COLLECTION), {
+                buyerId: currentUser.uid,
+                buyerName: currentUser.displayName,
+                sellerId: sellerId,
+                listingId: listingId,
+                listingTitle: decodeURIComponent(listingTitle || "Товар"),
+                participants: [currentUser.uid, sellerId],  // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
+                createdAt: new Date().toISOString(),
+                lastMessage: "",
+                lastMessageTime: new Date().toISOString()
+            });
+            
+            return { id: docRef.id, listingTitle: listingTitle };
+        } catch (error) {
+            console.error("Ошибка создания чата:", error);
+            return null;
+        }
+    }
+    
+    // Загрузить список чатов (где пользователь участник)
+    async function loadChats() {
+        try {
+            const q = query(
+                collection(db, CHATS_COLLECTION), 
+                where("participants", "array-contains", currentUser.uid)
+            );
+            const snapshot = await getDocs(q);
+            const chats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const container = document.getElementById('chatsList');
+            
+            if (chats.length === 0) {
+                container.innerHTML = '<div class="empty-state">У вас пока нет чатов</div>';
+                return;
+            }
+            
+            container.innerHTML = chats.map(chat => {
+                // Определяем собеседника
+                const otherParticipant = chat.participants?.find(p => p !== currentUser.uid);
+                const isSeller = otherParticipant === chat.sellerId;
+                return `
+                    <div class="chat-item" data-chat-id="${chat.id}">
+                        <div><strong>${chat.listingTitle || 'Товар'}</strong></div>
+                        <div style="font-size: 12px; color: #a492b0;">
+                            ${isSeller ? '👤 Продавец' : '🛒 Покупатель'}
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-top: 4px;">${chat.lastMessage?.substring(0, 40) || 'Новое сообщение'}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.onclick = () => {
+                    currentChatId = item.dataset.chatId;
+                    loadMessages(currentChatId);
+                    document.getElementById('chatInputArea').style.display = 'flex';
+                    highlightChat(currentChatId);
+                };
+            });
+        } catch (error) {
+            console.error("Ошибка загрузки чатов:", error);
+        }
+    }
+    
+    // Загрузить сообщения
+    function loadMessages(chatId) {
+        const q = query(collection(db, MESSAGES_COLLECTION), where("chatId", "==", chatId));
+        
+        onSnapshot(q, (snapshot) => {
+            let messages = [];
+            snapshot.forEach(doc => {
+                messages.push({ id: doc.id, ...doc.data() });
+            });
+            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const container = document.getElementById('messagesList');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет сообщений. Напишите первое!</div>';
+                return;
+            }
+            
+            container.innerHTML = messages.map(msg => `
+                <div class="message ${msg.senderId === currentUser?.uid ? 'my' : 'their'}">
+                    <div><strong>${msg.senderName || (msg.senderId === currentUser?.uid ? 'Вы' : 'Собеседник')}</strong></div>
+                    <div>${escapeHtml(msg.text)}</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">${msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}</div>
+                </div>
+            `).join('');
+            
+            container.scrollTop = container.scrollHeight;
+        }, (error) => {
+            console.error("Ошибка загрузки сообщений:", error);
+        });
+    }
+    
+    // Отправить сообщение
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        
+        if (!text || !currentChatId || !currentUser) return;
+        
+        try {
+            await addDoc(collection(db, MESSAGES_COLLECTION), {
+                chatId: currentChatId,
+                senderId: currentUser.uid,
+                senderName: currentUser.displayName,
+                text: text,
+                timestamp: new Date().toISOString()
+            });
+            
+            await updateDoc(doc(db, CHATS_COLLECTION, currentChatId), {
+                lastMessage: text,
+                lastMessageTime: new Date().toISOString()
+            });
+            
+            input.value = '';
+        } catch (error) {
+            console.error("Ошибка отправки:", error);
+            alert("Ошибка отправки: " + error.message);
+        }
+    }
+    
+    function highlightChat(chatId) {
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.chatId === chatId) {
+                item.classList.add('active');
+            }
+        });
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
+
+</body>
+</html>

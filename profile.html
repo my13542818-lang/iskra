@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: 0.2s; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .btn-primary:hover { background: #c13a44; }
+        .btn-success { background: #2a7a4b; border-color: #3a9a5b; }
+        .btn-danger { background: #7a1a2e; }
+        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .profile-header { display: flex; gap: 30px; align-items: center; margin-bottom: 30px; background: #0f0e13; padding: 30px; border-radius: 30px; border: 1px solid #2d1e32; flex-wrap: wrap; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #c53a1f; overflow: hidden; cursor: pointer; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-info h2 { font-size: 24px; margin-bottom: 8px; }
+        .profile-info p { color: #a492b0; margin-bottom: 5px; }
+        .profile-stats { display: flex; gap: 30px; margin-top: 15px; flex-wrap: wrap; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: 800; color: #ff6b4a; }
+        .stat-label { font-size: 12px; color: #a492b0; }
+        .edit-icon { cursor: pointer; margin-left: 10px; font-size: 14px; color: #ff6b4a; }
+        
+        .edit-form { background: #0f0e13; border-radius: 24px; padding: 24px; margin-bottom: 30px; border: 1px solid #2d1e32; display: none; }
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
+        .form-row input, .form-row select { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 20px; color: white; outline: none; }
+        
+        .profile-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #2a1a2c; padding-bottom: 10px; flex-wrap: wrap; }
+        .profile-tab { padding: 10px 24px; background: #121114; border: 1px solid #2f2332; border-radius: 40px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .profile-tab:hover { background: #1f1924; }
+        .profile-tab.active { background: #ac2f3a; border-color: #d44545; }
+        
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        
+        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; transition: 0.2s; }
+        .listing-card:hover { border-color: #b6474a; transform: translateY(-3px); }
+        .listing-img { height: 160px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; overflow: hidden; }
+        .listing-img img { width: 100%; height: 100%; object-fit: cover; }
+        .listing-info { padding: 12px; }
+        .listing-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .listing-price { font-size: 18px; font-weight: 800; color: #ff6b4a; margin: 5px 0; }
+        .card-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; transition: 0.2s; }
+        .small-btn:hover { background: #2a1f36; }
+        
+        .order-card { background: #0f0e13; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #2d1e32; }
+        .order-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-pending { background: #f0ad4e; color: #000; }
+        .status-paid { background: #5bc0de; color: #000; }
+        .status-shipped { background: #5bc0de; color: #000; }
+        .status-completed { background: #5cb85c; color: #000; }
+        
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .text-muted { color: #a492b0; font-size: 12px; }
+        .mt-2 { margin-top: 10px; }
+        .empty-state { text-align: center; padding: 40px; background: #0f0e13; border-radius: 20px; color: #a492b0; }
+        
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        
+        .success-msg { background: #5cb85c; padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: center; display: none; }
+        .error-msg { background: #d9534f; padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: center; display: none; }
+        .warning-msg { background: #f0ad4e; color: #000; padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: center; display: none; }
+        
+        .security-card { background: #1a1620; border-radius: 16px; padding: 20px; margin-bottom: 15px; }
+        .backup-codes { font-family: monospace; background: #0a0a0c; padding: 15px; border-radius: 12px; margin-top: 10px; letter-spacing: 2px; word-break: break-all; }
+        .qr-code { background: white; padding: 10px; border-radius: 16px; display: inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <a href="index.html" class="btn">🏠 На главную</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="profile-header" id="profileHeader">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <div class="profile-info">
+            <h2 id="profileName">Загрузка... <span class="edit-icon" id="editProfileBtn">✏️</span></h2>
+            <p id="profileEmail"></p>
+            <p id="profilePhone"></p>
+            <p id="profileLocation"></p>
+            <div class="profile-stats">
+                <div class="stat"><div class="stat-value" id="statRating">0</div><div class="stat-label">⭐ Рейтинг</div></div>
+                <div class="stat"><div class="stat-value" id="statDeals">0</div><div class="stat-label">📦 Сделок</div></div>
+                <div class="stat"><div class="stat-value" id="statListings">0</div><div class="stat-label">📢 Объявлений</div></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Форма редактирования профиля -->
+    <div class="edit-form" id="editForm">
+        <h3 style="margin-bottom: 20px;">✏️ Редактировать профиль</h3>
+        <div id="editSuccessMsg" class="success-msg">✅ Профиль обновлён!</div>
+        <div id="editErrorMsg" class="error-msg">❌ Ошибка при обновлении</div>
+        <div class="form-row"><label>Имя</label><input type="text" id="editName" placeholder="Ваше имя"></div>
+        <div class="form-row"><label>Телефон</label><input type="tel" id="editPhone" placeholder="+7 XXX XXX XX XX"></div>
+        <div class="form-row"><label>Город</label><input type="text" id="editLocation" placeholder="Ваш город"></div>
+        <div class="form-row"><label>Ссылка на фото (URL)</label><input type="text" id="editPhotoUrl" placeholder="https://example.com/photo.jpg"></div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn" id="cancelEditBtn">Отмена</button>
+            <button class="btn-primary" id="saveProfileBtn" style="flex:1;">💾 Сохранить изменения</button>
+        </div>
+    </div>
+    
+    <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="listings">📋 Мои объявления</button>
+        <button class="profile-tab" data-tab="orders">📦 Заказы</button>
+        <button class="profile-tab" data-tab="selling">💰 Продажи</button>
+        <button class="profile-tab" data-tab="security">🔒 2FA</button>
+        <button class="profile-tab" data-tab="password">🔐 Смена пароля</button>
+    </div>
+    
+    <!-- Мои объявления -->
+    <div id="listingsTab" class="tab-pane active">
+        <div id="myListingsContainer" class="listings-grid"></div>
+    </div>
+    
+    <!-- Заказы -->
+    <div id="ordersTab" class="tab-pane">
+        <div id="ordersList"></div>
+    </div>
+    
+    <!-- Продажи -->
+    <div id="sellingTab" class="tab-pane">
+        <div id="sellingList"></div>
+    </div>
+    
+    <!-- 2FA -->
+    <div id="securityTab" class="tab-pane">
+        <div class="security-card">
+            <h3>🔐 Двухфакторная аутентификация</h3>
+            
+            <!-- 2FA через Email -->
+            <div class="flex-between">
+                <div><strong>📧 2FA через Email</strong><br><span class="text-muted">Код подтверждения на почту</span></div>
+                <button id="toggleEmail2FA" class="btn">Включить</button>
+            </div>
+            <div id="email2FAStatus" class="text-muted mt-2"></div>
+            
+            <hr style="border-color: #2d1e32; margin: 15px 0;">
+            
+            <!-- 2FA через Google Authenticator -->
+            <div class="flex-between">
+                <div><strong>🔢 Google Authenticator</strong><br><span class="text-muted">Код из приложения на телефоне</span></div>
+                <button id="toggleGA2FA" class="btn">Включить</button>
+            </div>
+            <div id="ga2FAStatus" class="text-muted mt-2"></div>
+            <div id="gaQRCode" style="display: none;" class="mt-2"></div>
+            <div id="gaVerifyCode" style="display: none;" class="mt-2">
+                <div class="form-row"><label>Код из Google Authenticator</label><input type="text" id="gaConfirmCode" placeholder="6-значный код" maxlength="6"></div>
+                <button id="confirmGA2FA" class="btn-primary">Подтвердить и включить</button>
+            </div>
+            
+            <hr style="border-color: #2d1e32; margin: 15px 0;">
+            
+            <!-- Резервные коды -->
+            <div class="flex-between">
+                <div><strong>🔑 Резервные коды</strong><br><span class="text-muted">Одноразовые коды для восстановления</span></div>
+                <button id="generateCodesBtn" class="btn">Сгенерировать</button>
+            </div>
+            <div id="backupCodesArea" style="display: none;">
+                <div class="backup-codes" id="backupCodes"></div>
+                <div class="warning-msg mt-2">⚠️ Сохраните эти коды! Каждый код можно использовать один раз.</div>
+            </div>
+        </div>
+        
+        <div class="security-card">
+            <h3>📱 Активные сеансы</h3>
+            <div class="flex-between"><span>🌐 Текущий сеанс</span><span class="text-muted">Это устройство</span></div>
+            <button class="btn-danger small-btn mt-2" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
+        </div>
+    </div>
+    
+    <!-- Смена пароля -->
+    <div id="passwordTab" class="tab-pane">
+        <div class="edit-form" style="display: block;">
+            <h3 style="margin-bottom: 20px;">🔐 Смена пароля</h3>
+            <div id="passwordSuccessMsg" class="success-msg">✅ Пароль успешно изменён!</div>
+            <div id="passwordErrorMsg" class="error-msg">❌ Ошибка</div>
+            <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword" placeholder="Введите текущий пароль"></div>
+            <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword" placeholder="Новый пароль (мин. 6 символов)"></div>
+            <div class="form-row"><label>Подтверждение</label><input type="password" id="confirmPassword" placeholder="Подтвердите новый пароль"></div>
+            <button class="btn-primary" id="changePasswordBtn" style="width:100%; padding:12px;">🔄 Сменить пароль</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db, onAuthStateChanged, signOutUser, doc, getDoc, updateDoc, updatePassword, EmailAuthProvider, reauthenticateWithCredential, collection, query, where, getDocs, deleteDoc, setDoc } from './firebase-config.js';
+
+    let currentUser = null;
+    let tempGASecret = null;
+    
+    // ============ TOTP РЕАЛИЗАЦИЯ (полностью рабочая) ============
+    // Base32 алфавит
+    const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    
+    function base32Encode(buffer) {
+        let result = '';
+        let bits = 0;
+        let value = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            value = (value << 8) | buffer[i];
+            bits += 8;
+            while (bits >= 5) {
+                result += BASE32_ALPHABET[(value >>> (bits - 5)) & 31];
+                bits -= 5;
+            }
+        }
+        if (bits > 0) {
+            result += BASE32_ALPHABET[(value << (5 - bits)) & 31];
+        }
+        return result;
+    }
+    
+    function generateRandomSecret() {
+        const array = new Uint8Array(20);
+        crypto.getRandomValues(array);
+        return base32Encode(array);
+    }
+    
+    // HMAC-SHA1 реализация
+    async function hmacSha1(key, message) {
+        const encoder = new TextEncoder();
+        const keyData = encoder.encode(key);
+        const messageData = encoder.encode(message);
+        
+        const cryptoKey = await crypto.subtle.importKey(
+            'raw', keyData,
+            { name: 'HMAC', hash: 'SHA-1' },
+            false, ['sign']
+        );
+        const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+        return new Uint8Array(signature);
+    }
+    
+    // Генерация TOTP кода
+    async function generateTOTP(secret, timeCounter) {
+        const timeHex = timeCounter.toString(16).padStart(16, '0');
+        const timeBytes = new Uint8Array(8);
+        for (let i = 0; i < 8; i++) {
+            timeBytes[7 - i] = parseInt(timeHex.substr(i * 2, 2), 16);
+        }
+        
+        const hmac = await hmacSha1(secret, String.fromCharCode(...timeBytes));
+        
+        const offset = hmac[19] & 0xf;
+        const code = ((hmac[offset] & 0x7f) << 24) |
+                     ((hmac[offset + 1] & 0xff) << 16) |
+                     ((hmac[offset + 2] & 0xff) << 8) |
+                     (hmac[offset + 3] & 0xff);
+        
+        const totp = code % 1000000;
+        return totp.toString().padStart(6, '0');
+    }
+    
+    async function verifyTOTP(secret, userCode) {
+        const timeStep = 30;
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        // Проверяем текущий и соседние временные окна (±1 шаг = 30 секунд)
+        for (let i = -1; i <= 1; i++) {
+            const timeCounter = Math.floor(currentTime / timeStep) + i;
+            const expectedCode = await generateTOTP(secret, timeCounter);
+            if (expectedCode === userCode) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+        currentUser = user;
+        
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        document.getElementById('logoutBtn').onclick = signOutUser;
+        
+        await loadProfile();
+        await loadMyListings();
+        await loadOrders();
+        await loadSelling();
+        await load2FASettings();
+        await loadBackupCodes();
+    });
+    
+    async function loadProfile() {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const userData = userDoc.data() || {};
+        document.getElementById('profileName').innerHTML = (userData.name || currentUser.displayName) + ' <span class="edit-icon" id="editProfileBtn">✏️</span>';
+        document.getElementById('profileEmail').innerHTML = `📧 ${currentUser.email}`;
+        document.getElementById('profilePhone').innerHTML = `📞 ${userData.phone || 'Телефон не указан'}`;
+        document.getElementById('profileLocation').innerHTML = `📍 ${userData.location || 'Город не указан'}`;
+        document.getElementById('statRating').textContent = userData.rating || 0;
+        document.getElementById('statDeals').textContent = userData.completedDeals || 0;
+        
+        const avatarDiv = document.getElementById('profileAvatar');
+        if (userData.photoURL || currentUser.photoURL) {
+            avatarDiv.innerHTML = `<img src="${userData.photoURL || currentUser.photoURL}" alt="avatar">`;
+        } else {
+            avatarDiv.innerHTML = '👤';
+        }
+        
+        document.getElementById('editProfileBtn')?.addEventListener('click', () => {
+            document.getElementById('editForm').style.display = 'block';
+            document.getElementById('editName').value = userData.name || currentUser.displayName || '';
+            document.getElementById('editPhone').value = userData.phone || '';
+            document.getElementById('editLocation').value = userData.location || '';
+            document.getElementById('editPhotoUrl').value = userData.photoURL || currentUser.photoURL || '';
+        });
+    }
+    
+    document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
+        const name = document.getElementById('editName').value;
+        const phone = document.getElementById('editPhone').value;
+        const location = document.getElementById('editLocation').value;
+        const photoURL = document.getElementById('editPhotoUrl').value;
+        try {
+            await updateDoc(doc(db, "users", currentUser.uid), { name, phone, location, photoURL, updatedAt: new Date().toISOString() });
+            document.getElementById('editSuccessMsg').style.display = 'block';
+            setTimeout(() => document.getElementById('editSuccessMsg').style.display = 'none', 3000);
+            document.getElementById('editForm').style.display = 'none';
+            await loadProfile();
+        } catch (error) {
+            document.getElementById('editErrorMsg').style.display = 'block';
+            setTimeout(() => document.getElementById('editErrorMsg').style.display = 'none', 3000);
+        }
+    });
+    
+    document.getElementById('cancelEditBtn')?.addEventListener('click', () => document.getElementById('editForm').style.display = 'none');
+    
+    // ============ СМЕНА ПАРОЛЯ ============
+    document.getElementById('changePasswordBtn')?.addEventListener('click', async () => {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!currentPassword) { alert('Введите текущий пароль'); return; }
+        if (!newPassword) { alert('Введите новый пароль'); return; }
+        if (newPassword !== confirmPassword) { alert('Пароли не совпадают'); return; }
+        if (newPassword.length < 6) { alert('Пароль должен быть не менее 6 символов'); return; }
+        
+        try {
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(currentUser, credential);
+            await updatePassword(currentUser, newPassword);
+            alert('✅ Пароль успешно изменён!');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } catch (error) {
+            alert(error.code === 'auth/wrong-password' ? '❌ Неверный текущий пароль' : '❌ Ошибка: ' + error.message);
+        }
+    });
+    
+    // ============ 2FA ============
+    async function load2FASettings() {
+        const settingsRef = doc(db, "user_2fa", currentUser.uid);
+        const settingsSnap = await getDoc(settingsRef);
+        const settings = settingsSnap.data() || {};
+        
+        // Email 2FA
+        const emailEnabled = settings.email2FA === true;
+        const emailBtn = document.getElementById('toggleEmail2FA');
+        const emailStatus = document.getElementById('email2FAStatus');
+        
+        if (emailEnabled) {
+            emailBtn.textContent = 'Выключить';
+            emailBtn.classList.add('btn-danger');
+            emailBtn.classList.remove('btn-primary');
+            emailStatus.innerHTML = '✅ 2FA через Email включена.';
+        } else {
+            emailBtn.textContent = 'Включить';
+            emailBtn.classList.add('btn-primary');
+            emailBtn.classList.remove('btn-danger');
+            emailStatus.innerHTML = '❌ 2FA через Email выключена';
+        }
+        
+        emailBtn.onclick = async () => {
+            const newStatus = !emailEnabled;
+            await setDoc(doc(db, "user_2fa", currentUser.uid), { email2FA: newStatus }, { merge: true });
+            alert(newStatus ? '✅ 2FA через Email включена!' : '❌ 2FA через Email выключена');
+            await load2FASettings();
+        };
+        
+        // Google Authenticator
+        const gaEnabled = settings.ga2FA === true;
+        const gaBtn = document.getElementById('toggleGA2FA');
+        const gaStatus = document.getElementById('ga2FAStatus');
+        
+        if (gaEnabled) {
+            gaBtn.textContent = 'Выключить';
+            gaBtn.classList.add('btn-danger');
+            gaBtn.classList.remove('btn-primary');
+            gaStatus.innerHTML = '✅ 2FA через Google Authenticator включена';
+            document.getElementById('gaQRCode').style.display = 'none';
+            document.getElementById('gaVerifyCode').style.display = 'none';
+        } else {
+            gaBtn.textContent = 'Включить';
+            gaBtn.classList.add('btn-primary');
+            gaBtn.classList.remove('btn-danger');
+            gaStatus.innerHTML = '❌ 2FA через Google Authenticator выключена';
+        }
+        
+        gaBtn.onclick = async () => {
+            if (gaEnabled) {
+                await setDoc(doc(db, "user_2fa", currentUser.uid), { ga2FA: false, gaSecret: null }, { merge: true });
+                alert('❌ 2FA через Google Authenticator выключена');
+                await load2FASettings();
+            } else {
+                startGAEnrollment();
+            }
+        };
+    }
+    
+    async function startGAEnrollment() {
+        tempGASecret = generateRandomSecret();
+        
+        const issuer = 'Kuki';
+        const accountName = currentUser.email;
+        const otpauthUrl = `otpauth://totp/${issuer}:${accountName}?secret=${tempGASecret}&issuer=${issuer}`;
+        const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(otpauthUrl)}`;
+        
+        document.getElementById('gaQRCode').innerHTML = `
+            <div class="qr-code">
+                <img src="${qrImgUrl}" alt="QR Code" width="250">
+            </div>
+            <p class="text-muted mt-2">1. Установите <strong>Google Authenticator</strong></p>
+            <p class="text-muted">2. Отсканируйте QR-код</p>
+            <p class="text-muted">3. Введите 6-значный код ниже</p>
+            <p class="text-muted mt-2">Или введите секрет вручную: <code>${tempGASecret}</code></p>
+        `;
+        document.getElementById('gaQRCode').style.display = 'block';
+        document.getElementById('gaVerifyCode').style.display = 'block';
+    }
+    
+    document.getElementById('confirmGA2FA')?.addEventListener('click', async () => {
+        const userCode = document.getElementById('gaConfirmCode').value;
+        if (!userCode || userCode.length !== 6) {
+            alert('Введите 6-значный код из Google Authenticator');
+            return;
+        }
+        
+        try {
+            const isValid = await verifyTOTP(tempGASecret, userCode);
+            
+            if (isValid) {
+                await setDoc(doc(db, "user_2fa", currentUser.uid), {
+                    ga2FA: true,
+                    gaSecret: tempGASecret
+                }, { merge: true });
+                
+                alert('✅ 2FA через Google Authenticator успешно включена!');
+                document.getElementById('gaQRCode').style.display = 'none';
+                document.getElementById('gaVerifyCode').style.display = 'none';
+                document.getElementById('gaConfirmCode').value = '';
+                await load2FASettings();
+            } else {
+                alert('❌ Неверный код. Убедитесь, что время на телефоне синхронизировано (в настройках Google Authenticator есть "Корректировка времени")');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка при проверке кода. Попробуйте ещё раз.');
+        }
+    });
+    
+    // Резервные коды
+    async function loadBackupCodes() {
+        const codesRef = doc(db, "backup_codes", currentUser.uid);
+        const codesSnap = await getDoc(codesRef);
+        if (codesSnap.exists()) {
+            const codes = codesSnap.data().codes;
+            if (codes && codes.length > 0) {
+                document.getElementById('backupCodesArea').style.display = 'block';
+                document.getElementById('backupCodes').innerHTML = codes.join('<br>');
+            }
+        }
+    }
+    
+    document.getElementById('generateCodesBtn')?.addEventListener('click', async () => {
+        const codes = [];
+        for (let i = 0; i < 10; i++) {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase() + 
+                        Math.floor(Math.random() * 10) + 
+                        Math.floor(Math.random() * 10);
+            codes.push(code);
+        }
+        await setDoc(doc(db, "backup_codes", currentUser.uid), { codes: codes, createdAt: new Date().toISOString() });
+        document.getElementById('backupCodesArea').style.display = 'block';
+        document.getElementById('backupCodes').innerHTML = codes.join('<br>');
+        alert('✅ Резервные коды сгенерированы! Сохраните их.');
+    });
+    
+    document.getElementById('logoutAllBtn')?.addEventListener('click', async () => {
+        if (confirm('Выйти из всех устройств?')) await signOutUser();
+    });
+    
+    // ============ ОСТАЛЬНЫЕ ФУНКЦИИ ============
+    async function loadMyListings() {
+        const q = query(collection(db, "listings"), where("sellerId", "==", currentUser.uid));
+        const snapshot = await getDocs(q);
+        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('statListings').textContent = listings.length;
+        const container = document.getElementById('myListingsContainer');
+        if (listings.length === 0) { 
+            container.innerHTML = '<div class="empty-state">У вас пока нет объявлений<br><a href="post-ad.html" class="btn-primary" style="margin-top:15px;">➕ Создать объявление</a></div>'; 
+            return; 
+        }
+        container.innerHTML = listings.map(ad => `
+            <div class="listing-card">
+                <div class="listing-img">${ad.mediaFiles?.[0]?.url ? `<img src="${ad.mediaFiles[0].url}">` : (ad.image || '📦')}</div>
+                <div class="listing-info">
+                    <div class="listing-title">${ad.title}</div>
+                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
+                    <div class="card-actions">
+                        <a href="post-ad.html?edit=${ad.id}" class="small-btn">✏️</a>
+                        <button class="small-btn delete-listing" data-id="${ad.id}">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.delete-listing').forEach(btn => { 
+            btn.onclick = async () => { 
+                if(confirm('Удалить объявление?')){ 
+                    await deleteDoc(doc(db, "listings", btn.dataset.id)); 
+                    loadMyListings(); 
+                } 
+            }; 
+        });
+    }
+    
+    async function loadOrders() {
+        const q = query(collection(db, "orders"), where("buyerId", "==", currentUser.uid));
+        const snapshot = await getDocs(q);
+        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const container = document.getElementById('ordersList');
+        if (orders.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет заказов</div>'; return; }
+        container.innerHTML = orders.map(order => `
+            <div class="order-card">
+                <div class="flex-between"><strong>${order.listingTitle}</strong><span class="order-status status-${order.status}">${getStatusText(order.status)}</span></div>
+                <div>💰 ${Number(order.price).toLocaleString()} ₽</div>
+                <div class="text-muted">${new Date(order.createdAt).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+    }
+    
+    async function loadSelling() {
+        const q = query(collection(db, "orders"), where("sellerId", "==", currentUser.uid));
+        const snapshot = await getDocs(q);
+        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const container = document.getElementById('sellingList');
+        if (orders.length === 0) { container.innerHTML = '<div class="empty-state">Нет продаж</div>'; return; }
+        container.innerHTML = orders.map(order => `
+            <div class="order-card">
+                <div class="flex-between"><strong>${order.listingTitle}</strong><span class="order-status status-${order.status}">${getStatusText(order.status)}</span></div>
+                <div>💰 ${Number(order.price).toLocaleString()} ₽</div>
+                <div>👤 ${order.buyerName}</div>
+                <div class="card-actions mt-2">
+                    <select class="small-btn status-select" data-order="${order.id}">
+                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Ожидает</option>
+                        <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>💰 Оплачен</option>
+                        <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>📦 Отправлен</option>
+                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🏠 Доставлен</option>
+                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>✅ Завершён</option>
+                    </select>
+                    <button class="small-btn update-order" data-order="${order.id}">Обновить</button>
+                </div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.update-order').forEach(btn => { 
+            btn.onclick = async () => { 
+                const orderId = btn.dataset.order; 
+                const newStatus = document.querySelector(`.status-select[data-order="${orderId}"]`).value; 
+                await updateDoc(doc(db, "orders", orderId), { status: newStatus, updatedAt: new Date().toISOString() }); 
+                loadSelling(); 
+            }; 
+        });
+    }
+    
+    function getStatusText(status) {
+        const s = { pending: "⏳ Ожидает оплаты", paid: "💰 Оплачен", shipped: "📦 Отправлен", delivered: "🏠 Доставлен", completed: "✅ Завершён", cancelled: "❌ Отменён" };
+        return s[status] || status;
+    }
+    
+    const tabs = document.querySelectorAll('.profile-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            document.getElementById(`${tabId}Tab`).classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>

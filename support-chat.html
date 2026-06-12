@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат поддержки — Куки</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: white; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .chat-container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .messages-list { height: 500px; overflow-y: auto; background: #0f0e13; border-radius: 24px; padding: 20px; border: 1px solid #2d1e32; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .message { max-width: 70%; padding: 10px 16px; border-radius: 20px; }
+        .message.user { background: #1a1620; align-self: flex-start; }
+        .message.admin { background: #ac2f3a; align-self: flex-end; }
+        .message .sender { font-size: 11px; color: #a492b0; margin-bottom: 4px; }
+        .input-area { display: flex; gap: 12px; }
+        .input-area input { flex: 1; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 40px; color: white; }
+        .ticket-info { background: #1a1620; border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-open { background: #f0ad4e; color: #000; }
+        .status-in-progress { background: #5bc0de; color: #000; }
+        .status-resolved { background: #5cb85c; color: #000; }
+        .status-closed { background: #d9534f; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 Чат поддержки</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="chat-container">
+    <div class="ticket-info" id="ticketInfo">Загрузка...</div>
+    <div class="messages-list" id="messagesList"></div>
+    <div class="input-area" id="inputArea">
+        <input type="text" id="messageInput" placeholder="Введите сообщение...">
+        <button class="btn-primary" id="sendBtn">➤</button>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db, onAuthStateChanged, signOutUser, collection, query, where, orderBy, onSnapshot, addDoc, doc, updateDoc, getDoc } from './firebase-config.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketId = urlParams.get('ticketId');
+    let currentUser = null;
+    let isAdmin = false;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'index.html'; return; }
+        currentUser = user;
+        
+        // Проверяем, админ ли пользователь
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        isAdmin = userDoc.data()?.role === 'admin' || userDoc.data()?.role === 'админ';
+        
+        document.getElementById('userActions').innerHTML = `<span>${user.displayName}</span><button class="btn" id="logoutBtn">🚪</button>`;
+        document.getElementById('logoutBtn').onclick = signOutUser;
+        
+        if (!ticketId) {
+            document.getElementById('messagesList').innerHTML = '<div class="empty-state">Не указан ID тикета</div>';
+            return;
+        }
+        
+        await loadTicketInfo();
+        loadMessages();
+    });
+    
+    async function loadTicketInfo() {
+        const ticketDoc = await getDoc(doc(db, "support_tickets", ticketId));
+        if (!ticketDoc.exists()) { document.getElementById('ticketInfo').innerHTML = 'Тикет не найден'; return; }
+        const ticket = ticketDoc.data();
+        document.getElementById('ticketInfo').innerHTML = `
+            <div class="flex-between"><strong>📋 Тикет #${ticketId.substring(0,8)}</strong><span class="status status-${ticket.status}">${ticket.status === 'open' ? '🟡 Открыт' : ticket.status === 'in-progress' ? '🔵 В работе' : ticket.status === 'resolved' ? '🟢 Решён' : '⚫ Закрыт'}</span></div>
+            <div><strong>Тема:</strong> ${ticket.subject}</div>
+            <div class="text-muted">Создан: ${new Date(ticket.createdAt).toLocaleString()}</div>
+            ${ticket.adminResponse ? `<div class="admin-response"><strong>Ответ администратора:</strong><br>${ticket.adminResponse}</div>` : ''}
+        `;
+    }
+    
+    function loadMessages() {
+        const q = query(collection(db, "support_messages"), where("ticketId", "==", ticketId), orderBy("timestamp", "asc"));
+        onSnapshot(q, (snapshot) => {
+            const messages = snapshot.docs.map(doc => doc.data());
+            const container = document.getElementById('messagesList');
+            if (messages.length === 0) { container.innerHTML = '<div class="empty-state">Нет сообщений. Напишите в поддержку!</div>'; return; }
+            container.innerHTML = messages.map(msg => `
+                <div class="message ${msg.senderRole === 'admin' ? 'admin' : 'user'}">
+                    <div class="sender">${msg.senderName} ${msg.senderRole === 'admin' ? '👑 (Поддержка)' : ''}</div>
+                    <div>${escapeHtml(msg.message)}</div>
+                    <div style="font-size: 10px; color: #666;">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+    
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!text || !ticketId) return;
+        
+        await addDoc(collection(db, "support_messages"), {
+            ticketId: ticketId,
+            senderId: currentUser.uid,
+            senderName: currentUser.displayName,
+            senderRole: isAdmin ? 'admin' : 'user',
+            message: text,
+            timestamp: new Date().toISOString()
+        });
+        
+        await updateDoc(doc(db, "support_tickets", ticketId), {
+            lastMessage: text,
+            lastMessageTime: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: isAdmin && text ? 'in-progress' : 'open'
+        });
+        
+        input.value = '';
+    }
+    
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+    
+    document.getElementById('sendBtn').onclick = sendMessage;
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+</script>
+</body>
+</html>
