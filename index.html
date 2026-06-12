@@ -1,4 +1,3 @@
-    
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -97,6 +96,9 @@
         .user-dropdown { position: absolute; top: 60px; right: 20px; background: #0f0e13; border: 1px solid #2d1e32; border-radius: 20px; width: 200px; z-index: 200; overflow: hidden; }
         .dropdown-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; color: white; }
         .dropdown-item:hover { background: #1a1620; }
+        .dropdown-divider { height: 1px; background: #2d1e32; margin: 4px 0; }
+        
+        .timer { color: #ff6b4a; font-size: 12px; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -162,6 +164,7 @@
         <div id="codeVerifyView" style="display: none;">
             <div class="form-row"><input type="text" id="verificationCode" placeholder="6-значный код"></div>
             <button class="btn-primary" id="verifyCodeBtn" style="width:100%; padding:12px;">✅ Войти</button>
+            <div id="codeTimer" class="timer"></div>
             <button id="backBtn" style="margin-top:15px; width:100%; background:none; border:none; color:#a492b0; cursor:pointer;">← Назад</button>
         </div>
         <div class="divider"><span>или</span></div>
@@ -175,14 +178,14 @@
         <h2>📜 Договор публичной оферты</h2>
         <p><strong>Самозанятая Вагина Нина Васильевна</strong><br>ИНН: 233501711069</p>
         <h3>1. Общие положения</h3>
-        <p>Настоящий документ является официальным предложением заключить договор купли-продажи товаров, представленных на сайте.</p>
+        <p>Настоящий документ является официальным предложением заключить договор купли-продажи товаров.</p>
         <h3>2. Товар и порядок оформления заказа</h3>
         <p>Покупатель самостоятельно выбирает товар и оформляет Заказ через форму на Сайте.</p>
         <h3>3. Цена и порядок оплаты</h3>
-        <p>Цена товара указывается на Сайте в российских рублях. Оплата производится безналичным способом.</p>
-        <h3>4. Доставка и передача товара</h3>
+        <p>Цена товара указывается на Сайте в российских рублях.</p>
+        <h3>4. Доставка</h3>
         <p>Доставка осуществляется транспортными компаниями: СДЭК, Почта России, Boxberry.</p>
-        <h3>5. Возврат товара</h3>
+        <h3>5. Возврат</h3>
         <p>Покупатель вправе отказаться от товара в течение 7 дней после получения.</p>
         <h3>6. Реквизиты</h3>
         <p>ИП Вагина Нина Васильевна, ИНН 233501711069, тел: +7 (953) 111-49-42</p>
@@ -202,19 +205,268 @@
 
 <div id="recaptcha-container"></div>
 
-<script src="firebase-config.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        if (typeof firebase === 'undefined') {
-            document.getElementById('feedListings').innerHTML = '<div class="empty-state">Ошибка загрузки Firebase</div>';
-            return;
+    // ============ FIREBASE КОНФИГУРАЦИЯ ============
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    // Коллекции
+    const USERS_COLLECTION = "users";
+    const LISTINGS_COLLECTION = "listings";
+    const FAVORITES_COLLECTION = "favorites";
+    const CHATS_COLLECTION = "chats";
+    const ORDERS_COLLECTION = "orders";
+    const NOTIFICATIONS_COLLECTION = "notifications";
+    
+    console.log("✅ Firebase загружен");
+    
+    // ============ АВТОРИЗАЦИЯ ============
+    window.signInWithGoogle = async function() {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+            
+            const userRef = db.collection(USERS_COLLECTION).doc(user.uid);
+            const userSnap = await userRef.get();
+            
+            if (!userSnap.exists) {
+                await userRef.set({
+                    uid: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    role: "user",
+                    createdAt: new Date().toISOString(),
+                    rating: 0,
+                    completedDeals: 0,
+                    phone: "",
+                    location: ""
+                });
+            }
+            
+            localStorage.setItem("currentUser", JSON.stringify({ uid: user.uid, name: user.displayName }));
+            window.location.href = "index.html";
+        } catch (error) {
+            console.error("Ошибка входа:", error);
+            alert("Ошибка: " + error.message);
         }
-        
+    };
+    
+    window.signOutUser = async function() {
+        try {
+            await auth.signOut();
+            localStorage.removeItem("currentUser");
+            window.location.href = "index.html";
+        } catch (error) {
+            console.error("Ошибка выхода:", error);
+        }
+    };
+    
+    window.onAuthStateChanged = function(callback) {
+        return auth.onAuthStateChanged(callback);
+    };
+    
+    // ============ ОБЪЯВЛЕНИЯ ============
+    window.getListings = async function(filters = {}) {
+        try {
+            const snapshot = await db.collection(LISTINGS_COLLECTION).where("status", "==", "active").get();
+            let listings = [];
+            snapshot.forEach(doc => listings.push({ id: doc.id, ...doc.data() }));
+            listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            if (filters.category && filters.category !== "all") {
+                listings = listings.filter(l => l.category === filters.category);
+            }
+            if (filters.maxPrice && filters.maxPrice !== Infinity) {
+                listings = listings.filter(l => l.price <= filters.maxPrice);
+            }
+            return listings;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    window.getListingById = async function(id) {
+        try {
+            const docSnap = await db.collection(LISTINGS_COLLECTION).doc(id).get();
+            return docSnap.exists ? { id: docSnap.id, ...docSnap.data() } : null;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return null;
+        }
+    };
+    
+    window.getUserListings = async function(userId) {
+        try {
+            const snapshot = await db.collection(LISTINGS_COLLECTION).where("sellerId", "==", userId).get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    window.deleteListing = async function(id) {
+        try {
+            await db.collection(LISTINGS_COLLECTION).doc(id).delete();
+            return true;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return false;
+        }
+    };
+    
+    // ============ ИЗБРАННОЕ ============
+    window.addToFavorites = async function(listingId) {
+        const user = auth.currentUser;
+        if (!user) return false;
+        try {
+            await db.collection(FAVORITES_COLLECTION).add({ userId: user.uid, listingId, addedAt: new Date().toISOString() });
+            return true;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return false;
+        }
+    };
+    
+    window.removeFromFavorites = async function(listingId) {
+        const user = auth.currentUser;
+        if (!user) return false;
+        try {
+            const snapshot = await db.collection(FAVORITES_COLLECTION).where("userId", "==", user.uid).where("listingId", "==", listingId).get();
+            snapshot.forEach(async (doc) => { await doc.ref.delete(); });
+            return true;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return false;
+        }
+    };
+    
+    window.getFavorites = async function() {
+        const user = auth.currentUser;
+        if (!user) return [];
+        try {
+            const snapshot = await db.collection(FAVORITES_COLLECTION).where("userId", "==", user.uid).get();
+            const favorites = [];
+            for (const favDoc of snapshot.docs) {
+                const listing = await window.getListingById(favDoc.data().listingId);
+                if (listing) favorites.push(listing);
+            }
+            return favorites;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    // ============ ЗАКАЗЫ ============
+    window.createOrder = async function(orderData) {
+        const user = auth.currentUser;
+        if (!user) return null;
+        try {
+            const orderRef = await db.collection(ORDERS_COLLECTION).add({
+                ...orderData,
+                buyerId: user.uid,
+                buyerName: user.displayName || user.phoneNumber,
+                status: "pending",
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+            return orderRef.id;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return null;
+        }
+    };
+    
+    window.getUserOrders = async function(userId) {
+        try {
+            const snapshot = await db.collection(ORDERS_COLLECTION).where("buyerId", "==", userId).orderBy("createdAt", "desc").get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    window.getSellerOrders = async function(sellerId) {
+        try {
+            const snapshot = await db.collection(ORDERS_COLLECTION).where("sellerId", "==", sellerId).orderBy("createdAt", "desc").get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    window.updateOrderStatus = async function(orderId, status, trackingNumber = null) {
+        try {
+            const updateData = { status: status, updatedAt: new Date().toISOString() };
+            if (trackingNumber) updateData.trackingNumber = trackingNumber;
+            await db.collection(ORDERS_COLLECTION).doc(orderId).update(updateData);
+            return true;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return false;
+        }
+    };
+    
+    // ============ ЧАТЫ ============
+    window.getUserChats = async function() {
+        const user = auth.currentUser;
+        if (!user) return [];
+        try {
+            const snapshot = await db.collection(CHATS_COLLECTION).where("participants", "array-contains", user.uid).get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    // ============ УВЕДОМЛЕНИЯ ============
+    window.getUserNotifications = async function(userId) {
+        try {
+            const snapshot = await db.collection(NOTIFICATIONS_COLLECTION).where("userId", "==", userId).orderBy("createdAt", "desc").get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return [];
+        }
+    };
+    
+    window.markNotificationAsRead = async function(notificationId) {
+        try {
+            await db.collection(NOTIFICATIONS_COLLECTION).doc(notificationId).update({ read: true });
+            return true;
+        } catch (error) {
+            console.error("Ошибка:", error);
+            return false;
+        }
+    };
+    
+    // ============ ОСНОВНАЯ ЛОГИКА ============
+    document.addEventListener('DOMContentLoaded', async () => {
         let currentUser = null;
         let favorites = [];
         let allListings = [];
         let confirmationResult = null;
         let isAdmin = false;
+        let timerInterval = null;
         
         const authModal = document.getElementById('authModal');
         const userActions = document.getElementById('userActions');
@@ -249,10 +501,15 @@
         document.getElementById('conditionFilter')?.addEventListener('change', loadListings);
         document.getElementById('locationFilter')?.addEventListener('input', loadListings);
         document.getElementById('searchBtn')?.addEventListener('click', loadListings);
+        document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
         
         // Телефонный вход
         let recaptchaVerifier = null;
-        function initRecaptcha() { if (!recaptchaVerifier) recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' }); }
+        function initRecaptcha() {
+            if (!recaptchaVerifier) {
+                recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+            }
+        }
         
         document.getElementById('sendCodeBtn').onclick = async () => {
             let phone = document.getElementById('phoneNumber').value.trim();
@@ -260,26 +517,60 @@
             if (!phone.startsWith('+')) phone = '+' + phone;
             try {
                 initRecaptcha();
-                const result = await firebase.auth().signInWithPhoneNumber(phone, recaptchaVerifier);
+                const result = await auth.signInWithPhoneNumber(phone, recaptchaVerifier);
                 confirmationResult = result;
                 phoneLoginView.style.display = 'none';
                 codeVerifyView.style.display = 'block';
-            } catch (error) { alert('Ошибка: ' + error.message); }
+                startTimer();
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
         };
         
         document.getElementById('verifyCodeBtn').onclick = async () => {
             const code = document.getElementById('verificationCode').value.trim();
             if (!code) { alert('Введите код'); return; }
             try {
-                await confirmationResult.confirm(code);
+                const result = await confirmationResult.confirm(code);
+                const userRef = db.collection(USERS_COLLECTION).doc(result.user.uid);
+                const userSnap = await userRef.get();
+                if (!userSnap.exists) {
+                    await userRef.set({
+                        uid: result.user.uid,
+                        name: result.user.phoneNumber,
+                        phone: result.user.phoneNumber,
+                        role: "user",
+                        createdAt: new Date().toISOString(),
+                        rating: 0,
+                        completedDeals: 0
+                    });
+                }
                 authModal.style.display = 'none';
                 window.location.reload();
-            } catch (error) { alert('Неверный код'); }
+            } catch (error) {
+                alert('Неверный код');
+            }
         };
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            let seconds = 60;
+            const timerDiv = document.getElementById('codeTimer');
+            timerInterval = setInterval(() => {
+                if (seconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerDiv.innerHTML = '';
+                } else {
+                    timerDiv.innerHTML = `Повторная отправка через ${seconds} сек`;
+                    seconds--;
+                }
+            }, 1000);
+        }
         
         document.getElementById('backBtn').onclick = () => {
             codeVerifyView.style.display = 'none';
             phoneLoginView.style.display = 'block';
+            if (timerInterval) clearInterval(timerInterval);
         };
         
         document.getElementById('googleSignInBtn').onclick = () => window.signInWithGoogle();
@@ -302,7 +593,7 @@
                 <div class="listing-card" data-id="${ad.id}">
                     <div class="listing-img">${ad.image || '📦'}</div>
                     <div class="listing-info">
-                        <div class="listing-title">${ad.title}</div>
+                        <div class="listing-title">${escapeHtml(ad.title)}</div>
                         <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
                         <div class="listing-meta">📍 ${ad.location || 'Не указан'} | ⭐ ${ad.sellerRating || 0}</div>
                         <div class="card-actions">
@@ -447,10 +738,12 @@
             const container = document.getElementById('notificationsList');
             if (notifications.length === 0) { container.innerHTML = '<div class="empty-state">Нет уведомлений</div>'; return; }
             container.innerHTML = notifications.map(n => `<div class="notification ${n.read ? '' : 'unread'}" data-id="${n.id}" data-link="${n.linkId || ''}" data-type="${n.type || ''}"><div>${n.message}</div><div class="text-muted">${new Date(n.createdAt).toLocaleString()}</div></div>`).join('');
-            document.querySelectorAll('.notification').forEach(notif => { notif.onclick = async () => { await window.markNotificationAsRead(notif.dataset.id); notif.classList.remove('unread'); if (notif.dataset.type === 'ticket') window.location.href = `support-chat.html?ticketId=${notif.dataset.link}`; notif.classList.add('fade-out'); setTimeout(() => notif.remove(), 500); }; });
+            document.querySelectorAll('.notification').forEach(notif => { notif.onclick = async () => { await window.markNotificationAsRead(notif.dataset.id); notif.classList.remove('unread'); notif.classList.add('fade-out'); setTimeout(() => notif.remove(), 500); }; });
         }
         
         function getStatusText(status) { const s = { pending: "⏳ Ожидает оплаты", paid: "💰 Оплачен", shipped: "📦 Отправлен", delivered: "🏠 Доставлен", completed: "✅ Завершён", cancelled: "❌ Отменён" }; return s[status] || status; }
+        
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
         
         function showUserDropdown() {
             const existing = document.querySelector('.user-dropdown');
@@ -476,7 +769,7 @@
             if (user) {
                 currentUser = user;
                 authModal.style.display = 'none';
-                const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                const userDoc = await db.collection(USERS_COLLECTION).doc(user.uid).get();
                 isAdmin = userDoc.data()?.role === 'admin';
                 userActions.innerHTML = `<div class="user-info"><div class="user-avatar">👤</div><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><a href="messages.html" class="btn">💬</a>`;
                 document.querySelector('.user-info').onclick = showUserDropdown;
