@@ -1,132 +1,288 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+/* Все предыдущие стили + новые */
 
-body {
-    background: linear-gradient(135deg, #f8f4ff 0%, #fff0f5 100%);
-    color: #2d1b4e;
-    min-height: 100vh;
+/* Чат */
+.chat-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 24px;
 }
-
-/* Стилизация скролла */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #f0e6ff;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #9b59b6, #e84393);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #8e44ad, #c13584);
-}
-
-/* Общие стили кнопок */
-.btn {
-    padding: 8px 20px;
-    border-radius: 60px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-    border: 2px solid #e8d5f5;
-    background: white;
-    color: #9b59b6;
-}
-.btn:hover {
-    background: linear-gradient(135deg, #9b59b6, #e84393);
-    border-color: transparent;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(155, 89, 182, 0.3);
-}
-.btn-primary {
-    background: linear-gradient(135deg, #9b59b6, #e84393);
-    border: none;
-    color: white;
-}
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(232, 67, 147, 0.4);
-}
-.btn-danger {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    border: none;
-    color: white;
-}
-.btn-danger:hover {
-    background: linear-gradient(135deg, #c0392b, #a93226);
-    transform: translateY(-2px);
-}
-
-/* Карточки */
-.content-card {
+.chat-wrapper {
+    display: flex;
+    gap: 24px;
     background: white;
     border-radius: 24px;
     border: 1px solid #f0e6ff;
-    padding: 28px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(155, 89, 182, 0.08);
+    overflow: hidden;
+    min-height: 600px;
 }
-.content-card h2 {
-    color: #9b59b6;
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
-/* Формы */
-.form-row {
-    margin-bottom: 20px;
-}
-.form-row label {
-    display: block;
-    margin-bottom: 8px;
-    color: #9b59b6;
-    font-weight: 500;
-}
-.form-row input, .form-row select, .form-row textarea {
-    width: 100%;
-    padding: 12px 16px;
+.chat-sidebar {
+    width: 320px;
+    border-right: 1px solid #f0e6ff;
     background: #f8f4ff;
-    border: 1px solid #f0e6ff;
-    border-radius: 20px;
-    color: #2d1b4e;
-    outline: none;
+}
+.chat-search {
+    padding: 16px;
+    border-bottom: 1px solid #f0e6ff;
+}
+.chat-search input {
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #e8d5f5;
+    border-radius: 40px;
+    background: white;
+}
+.chat-users-list {
+    overflow-y: auto;
+    max-height: 500px;
+}
+.chat-user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
-.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
-    border-color: #e84393;
-    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.1);
-}
-
-/* Пустое состояние */
-.empty-state {
-    text-align: center;
-    padding: 60px;
+.chat-user-item:hover {
     background: white;
-    border-radius: 32px;
-    border: 1px solid #f0e6ff;
 }
-.empty-state h3 {
-    color: #9b59b6;
-    margin-bottom: 12px;
+.chat-user-item.active {
+    background: linear-gradient(95deg, #f8f4ff, #fff0f5);
+    border-left: 3px solid #e84393;
+}
+.chat-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.chat-user-info {
+    flex: 1;
+}
+.chat-user-name {
+    font-weight: 600;
+    color: #2d1b4e;
+}
+.chat-user-last {
+    font-size: 12px;
+    color: #b8a9d4;
+}
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.chat-header {
+    padding: 16px;
+    border-bottom: 1px solid #f0e6ff;
+    background: white;
+}
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 500px;
+}
+.message {
+    max-width: 70%;
+    padding: 10px 16px;
+    border-radius: 20px;
+}
+.message.my {
+    background: linear-gradient(135deg, #9b59b6, #e84393);
+    color: white;
+    align-self: flex-end;
+}
+.message.their {
+    background: #f8f4ff;
+    color: #2d1b4e;
+    align-self: flex-start;
+}
+.message-img {
+    max-width: 200px;
+    border-radius: 12px;
+    margin-top: 8px;
+}
+.message-time {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+.chat-input-area {
+    padding: 16px;
+    border-top: 1px solid #f0e6ff;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: white;
+}
+.chat-input-area input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e8d5f5;
+    border-radius: 40px;
+    outline: none;
+}
+.chat-attach-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-    .content-card {
-        padding: 20px;
-    }
-    .form-row input, .form-row select, .form-row textarea {
-        padding: 10px 14px;
-    }
+/* Кошелёк */
+.wallet-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 24px;
+}
+.wallet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+.wallet-card {
+    background: linear-gradient(135deg, #9b59b6, #e84393);
+    border-radius: 24px;
+    padding: 24px;
+    color: white;
+    text-align: center;
+}
+.wallet-balance {
+    font-size: 48px;
+    font-weight: 800;
+    margin: 16px 0;
+}
+.wallet-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 16px;
+}
+.wallet-actions .btn {
+    background: white;
+    color: #9b59b6;
+}
+.transfer-form {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid #f0e6ff;
+    margin-bottom: 24px;
+}
+.transactions-list {
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #f0e6ff;
+    overflow: hidden;
+}
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #f0e6ff;
+}
+.transaction-positive {
+    color: #5cb85c;
+}
+.transaction-negative {
+    color: #e74c3c;
+}
+
+/* Критерии товара по категориям */
+.specs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    background: #f8f4ff;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+}
+.spec-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0e6ff;
+}
+.spec-label {
+    font-weight: 600;
+    color: #9b59b6;
+}
+.spec-value {
+    color: #2d1b4e;
+}
+
+/* Загрузка файлов */
+.file-upload-area {
+    border: 2px dashed #e8d5f5;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f4ff;
+}
+.file-upload-area:hover {
+    border-color: #e84393;
+    background: #fff0f5;
+}
+.file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+.preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.preview-item img, .preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.remove-file {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Кнопка чатов на главной */
+.chat-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: linear-gradient(135deg, #9b59b6, #e84393);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(155,89,182,0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+.chat-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(232,67,147,0.4);
 }
