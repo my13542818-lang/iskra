@@ -8,6 +8,237 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .profile-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        .profile-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+        }
+        .profile-menu {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f0e6ff;
+            overflow: hidden;
+            position: sticky;
+            top: 90px;
+            box-shadow: 0 4px 15px rgba(155,89,182,0.08);
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            border-left: 3px solid transparent;
+        }
+        .menu-item:hover {
+            background: #f8f4ff;
+        }
+        .menu-item.active {
+            background: linear-gradient(95deg, #f8f4ff, #fff0f5);
+            border-left-color: #e84393;
+            color: #e84393;
+        }
+        .profile-content {
+            flex: 1;
+        }
+        .content-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f0e6ff;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(155,89,182,0.08);
+        }
+        .content-card h2 {
+            color: #9b59b6;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .form-row {
+            margin-bottom: 20px;
+        }
+        .form-row label {
+            display: block;
+            margin-bottom: 8px;
+            color: #9b59b6;
+            font-weight: 500;
+        }
+        .form-row input, .form-row select, .form-row textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: #f8f4ff;
+            border: 1px solid #f0e6ff;
+            border-radius: 20px;
+            color: #2d1b4e;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+            border-color: #e84393;
+            box-shadow: 0 0 0 3px rgba(232,67,147,0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            margin: 0 auto 12px;
+            border: 3px solid #e84393;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            border: 2px solid #e8d5f5;
+            background: white;
+            color: #9b59b6;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155,89,182,0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border: none;
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232,67,147,0.4);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: #f8f4ff;
+            border-radius: 20px;
+            color: #b8a9d4;
+        }
+        .listing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0e6ff;
+        }
+        .listing-item:last-child {
+            border-bottom: none;
+        }
+        @media (max-width: 768px) {
+            .profile-layout {
+                flex-direction: column;
+            }
+            .profile-sidebar {
+                width: 100%;
+            }
+            .profile-menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 12px;
+                position: static;
+            }
+            .menu-item {
+                width: auto;
+                padding: 8px 16px;
+                border-radius: 40px;
+                border-left: none;
+            }
+            .menu-item.active {
+                background: linear-gradient(135deg, #9b59b6, #e84393);
+                color: white;
+            }
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e84393;
+        }
+        .header {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(155,89,182,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(155,89,182,0.08);
+        }
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #9b59b6, #e84393, #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,57 +250,65 @@
     </div>
 </div>
 
-<div class="main-wrapper" style="max-width:1400px; margin:30px auto; padding:0 24px;">
-    <div class="profile-layout">
-        <div class="profile-sidebar">
-            <div class="profile-menu">
-                <div class="menu-item active" data-tab="profile">👤 Мой профиль</div>
-                <div class="menu-item" data-tab="listings">📋 Мои объявления</div>
-                <div class="menu-item" data-tab="settings">⚙️ Настройки</div>
+<div class="profile-layout">
+    <div class="profile-sidebar">
+        <div class="profile-menu">
+            <div class="menu-item active" data-tab="profile">
+                <span>👤</span> Мой профиль
+            </div>
+            <div class="menu-item" data-tab="listings">
+                <span>📋</span> Мои объявления
+            </div>
+            <div class="menu-item" data-tab="settings">
+                <span>⚙️</span> Настройки
             </div>
         </div>
-        <div class="profile-content">
-            <div id="profileTab" class="tab-content active">
-                <div class="content-card">
-                    <h2>👤 Мой профиль</h2>
-                    <div class="avatar-section">
-                        <div class="profile-avatar" id="profileAvatar">👤</div>
-                        <input type="file" id="avatarInput" accept="image/*" style="display:none">
-                        <button class="btn" id="changePhotoBtn">Сменить фото</button>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-row"><label>ФИО</label><input type="text" id="profileName"></div>
-                        <div class="form-row"><label>Email</label><input type="email" id="profileEmail" readonly></div>
-                        <div class="form-row"><label>Телефон</label><input type="tel" id="profilePhone"></div>
-                        <div class="form-row"><label>Город</label><input type="text" id="profileCity"></div>
-                    </div>
-                    <button class="btn-primary" id="saveProfileBtn">💾 Сохранить</button>
+    </div>
+    
+    <div class="profile-content">
+        <!-- Вкладка Профиль -->
+        <div id="profileTab" class="tab-content active">
+            <div class="content-card">
+                <h2>👤 Мой профиль</h2>
+                <div class="avatar-section">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                    <button class="btn" id="changePhotoBtn">Сменить фото</button>
                 </div>
-                <div class="content-card">
-                    <h2>🔐 Смена пароля</h2>
-                    <div class="grid-2">
-                        <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword"></div>
-                        <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword"></div>
-                        <div class="form-row"><label>Подтверждение</label><input type="password" id="confirmPassword"></div>
-                    </div>
-                    <button class="btn-primary" id="changePasswordBtn">Изменить пароль</button>
+                <div class="grid-2">
+                    <div class="form-row"><label>ФИО</label><input type="text" id="profileName" placeholder="Ваше имя"></div>
+                    <div class="form-row"><label>Email</label><input type="email" id="profileEmail" readonly></div>
+                    <div class="form-row"><label>Телефон</label><input type="tel" id="profilePhone" placeholder="+7 XXX XXX XX XX"></div>
+                    <div class="form-row"><label>Город</label><input type="text" id="profileCity" placeholder="Ваш город"></div>
                 </div>
+                <button class="btn-primary" id="saveProfileBtn">💾 Сохранить изменения</button>
             </div>
-            
-            <div id="listingsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📋 Мои объявления</h2>
-                    <div id="myListingsContainer"></div>
-                    <a href="post-ad.html" class="btn-primary" style="margin-top:16px; display:inline-block;">➕ Создать объявление</a>
+            <div class="content-card">
+                <h2>🔐 Смена пароля</h2>
+                <div class="grid-2">
+                    <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword" placeholder="Введите текущий пароль"></div>
+                    <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword" placeholder="Минимум 6 символов"></div>
+                    <div class="form-row"><label>Подтверждение</label><input type="password" id="confirmPassword" placeholder="Подтвердите пароль"></div>
                 </div>
+                <button class="btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
             </div>
-            
-            <div id="settingsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>⚙️ Настройки</h2>
-                    <button class="btn" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
-                    <button class="btn-danger" id="deleteAccountBtn" style="margin-top:12px;">🗑️ Удалить аккаунт</button>
-                </div>
+        </div>
+        
+        <!-- Вкладка Мои объявления -->
+        <div id="listingsTab" class="tab-content">
+            <div class="content-card">
+                <h2>📋 Мои объявления</h2>
+                <div id="myListingsContainer"></div>
+                <a href="post-ad.html" class="btn-primary" style="margin-top:16px; display:inline-block;">➕ Создать объявление</a>
+            </div>
+        </div>
+        
+        <!-- Вкладка Настройки -->
+        <div id="settingsTab" class="tab-content">
+            <div class="content-card">
+                <h2>⚙️ Настройки</h2>
+                <button class="btn" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
+                <button class="btn-danger" id="deleteAccountBtn" style="margin-top:12px;">🗑️ Удалить аккаунт</button>
             </div>
         </div>
     </div>
@@ -86,29 +325,56 @@
         measurementId: "G-ETWXCGL9HK"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
     const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUser = null;
     
     auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "login.html"; return; }
+        if (!user) { 
+            window.location.href = "login.html"; 
+            return; 
+        }
         currentUser = user;
-        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info" id="userMenuBtn">
+                <img src="${user.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        document.getElementById('userMenuBtn').onclick = () => window.location.href = "profile.html";
+        
         await loadProfile();
         await loadMyListings();
     });
     
-    document.querySelectorAll('.menu-item').forEach(item => {
+    // ============ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ============
+    const menuItems = document.querySelectorAll('.menu-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    menuItems.forEach(item => {
         item.addEventListener('click', () => {
             const tabId = item.dataset.tab;
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            
+            // Убираем активный класс со всех пунктов меню
+            menuItems.forEach(i => i.classList.remove('active'));
+            // Добавляем активный класс на текущий пункт
             item.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(`${tabId}Tab`).classList.add('active');
+            
+            // Скрываем все вкладки
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            // Показываем выбранную вкладку
+            const activeTab = document.getElementById(`${tabId}Tab`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
         });
     });
     
+    // ============ ЗАГРУЗКА ПРОФИЛЯ ============
     async function loadProfile() {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const data = userDoc.data() || {};
@@ -116,10 +382,20 @@
         document.getElementById('profileEmail').value = currentUser.email;
         document.getElementById('profilePhone').value = data.phone || '';
         document.getElementById('profileCity').value = data.city || '';
-        if (data.photoURL) document.getElementById('profileAvatar').innerHTML = `<img src="${data.photoURL}">`;
+        
+        const avatarDiv = document.getElementById('profileAvatar');
+        if (data.photoURL) {
+            avatarDiv.innerHTML = `<img src="${data.photoURL}">`;
+        } else {
+            avatarDiv.innerHTML = '👤';
+        }
     }
     
-    document.getElementById('changePhotoBtn').onclick = () => document.getElementById('avatarInput').click();
+    // Смена фото
+    document.getElementById('changePhotoBtn').onclick = () => {
+        document.getElementById('avatarInput').click();
+    };
+    
     document.getElementById('avatarInput').onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -131,6 +407,7 @@
         reader.readAsDataURL(file);
     };
     
+    // Сохранение профиля
     document.getElementById('saveProfileBtn').onclick = async () => {
         await db.collection("users").doc(currentUser.uid).update({
             name: document.getElementById('profileName').value,
@@ -140,35 +417,78 @@
         alert('✅ Профиль обновлён');
     };
     
+    // Смена пароля
     document.getElementById('changePasswordBtn').onclick = async () => {
         const current = document.getElementById('currentPassword').value;
         const newPass = document.getElementById('newPassword').value;
         const confirm = document.getElementById('confirmPassword').value;
-        if (!current || !newPass) { alert('Заполните поля'); return; }
-        if (newPass !== confirm) { alert('Пароли не совпадают'); return; }
+        if (!current || !newPass) {
+            alert('Заполните все поля');
+            return;
+        }
+        if (newPass !== confirm) {
+            alert('Пароли не совпадают');
+            return;
+        }
+        if (newPass.length < 6) {
+            alert('Пароль должен быть не менее 6 символов');
+            return;
+        }
         try {
             const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, current);
             await currentUser.reauthenticateWithCredential(credential);
             await currentUser.updatePassword(newPass);
             alert('✅ Пароль изменён');
-        } catch(e) { alert('Неверный текущий пароль'); }
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } catch(e) {
+            alert('Неверный текущий пароль');
+        }
     };
     
+    // Загрузка моих объявлений
     async function loadMyListings() {
         const snapshot = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
         const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const container = document.getElementById('myListingsContainer');
-        if (listings.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>'; return; }
+        
+        if (listings.length === 0) {
+            container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>';
+            return;
+        }
+        
         container.innerHTML = listings.map(ad => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #f0e6ff;">
-                <div><strong>${ad.title}</strong><br>${ad.price} ₽</div>
-                <a href="post-ad.html?edit=${ad.id}" class="btn" style="padding:4px 12px;">✏️</a>
+            <div class="listing-item">
+                <div>
+                    <strong>${escapeHtml(ad.title)}</strong><br>
+                    <span style="color: #e84393;">${Number(ad.price).toLocaleString()} ₽</span>
+                </div>
+                <div>
+                    <a href="post-ad.html?edit=${ad.id}" class="btn" style="padding:4px 12px;">✏️</a>
+                </div>
             </div>
         `).join('');
     }
     
-    document.getElementById('logoutAllBtn').onclick = async () => { await auth.signOut(); window.location.href = "login.html"; };
-    document.getElementById('deleteAccountBtn').onclick = async () => { if(confirm('Удалить аккаунт?')) { await currentUser.delete(); window.location.href = "login.html"; } };
+    // Выход из всех устройств
+    document.getElementById('logoutAllBtn').onclick = async () => {
+        await auth.signOut();
+        window.location.href = "login.html";
+    };
+    
+    // Удаление аккаунта
+    document.getElementById('deleteAccountBtn').onclick = async () => {
+        if (confirm('Вы уверены, что хотите удалить аккаунт? Это действие необратимо.')) {
+            await currentUser.delete();
+            window.location.href = "login.html";
+        }
+    };
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
 </script>
 </body>
 </html>
