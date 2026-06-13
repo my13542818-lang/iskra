@@ -8,16 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <style>
-        .messages-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
-        .messages-layout { display: flex; gap: 30px; flex-wrap: wrap; }
-        .chats-list { flex: 2; min-width: 280px; }
-        .notifications-list { flex: 1; min-width: 280px; }
-        .chat-card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 12px; border: 1px solid #f0e6ff; cursor: pointer; transition: all 0.3s ease; }
-        .chat-card:hover { background: #f5f0ff; transform: translateX(5px); }
-        .notification-card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 12px; border: 1px solid #f0e6ff; cursor: pointer; }
-        .notification-card.unread { border-left: 3px solid #e84393; background: #fff5f8; }
-    </style>
 </head>
 <body>
 <div class="header">
@@ -27,8 +17,8 @@
         <div id="userActions"></div>
     </div>
 </div>
-<div class="messages-container">
-    <h1 style="margin-bottom: 24px;">💬 Сообщения</h1>
+<div class="messages-container" style="max-width:1200px; margin:30px auto; padding:0 24px;">
+    <h1 style="margin-bottom:24px;">💬 Сообщения</h1>
     <div class="messages-layout">
         <div class="chats-list"><h3>📨 Чаты</h3><div id="chatsList"></div></div>
         <div class="notifications-list"><h3>🔔 Уведомления</h3><div id="notificationsList"></div></div>

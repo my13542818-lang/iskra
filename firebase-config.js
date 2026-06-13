@@ -1,4 +1,3 @@
-// Firebase конфигурация
 const firebaseConfig = {
     apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
     authDomain: "kyki-5e91a.firebaseapp.com",
@@ -9,27 +8,14 @@ const firebaseConfig = {
     measurementId: "G-ETWXCGL9HK"
 };
 
-// Инициализация Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Глобальные переменные
-window.firebaseAuth = firebase.auth();
-window.firebaseDb = firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// Отключаем персистентность
-window.firebaseDb.settings({ persistence: false });
+// Отключаем персистентность для избежания ошибок
+db.settings({ persistence: false });
 
 console.log("✅ Firebase инициализирован");
-
-// Коллекции
-window.USERS_COLLECTION = "users";
-window.LISTINGS_COLLECTION = "listings";
-window.FAVORITES_COLLECTION = "favorites";
-window.ORDERS_COLLECTION = "orders";
-window.CHATS_COLLECTION = "chats";
-window.MESSAGES_COLLECTION = "messages";
-window.NOTIFICATIONS_COLLECTION = "notifications";
-window.PROMOCODES_COLLECTION = "promocodes";
-window.SUPPORT_TICKETS_COLLECTION = "support_tickets";

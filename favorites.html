@@ -8,10 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <style>
-        .favorites-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
-        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-    </style>
 </head>
 <body>
 <div class="header">
@@ -21,8 +17,8 @@
         <div id="userActions"></div>
     </div>
 </div>
-<div class="favorites-container">
-    <h1 style="margin-bottom: 24px;">❤️ Избранное</h1>
+<div class="favorites-container" style="max-width:1200px; margin:30px auto; padding:0 24px;">
+    <h1 style="margin-bottom:24px;">❤️ Избранное</h1>
     <div id="favoritesGrid" class="favorites-grid"></div>
 </div>
 <script>

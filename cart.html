@@ -8,17 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <style>
-        .cart-container { max-width: 1000px; margin: 30px auto; padding: 0 24px; }
-        .cart-item { display: flex; gap: 20px; background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0e6ff; align-items: center; flex-wrap: wrap; }
-        .cart-item-img { width: 80px; height: 80px; background: #f5f0ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .cart-item-info { flex: 1; }
-        .cart-item-title { font-weight: 600; }
-        .cart-item-price { color: #e84393; font-weight: bold; }
-        .total-card { background: white; border-radius: 24px; padding: 24px; text-align: right; margin-top: 20px; border: 1px solid #f0e6ff; }
-        .total-amount { font-size: 32px; font-weight: 800; color: #e84393; }
-        .delivery-form { background: white; border-radius: 24px; padding: 24px; margin-top: 20px; border: 1px solid #f0e6ff; }
-    </style>
 </head>
 <body>
 <div class="header">
@@ -29,14 +18,14 @@
     </div>
 </div>
 
-<div class="cart-container">
-    <h1 style="margin-bottom: 24px;">🛒 Корзина</h1>
+<div class="cart-container" style="max-width:1000px; margin:30px auto; padding:0 24px;">
+    <h1 style="margin-bottom:24px;">🛒 Корзина</h1>
     <div id="cartItems"></div>
     <div id="cartTotal" class="total-card" style="display:none;">
         <p>Итого: <span class="total-amount" id="totalAmount">0</span> ₽</p>
         <button class="btn-primary" id="checkoutBtn" style="margin-top:16px;">✅ Оформить заказ</button>
     </div>
-    <div id="deliveryForm" class="delivery-form" style="display:none;">
+    <div id="deliveryForm" class="delivery-form" style="display:none; background:white; border-radius:24px; padding:24px; margin-top:20px; border:1px solid #f0e6ff;">
         <h3>🚚 Доставка</h3>
         <div class="form-row"><label>ФИО</label><input type="text" id="recipientName"></div>
         <div class="form-row"><label>Адрес</label><input type="text" id="deliveryAddress"></div>
@@ -73,7 +62,11 @@
         const container = document.getElementById('cartItems');
         const totalDiv = document.getElementById('cartTotal');
         const deliveryForm = document.getElementById('deliveryForm');
-        if (cart.length === 0) { container.innerHTML = '<div class="empty-state"><h3>🛒 Корзина пуста</h3><a href="index.html" class="btn-primary" style="margin-top:16px;">Перейти к покупкам</a></div>'; totalDiv.style.display = 'none'; return; }
+        if (cart.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h3>🛒 Корзина пуста</h3><a href="index.html" class="btn-primary" style="margin-top:16px;">Перейти к покупкам</a></div>';
+            totalDiv.style.display = 'none';
+            return;
+        }
         let total = 0;
         let itemsHtml = '';
         for (const item of cart) {
@@ -88,7 +81,9 @@
         document.getElementById('totalAmount').innerHTML = total.toLocaleString();
         totalDiv.style.display = 'block';
         deliveryForm.style.display = 'block';
-        document.querySelectorAll('.remove-item').forEach(btn => { btn.onclick = () => { cart = cart.filter(i => i.id !== btn.dataset.id); localStorage.setItem('cart', JSON.stringify(cart)); loadCart(); }; });
+        document.querySelectorAll('.remove-item').forEach(btn => {
+            btn.onclick = () => { cart = cart.filter(i => i.id !== btn.dataset.id); localStorage.setItem('cart', JSON.stringify(cart)); loadCart(); };
+        });
     }
     
     document.getElementById('confirmOrderBtn').onclick = async () => {

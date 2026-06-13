@@ -8,14 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <style>
-        .wallet-container { max-width: 600px; margin: 30px auto; padding: 0 24px; }
-        .balance-card { background: linear-gradient(135deg, #9b59b6, #e84393); border-radius: 32px; padding: 40px; text-align: center; color: white; }
-        .balance-amount { font-size: 48px; font-weight: 800; margin: 20px 0; }
-        .promo-input { display: flex; gap: 12px; margin-top: 20px; }
-        .promo-input input { flex: 1; padding: 12px; border: 2px solid #e8d5f5; border-radius: 60px; }
-        .transaction-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f0e6ff; }
-    </style>
 </head>
 <body>
 <div class="header">
@@ -34,8 +26,8 @@
     </div>
     <div class="content-card" style="margin-top:24px;">
         <h3>🎁 Промокод</h3>
-        <div class="promo-input">
-            <input type="text" id="promoCode" placeholder="Введите промокод">
+        <div class="promo-input" style="display:flex; gap:12px;">
+            <input type="text" id="promoCode" class="form-control" placeholder="Введите промокод">
             <button class="btn-primary" id="applyPromoBtn">Активировать</button>
         </div>
     </div>

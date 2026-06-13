@@ -23,7 +23,7 @@
             max-width: 450px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(155, 89, 182, 0.15);
+            box-shadow: 0 20px 40px rgba(155,89,182,0.15);
             border: 1px solid #f0e6ff;
         }
         .cookie-icon {
@@ -148,10 +148,26 @@
     }
     function showError(msg) { alert(msg); }
     
-    document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; document.getElementById('resetForm').style.display='none'; };
-    document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; document.getElementById('resetForm').style.display='none'; };
-    document.getElementById('forgotPasswordBtn').onclick = () => { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='none'; document.getElementById('resetForm').style.display='block'; };
-    document.getElementById('backToLoginBtn').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; document.getElementById('resetForm').style.display='none'; };
+    document.getElementById('showRegisterBtn').onclick = () => {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+        document.getElementById('resetForm').style.display = 'none';
+    };
+    document.getElementById('showLoginBtn').onclick = () => {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'none';
+    };
+    document.getElementById('forgotPasswordBtn').onclick = () => {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'block';
+    };
+    document.getElementById('backToLoginBtn').onclick = () => {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('resetForm').style.display = 'none';
+    };
     
     document.getElementById('loginBtn').onclick = async () => {
         const email = document.getElementById('loginEmail').value;
