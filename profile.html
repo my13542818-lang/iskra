@@ -10,35 +10,41 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #0a0a0c; color: #ededee; }
-        .header { background: rgba(11,11,14,0.95); border-bottom: 1px solid rgba(42,26,44,0.5); padding: 12px 24px; position: sticky; top: 0; z-index: 100; }
-        .header-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: rgba(17,16,20,0.9); color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: all 0.3s ease; }
-        .btn-primary { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; color: white; }
-        .profile-container { max-width: 1400px; margin: 30px auto; padding: 0 24px; }
+        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
+        .header-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; }
+        .btn-primary { background: #ac2f3a; border-color: #d44545; }
+        .btn-danger { background: #7a1a2e; }
+        .profile-container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
         .profile-layout { display: flex; gap: 30px; flex-wrap: wrap; }
         .profile-sidebar { width: 280px; flex-shrink: 0; }
-        .profile-menu { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); overflow: hidden; position: sticky; top: 90px; }
-        .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: all 0.3s ease; border-left: 3px solid transparent; color: #a492b0; }
-        .menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .menu-item.active { background: linear-gradient(95deg, rgba(181,43,26,0.15), rgba(138,28,80,0.15)); border-left-color: #ff6b4a; color: #ff6b4a; }
-        .menu-icon { font-size: 20px; width: 28px; }
-        .menu-text { font-size: 14px; font-weight: 500; }
-        .content-card { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); padding: 28px; margin-bottom: 24px; }
-        .content-card h2 { font-size: 22px; margin-bottom: 24px; color: #ffcfbf; }
-        .form-row { margin-bottom: 20px; }
-        .form-row label { display: block; margin-bottom: 8px; font-size: 13px; color: #a492b0; }
-        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 14px; background: #121114; border: 1px solid #2f2332; border-radius: 16px; color: white; outline: none; }
+        .profile-menu { background: #0f0e13; border-radius: 24px; border: 1px solid #2d1e32; overflow: hidden; position: sticky; top: 90px; }
+        .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: 0.3s; color: #a492b0; }
+        .menu-item:hover { background: #1a1620; color: white; }
+        .menu-item.active { background: linear-gradient(95deg, rgba(181,43,26,0.15), rgba(138,28,80,0.15)); border-left: 3px solid #ff6b4a; color: #ff6b4a; }
+        .content-card { background: #0f0e13; border-radius: 24px; border: 1px solid #2d1e32; padding: 24px; margin-bottom: 24px; }
+        .content-card h2 { margin-bottom: 20px; color: #ffcfbf; }
+        .form-row { margin-bottom: 16px; }
+        .form-row label { display: block; margin-bottom: 6px; font-size: 13px; color: #a492b0; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 12px; background: #121114; border: 1px solid #2f2332; border-radius: 16px; color: white; outline: none; }
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .avatar-section { text-align: center; margin-bottom: 24px; }
-        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #ff6b4a; margin: 0 auto 12px; overflow: hidden; }
-        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; }
+        .listing-img { height: 160px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+        .listing-info { padding: 12px; }
+        .listing-title { font-size: 16px; font-weight: 700; }
+        .listing-price { font-size: 18px; font-weight: 800; color: #ff6b4a; margin: 5px 0; }
+        .card-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; }
         .empty-state { text-align: center; padding: 40px; color: #a492b0; }
         .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; }
-        @media (max-width: 768px) { .profile-sidebar { width: 100%; } .profile-menu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; position: static; } .menu-item { padding: 10px 16px; border-left: none; border-radius: 40px; } .menu-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); color: white; } }
+        .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #ff6b4a; margin: 0 auto 12px; overflow: hidden; cursor: pointer; }
+        .avatar-section { text-align: center; margin-bottom: 24px; }
+        @media (max-width: 768px) { .profile-sidebar { width: 100%; } .profile-menu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; } .menu-item { padding: 8px 16px; border-radius: 40px; border-left: none; } .menu-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); color: white; } }
     </style>
 </head>
 <body>
@@ -55,19 +61,26 @@
     <div class="profile-layout">
         <div class="profile-sidebar">
             <div class="profile-menu">
-                <div class="menu-item active" data-tab="profile"><span class="menu-icon">👤</span><span class="menu-text">Мой профиль</span></div>
-                <div class="menu-item" data-tab="listings"><span class="menu-icon">📋</span><span class="menu-text">Мои объявления</span></div>
-                <div class="menu-item" data-tab="settings"><span class="menu-icon">⚙️</span><span class="menu-text">Настройки</span></div>
+                <div class="menu-item active" data-tab="profile"><span>👤</span> Мой профиль</div>
+                <div class="menu-item" data-tab="listings"><span>📋</span> Мои объявления</div>
+                <div class="menu-item" data-tab="business"><span>💼</span> Бизнес-аккаунт</div>
+                <div class="menu-item" data-tab="admin" id="adminMenuItem" style="display:none;"><span>👑</span> Админ-панель</div>
+                <div class="menu-item" data-tab="settings"><span>⚙️</span> Настройки</div>
             </div>
         </div>
         
         <div class="profile-content">
+            <!-- Профиль -->
             <div id="profileTab" class="tab-content active">
                 <div class="content-card">
                     <h2>👤 Мой профиль</h2>
-                    <div class="avatar-section"><div class="profile-avatar" id="profileAvatar">👤</div><button class="btn" id="changePhotoBtn">Сменить фото</button></div>
+                    <div class="avatar-section">
+                        <div class="profile-avatar" id="profileAvatar">👤</div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                        <button class="btn" id="changePhotoBtn">Сменить фото</button>
+                    </div>
                     <div class="grid-2">
-                        <div class="form-row"><label>Имя</label><input type="text" id="profileName"></div>
+                        <div class="form-row"><label>ФИО</label><input type="text" id="profileName"></div>
                         <div class="form-row"><label>Email</label><input type="email" id="profileEmail" readonly></div>
                         <div class="form-row"><label>Телефон</label><input type="tel" id="profilePhone"></div>
                         <div class="form-row"><label>Город</label><input type="text" id="profileCity"></div>
@@ -79,22 +92,73 @@
                     <div class="grid-2">
                         <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword"></div>
                         <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword"></div>
-                        <div class="form-row"><label>Повторите пароль</label><input type="password" id="confirmPassword"></div>
+                        <div class="form-row"><label>Подтверждение</label><input type="password" id="confirmPassword"></div>
                     </div>
-                    <button class="btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
+                    <button class="btn-primary" id="changePasswordBtn">Изменить пароль</button>
                 </div>
             </div>
             
+            <!-- Мои объявления с редактированием и удалением -->
             <div id="listingsTab" class="tab-content">
-                <div class="content-card"><h2>📋 Мои объявления</h2><div id="myListings"></div><a href="post-ad.html" class="btn-primary" style="margin-top:16px; display:inline-block;">➕ Создать</a></div>
+                <div class="content-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2>📋 Мои объявления</h2>
+                        <a href="post-ad.html" class="btn-primary">➕ Создать</a>
+                    </div>
+                    <div id="myListingsContainer" class="listings-grid"></div>
+                </div>
             </div>
             
+            <!-- Бизнес-аккаунт (торговля) -->
+            <div id="businessTab" class="tab-content">
+                <div class="content-card">
+                    <h2>💼 Бизнес-аккаунт</h2>
+                    <div class="form-row"><label>Название компании</label><input type="text" id="companyName" placeholder="Ваша компания"></div>
+                    <div class="form-row"><label>ИНН</label><input type="text" id="companyInn" placeholder="ИНН"></div>
+                    <div class="form-row"><label>Тип продавца</label>
+                        <select id="sellerType">
+                            <option value="individual">Частное лицо</option>
+                            <option value="business">Бизнес</option>
+                            <option value="selfemployed">Самозанятый</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="saveBusinessBtn">Сохранить</button>
+                    <hr style="margin:20px 0; border-color:#2d1e32;">
+                    <h3>📦 Торговые предложения</h3>
+                    <div id="businessOffers"></div>
+                    <button class="btn-primary" id="createOfferBtn">➕ Создать предложение оптом</button>
+                </div>
+            </div>
+            
+            <!-- Админ-панель -->
+            <div id="adminTab" class="tab-content">
+                <div class="content-card">
+                    <h2>👑 Админ-панель</h2>
+                    <div class="grid-2">
+                        <div class="stat-card"><div class="stat-value" id="adminUsers">0</div><div>Пользователей</div></div>
+                        <div class="stat-card"><div class="stat-value" id="adminListings">0</div><div>Объявлений</div></div>
+                    </div>
+                    <h3>👥 Все пользователи</h3>
+                    <div id="adminUsersTable"></div>
+                    <h3 style="margin-top:20px;">📋 Все объявления</h3>
+                    <div id="adminListingsTable"></div>
+                    <h3 style="margin-top:20px;">🎁 Промокоды</h3>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="newPromoCode" placeholder="Код" style="flex:1; padding:10px; background:#121114; border:1px solid #2f2332; border-radius:12px; color:white;">
+                        <input type="number" id="newPromoBonus" placeholder="Бонус ₽" style="width:120px; padding:10px; background:#121114; border:1px solid #2f2332; border-radius:12px; color:white;">
+                        <button class="btn-primary" id="createPromoBtn">➕</button>
+                    </div>
+                    <div id="promoCodesTable"></div>
+                </div>
+            </div>
+            
+            <!-- Настройки -->
             <div id="settingsTab" class="tab-content">
                 <div class="content-card">
                     <h2>⚙️ Настройки</h2>
-                    <div class="form-row"><label>Тёмная тема</label><select id="themeSelect"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div>
-                    <button class="btn" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
-                    <button class="btn" id="deleteAccountBtn" style="background:#7a1a2e; margin-top:12px;">🗑️ Удалить аккаунт</button>
+                    <div class="form-row"><label>Тема</label><select id="themeSelect"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div>
+                    <button class="btn" id="logoutAllBtn">Выйти из всех устройств</button>
+                    <button class="btn-danger" id="deleteAccountBtn" style="margin-top:12px;">Удалить аккаунт</button>
                 </div>
             </div>
         </div>
@@ -111,21 +175,34 @@
         appId: "1:315986487804:web:29f131e8a57bffadac2a79",
         measurementId: "G-ETWXCGL9HK"
     };
+    
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     
     const auth = firebase.auth();
     const db = firebase.firestore();
+    
     let currentUser = null;
+    let isAdmin = false;
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
         currentUser = user;
-        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar-small"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        isAdmin = userData.role === 'admin';
+        
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar-small"><span>${userData.name?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        
+        if (isAdmin) document.getElementById('adminMenuItem').style.display = 'flex';
+        
         await loadProfile();
-        await loadListings();
+        await loadMyListings();
+        if (isAdmin) await loadAdminData();
     });
     
+    // Меню
     document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
             const tabId = item.dataset.tab;
@@ -139,13 +216,27 @@
     async function loadProfile() {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const data = userDoc.data() || {};
-        document.getElementById('profileName').value = data.name || currentUser.displayName || '';
+        document.getElementById('profileName').value = data.name || '';
         document.getElementById('profileEmail').value = currentUser.email;
         document.getElementById('profilePhone').value = data.phone || '';
         document.getElementById('profileCity').value = data.city || '';
+        
         const avatarDiv = document.getElementById('profileAvatar');
-        if (data.photoURL || currentUser.photoURL) avatarDiv.innerHTML = `<img src="${data.photoURL || currentUser.photoURL}">`;
+        if (data.photoURL) avatarDiv.innerHTML = `<img src="${data.photoURL}" style="width:100%;height:100%;object-fit:cover;">`;
     }
+    
+    // Смена фото через input file
+    document.getElementById('changePhotoBtn').onclick = () => document.getElementById('avatarInput').click();
+    document.getElementById('avatarInput').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            await db.collection("users").doc(currentUser.uid).update({ photoURL: reader.result });
+            document.getElementById('profileAvatar').innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover;">`;
+        };
+        reader.readAsDataURL(file);
+    };
     
     document.getElementById('saveProfileBtn').onclick = async () => {
         await db.collection("users").doc(currentUser.uid).update({
@@ -156,34 +247,143 @@
         alert('✅ Профиль обновлён');
     };
     
+    // Мои объявления (с удалением и редактированием)
+    async function loadMyListings() {
+        const snapshot = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
+        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const container = document.getElementById('myListingsContainer');
+        if (listings.length === 0) {
+            container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>';
+            return;
+        }
+        container.innerHTML = listings.map(ad => `
+            <div class="listing-card">
+                <div class="listing-img">${ad.image || '📦'}</div>
+                <div class="listing-info">
+                    <div class="listing-title">${ad.title}</div>
+                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
+                    <div class="card-actions">
+                        <a href="post-ad.html?edit=${ad.id}" class="small-btn">✏️ Редактировать</a>
+                        <button class="small-btn btn-danger delete-listing" data-id="${ad.id}">🗑️ Удалить</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.delete-listing').forEach(btn => {
+            btn.onclick = async () => {
+                if(confirm('Удалить объявление?')) {
+                    await db.collection("listings").doc(btn.dataset.id).delete();
+                    loadMyListings();
+                }
+            };
+        });
+    }
+    
+    // Админ-панель
+    async function loadAdminData() {
+        const users = await db.collection("users").get();
+        const listings = await db.collection("listings").get();
+        document.getElementById('adminUsers').textContent = users.size;
+        document.getElementById('adminListings').textContent = listings.size;
+        
+        // Пользователи
+        document.getElementById('adminUsersTable').innerHTML = `
+            <table style="width:100%"><thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Действия</th></tr></thead>
+            <tbody>${users.docs.map(doc => {
+                const u = doc.data();
+                return `<tr><td>${doc.id.substring(0,12)}</td><td>${u.name || '-'}</td><td>${u.email || '-'}</td>
+                <td><select class="admin-role" data-user="${doc.id}"><option value="user" ${u.role === 'user' ? 'selected' : ''}>user</option><option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option></select></td>
+                <td><button class="small-btn admin-delete-user" data-user="${doc.id}">🗑️</button></td></tr>`;
+            }).join('')}</tbody></table>
+        `;
+        
+        // Объявления
+        document.getElementById('adminListingsTable').innerHTML = `
+            <table style="width:100%"><thead><tr><th>Название</th><th>Продавец</th><th>Цена</th><th>Статус</th><th>Действия</th></tr></thead>
+            <tbody>${listings.docs.map(doc => {
+                const l = doc.data();
+                return `<tr><td>${l.title}</td><td>${l.sellerName || '-'}</td><td>${l.price} ₽</td>
+                <td><select class="admin-status" data-listing="${doc.id}"><option value="active" ${l.status === 'active' ? 'selected' : ''}>active</option><option value="blocked" ${l.status === 'blocked' ? 'selected' : ''}>blocked</option></select></td>
+                <td><button class="small-btn admin-delete-listing" data-listing="${doc.id}">🗑️</button></td></tr>`;
+            }).join('')}</tbody></table>
+        `;
+        
+        document.querySelectorAll('.admin-role').forEach(select => {
+            select.onchange = async () => await db.collection("users").doc(select.dataset.user).update({ role: select.value });
+        });
+        document.querySelectorAll('.admin-status').forEach(select => {
+            select.onchange = async () => await db.collection("listings").doc(select.dataset.listing).update({ status: select.value });
+        });
+        document.querySelectorAll('.admin-delete-user').forEach(btn => {
+            btn.onclick = async () => { if(confirm('Удалить пользователя?')) await db.collection("users").doc(btn.dataset.user).delete(); loadAdminData(); };
+        });
+        document.querySelectorAll('.admin-delete-listing').forEach(btn => {
+            btn.onclick = async () => { if(confirm('Удалить объявление?')) await db.collection("listings").doc(btn.dataset.listing).delete(); loadAdminData(); };
+        });
+        
+        // Промокоды
+        await loadPromoCodes();
+    }
+    
+    async function loadPromoCodes() {
+        const promos = await db.collection("promocodes").get();
+        document.getElementById('promoCodesTable').innerHTML = `
+            <table style="width:100%"><thead><tr><th>Код</th><th>Бонус</th><th>Действия</th></tr></thead>
+            <tbody>${promos.docs.map(doc => {
+                const p = doc.data();
+                return `<tr><td><strong>${p.code}</strong></td><td>${p.bonus || 0} ₽</td>
+                <td><button class="small-btn delete-promo" data-promo="${doc.id}">🗑️</button></td></tr>`;
+            }).join('')}</tbody></table>
+        `;
+        document.querySelectorAll('.delete-promo').forEach(btn => {
+            btn.onclick = async () => { await db.collection("promocodes").doc(btn.dataset.promo).delete(); loadPromoCodes(); };
+        });
+    }
+    
+    document.getElementById('createPromoBtn').onclick = async () => {
+        const code = document.getElementById('newPromoCode').value.trim().toUpperCase();
+        const bonus = parseInt(document.getElementById('newPromoBonus').value);
+        if (!code || !bonus) { alert('Заполните поля'); return; }
+        await db.collection("promocodes").add({ code, bonus, active: true, createdAt: new Date().toISOString() });
+        document.getElementById('newPromoCode').value = '';
+        document.getElementById('newPromoBonus').value = '';
+        loadPromoCodes();
+        alert('✅ Промокод создан');
+    };
+    
+    // Бизнес-аккаунт
+    document.getElementById('saveBusinessBtn').onclick = async () => {
+        await db.collection("users").doc(currentUser.uid).update({
+            companyName: document.getElementById('companyName').value,
+            companyInn: document.getElementById('companyInn').value,
+            sellerType: document.getElementById('sellerType').value,
+            isBusiness: true
+        });
+        alert('✅ Бизнес-аккаунт обновлён');
+    };
+    
     document.getElementById('changePasswordBtn').onclick = async () => {
         const current = document.getElementById('currentPassword').value;
         const newPass = document.getElementById('newPassword').value;
         const confirm = document.getElementById('confirmPassword').value;
-        if (!current || !newPass) { alert('Заполните все поля'); return; }
+        if (!current || !newPass) { alert('Заполните поля'); return; }
         if (newPass !== confirm) { alert('Пароли не совпадают'); return; }
-        if (newPass.length < 6) { alert('Минимум 6 символов'); return; }
         try {
             const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, current);
             await currentUser.reauthenticateWithCredential(credential);
             await currentUser.updatePassword(newPass);
             alert('✅ Пароль изменён');
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-        } catch (error) { alert('❌ Неверный текущий пароль'); }
+        } catch(e) { alert('Неверный текущий пароль'); }
     };
     
-    async function loadListings() {
-        const snapshot = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
-        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const container = document.getElementById('myListings');
-        if (listings.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>'; return; }
-        container.innerHTML = listings.map(ad => `<div style="padding:12px; border-bottom:1px solid #2d1e32;"><strong>${ad.title}</strong> - ${ad.price} ₽<br><small>${ad.status || 'active'}</small></div>`).join('');
-    }
+    document.getElementById('logoutAllBtn').onclick = async () => await auth.signOut();
+    document.getElementById('deleteAccountBtn').onclick = async () => { if(confirm('Удалить аккаунт?')) await currentUser.delete(); };
     
-    document.getElementById('logoutAllBtn').onclick = async () => { await auth.signOut(); window.location.href = "login.html"; };
-    document.getElementById('deleteAccountBtn').onclick = async () => { if(confirm('Удалить аккаунт навсегда?')) { await currentUser.delete(); window.location.href = "login.html"; } };
+    document.getElementById('themeSelect').onchange = () => {
+        const theme = document.getElementById('themeSelect').value;
+        document.body.style.background = theme === 'light' ? '#f5f5f5' : '#0a0a0c';
+        document.body.style.color = theme === 'light' ? '#1a1a1a' : '#ededee';
+    };
 </script>
 </body>
 </html>
