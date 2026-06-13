@@ -181,19 +181,31 @@
     let allListings = [];
     
     auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "login.html"; return; }
+        if (!user) { 
+            window.location.href = "login.html"; 
+            return; 
+        }
         currentUser = user;
         
+        // Проверяем, заполнен ли профиль
         const userDoc = await db.collection("users").doc(user.uid).get();
-        const balance = userDoc.data()?.balance || 0;
+        const userData = userDoc.data();
+        
+        if (!userData || !userData.name) {
+            // Если профиль не заполнен — отправляем на дорегистрацию
+            window.location.href = "complete-profile.html";
+            return;
+        }
+        
+        const balance = userData?.balance || 0;
         
         document.getElementById('userActions').innerHTML = `
             <div class="balance-badge" id="balanceBtn">💰 ${balance.toLocaleString()} ₽</div>
             <a href="cart.html" class="btn">🛒 Корзина</a>
             <a href="wallet.html" class="btn">💳 Кошелёк</a>
             <div class="user-info" id="userMenuBtn">
-                <img src="${user.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar-small">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+                <img src="${user.photoURL || userData?.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar-small">
+                <span>${userData?.name?.split(' ')[0] || user.displayName?.split(' ')[0] || 'User'}</span>
             </div>
         `;
         
