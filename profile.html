@@ -2,75 +2,43 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой профиль — Куки</title>
-    
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
         body { background: #0a0a0c; color: #ededee; }
-        
-        .header { background: rgba(11,11,14,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(42,26,44,0.5); position: sticky; top: 0; z-index: 100; }
-        .header-container { max-width: 1400px; margin: 0 auto; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header { background: rgba(11,11,14,0.95); border-bottom: 1px solid rgba(42,26,44,0.5); padding: 12px 24px; position: sticky; top: 0; z-index: 100; }
+        .header-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: rgba(17,16,20,0.9); color: white; cursor: pointer; text-decoration: none; transition: all 0.3s ease; }
-        .btn-primary { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,74,0.4); }
-        
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: rgba(17,16,20,0.9); color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; color: white; }
         .profile-container { max-width: 1400px; margin: 30px auto; padding: 0 24px; }
         .profile-layout { display: flex; gap: 30px; flex-wrap: wrap; }
         .profile-sidebar { width: 280px; flex-shrink: 0; }
-        .profile-content { flex: 1; min-width: 0; }
-        
         .profile-menu { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); overflow: hidden; position: sticky; top: 90px; }
         .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: all 0.3s ease; border-left: 3px solid transparent; color: #a492b0; }
         .menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
         .menu-item.active { background: linear-gradient(95deg, rgba(181,43,26,0.15), rgba(138,28,80,0.15)); border-left-color: #ff6b4a; color: #ff6b4a; }
         .menu-icon { font-size: 20px; width: 28px; }
         .menu-text { font-size: 14px; font-weight: 500; }
-        
         .content-card { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid rgba(255,107,74,0.15); padding: 28px; margin-bottom: 24px; }
-        .content-card h2 { font-size: 22px; margin-bottom: 24px; color: #ffcfbf; display: flex; align-items: center; gap: 10px; }
+        .content-card h2 { font-size: 22px; margin-bottom: 24px; color: #ffcfbf; }
         .form-row { margin-bottom: 20px; }
         .form-row label { display: block; margin-bottom: 8px; font-size: 13px; color: #a492b0; }
-        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 14px; background: #121114; border: 1px solid #2f2332; border-radius: 16px; color: white; outline: none; transition: all 0.3s ease; }
-        .form-row input:focus, .form-row select:focus { border-color: #ff6b4a; transform: scale(1.01); }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 14px; background: #121114; border: 1px solid #2f2332; border-radius: 16px; color: white; outline: none; }
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .stat-card { background: rgba(26,22,32,0.8); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid rgba(255,107,74,0.1); }
-        .stat-value { font-size: 32px; font-weight: 800; color: #ff6b4a; }
-        .stat-label { font-size: 12px; color: #a492b0; margin-top: 8px; }
-        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .avatar-section { text-align: center; margin-bottom: 24px; }
-        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #ff6b4a; margin: 0 auto 12px; overflow: hidden; cursor: pointer; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid #ff6b4a; margin: 0 auto 12px; overflow: hidden; }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: #ffcfbf; font-weight: 600; }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
-        .status-active { background: #2a7a4b; }
-        .status-pending { background: #f0ad4e; color: #000; }
-        
         .empty-state { text-align: center; padding: 40px; color: #a492b0; }
-        
         .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        
-        @media (max-width: 768px) {
-            .profile-sidebar { width: 100%; }
-            .profile-menu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; position: static; }
-            .menu-item { padding: 10px 16px; border-left: none; border-radius: 40px; }
-            .menu-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); color: white; }
-        }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: #0f0e13; border-radius: 32px; padding: 32px; max-width: 500px; width: 90%; border: 1px solid #ff6b4a; }
-        .close-modal { float: right; font-size: 24px; cursor: pointer; color: #a492b0; }
-        .close-modal:hover { color: #ff6b4a; }
+        .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; }
+        @media (max-width: 768px) { .profile-sidebar { width: 100%; } .profile-menu { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; position: static; } .menu-item { padding: 10px 16px; border-left: none; border-radius: 40px; } .menu-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); color: white; } }
     </style>
 </head>
 <body>
@@ -85,238 +53,51 @@
 
 <div class="profile-container">
     <div class="profile-layout">
-        <!-- Боковое меню -->
         <div class="profile-sidebar">
             <div class="profile-menu">
-                <div class="menu-item active" data-tab="profile">
-                    <span class="menu-icon">👤</span>
-                    <span class="menu-text">Мой профиль</span>
-                </div>
-                <div class="menu-item" data-tab="listings">
-                    <span class="menu-icon">📋</span>
-                    <span class="menu-text">Мои объявления</span>
-                </div>
-                <div class="menu-item" data-tab="company">
-                    <span class="menu-icon">🏪</span>
-                    <span class="menu-text">Моя компания</span>
-                </div>
-                <div class="menu-item" data-tab="orders">
-                    <span class="menu-icon">📦</span>
-                    <span class="menu-text">Сделки и заказы</span>
-                </div>
-                <div class="menu-item" data-tab="wallet">
-                    <span class="menu-icon">💰</span>
-                    <span class="menu-text">Мой кошелёк</span>
-                </div>
-                <div class="menu-item" data-tab="stats">
-                    <span class="menu-icon">📊</span>
-                    <span class="menu-text">Статистика</span>
-                </div>
-                <div class="menu-item" data-tab="favorites">
-                    <span class="menu-icon">❤️</span>
-                    <span class="menu-text">Избранное</span>
-                </div>
-                <div class="menu-item" data-tab="referral">
-                    <span class="menu-icon">🎁</span>
-                    <span class="menu-text">Реферальная программа</span>
-                </div>
-                <div class="menu-item" data-tab="history">
-                    <span class="menu-icon">🕐</span>
-                    <span class="menu-text">История просмотров</span>
-                </div>
-                <div class="menu-item" data-tab="blacklist">
-                    <span class="menu-icon">🚫</span>
-                    <span class="menu-text">Чёрный список</span>
-                </div>
-                <div class="menu-item" data-tab="settings">
-                    <span class="menu-icon">⚙️</span>
-                    <span class="menu-text">Настройки</span>
-                </div>
+                <div class="menu-item active" data-tab="profile"><span class="menu-icon">👤</span><span class="menu-text">Мой профиль</span></div>
+                <div class="menu-item" data-tab="listings"><span class="menu-icon">📋</span><span class="menu-text">Мои объявления</span></div>
+                <div class="menu-item" data-tab="settings"><span class="menu-icon">⚙️</span><span class="menu-text">Настройки</span></div>
             </div>
         </div>
         
-        <!-- Основной контент -->
         <div class="profile-content">
-            <!-- Мой профиль -->
             <div id="profileTab" class="tab-content active">
                 <div class="content-card">
                     <h2>👤 Мой профиль</h2>
-                    <div class="avatar-section">
-                        <div class="profile-avatar" id="profileAvatar">👤</div>
-                        <button class="btn" id="changePhotoBtn">Сменить фото</button>
-                    </div>
+                    <div class="avatar-section"><div class="profile-avatar" id="profileAvatar">👤</div><button class="btn" id="changePhotoBtn">Сменить фото</button></div>
                     <div class="grid-2">
-                        <div class="form-row"><label>Имя</label><input type="text" id="profileName" placeholder="Ваше имя"></div>
+                        <div class="form-row"><label>Имя</label><input type="text" id="profileName"></div>
                         <div class="form-row"><label>Email</label><input type="email" id="profileEmail" readonly></div>
-                        <div class="form-row"><label>Телефон</label><input type="tel" id="profilePhone" placeholder="+7"></div>
-                        <div class="form-row"><label>Город</label><input type="text" id="profileCity" placeholder="Ваш город"></div>
-                        <div class="form-row"><label>О себе</label><textarea id="profileBio" rows="3" placeholder="Расскажите о себе..."></textarea></div>
+                        <div class="form-row"><label>Телефон</label><input type="tel" id="profilePhone"></div>
+                        <div class="form-row"><label>Город</label><input type="text" id="profileCity"></div>
                     </div>
-                    <button class="btn-primary" id="saveProfileBtn">💾 Сохранить изменения</button>
+                    <button class="btn-primary" id="saveProfileBtn">💾 Сохранить</button>
                 </div>
-                
                 <div class="content-card">
                     <h2>🔐 Смена пароля</h2>
                     <div class="grid-2">
-                        <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword" placeholder="••••••"></div>
-                        <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword" placeholder="Минимум 6 символов"></div>
-                        <div class="form-row"><label>Повторите пароль</label><input type="password" id="confirmPassword" placeholder="••••••"></div>
+                        <div class="form-row"><label>Текущий пароль</label><input type="password" id="currentPassword"></div>
+                        <div class="form-row"><label>Новый пароль</label><input type="password" id="newPassword"></div>
+                        <div class="form-row"><label>Повторите пароль</label><input type="password" id="confirmPassword"></div>
                     </div>
                     <button class="btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
                 </div>
             </div>
             
-            <!-- Мои объявления -->
             <div id="listingsTab" class="tab-content">
-                <div class="content-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
-                        <h2>📋 Мои объявления</h2>
-                        <a href="post-ad.html" class="btn-primary" style="padding: 10px 20px;">➕ Создать объявление</a>
-                    </div>
-                    <div class="table-wrapper" id="myListingsTable"></div>
-                </div>
+                <div class="content-card"><h2>📋 Мои объявления</h2><div id="myListings"></div><a href="post-ad.html" class="btn-primary" style="margin-top:16px; display:inline-block;">➕ Создать</a></div>
             </div>
             
-            <!-- Моя компания -->
-            <div id="companyTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🏪 Моя компания</h2>
-                    <div class="avatar-section">
-                        <div class="profile-avatar" id="companyLogo" style="font-size: 40px;">🏢</div>
-                        <button class="btn" id="uploadLogoBtn">Загрузить логотип</button>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-row"><label>Название компании</label><input type="text" id="companyName" placeholder="Например: ТехноМаркет"></div>
-                        <div class="form-row"><label>ИНН</label><input type="text" id="companyInn" placeholder="10 или 12 цифр"></div>
-                        <div class="form-row"><label>Описание</label><textarea id="companyDesc" rows="3" placeholder="Расскажите о компании..."></textarea></div>
-                        <div class="form-row"><label>Сайт</label><input type="url" id="companyWebsite" placeholder="https://example.com"></div>
-                        <div class="form-row"><label>Telegram</label><input type="url" id="companyTelegram" placeholder="https://t.me/username"></div>
-                        <div class="form-row"><label>ВКонтакте</label><input type="url" id="companyVk" placeholder="https://vk.com/group"></div>
-                    </div>
-                    <button class="btn-primary" id="saveCompanyBtn">💾 Сохранить компанию</button>
-                </div>
-                
-                <div class="content-card">
-                    <h2>📦 Доставка через ПВЗ</h2>
-                    <p style="margin-bottom: 16px;">Включите доставку через СДЭК / Яндекс одним кликом для всех ваших объявлений в товарных категориях. Покупатели смогут заказать с доставкой в свой ПВЗ.</p>
-                    <button class="btn-primary" id="enableDeliveryBtn">✅ Включить для всех объявлений</button>
-                    <button class="btn" id="disableDeliveryBtn" style="margin-left: 12px;">Отключить для всех</button>
-                </div>
-            </div>
-            
-            <!-- Сделки и заказы -->
-            <div id="ordersTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📦 Сделки и заказы</h2>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
-                        <button class="btn order-filter active" data-filter="all">Все</button>
-                        <button class="btn order-filter" data-filter="pending">⏳ Ожидают оплаты</button>
-                        <button class="btn order-filter" data-filter="paid">💰 Оплачены</button>
-                        <button class="btn order-filter" data-filter="shipped">📦 В доставке</button>
-                        <button class="btn order-filter" data-filter="delivered">🏠 Доставлены</button>
-                        <button class="btn order-filter" data-filter="completed">✅ Завершены</button>
-                        <button class="btn order-filter" data-filter="cancelled">❌ Отменены</button>
-                    </div>
-                    <div class="table-wrapper" id="ordersTable"></div>
-                </div>
-            </div>
-            
-            <!-- Мой кошелёк -->
-            <div id="walletTab" class="tab-content">
-                <div class="content-card">
-                    <h2>💰 Мой кошелёк</h2>
-                    <div style="text-align: center; padding: 20px;">
-                        <div class="stat-value" id="walletBalance">0 ₽</div>
-                        <div class="stat-label">Основной баланс</div>
-                        <div class="stat-value" id="adBalance" style="font-size: 24px;">0 ₽</div>
-                        <div class="stat-label">Рекламный баланс</div>
-                        <button class="btn-primary" id="topUpBtn" style="margin-top: 20px;">💰 Пополнить баланс</button>
-                    </div>
-                    <div class="table-wrapper">
-                        <h3 style="margin: 20px 0 12px;">📋 История операций</h3>
-                        <div id="transactionsList"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Статистика -->
-            <div id="statsTab" class="tab-content">
-                <div class="content-card">
-                    <h2>📊 Статистика</h2>
-                    <div class="grid-2">
-                        <div class="stat-card"><div class="stat-value" id="statImpressions">0</div><div class="stat-label">Показы</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statViews">0</div><div class="stat-label">Просмотры</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statFavorites">0</div><div class="stat-label">В избранном</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statMessages">0</div><div class="stat-label">Сообщения</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statCalls">0</div><div class="stat-label">Звонков</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statConversion">0%</div><div class="stat-label">Конверсия</div></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Избранное -->
-            <div id="favoritesTab" class="tab-content">
-                <div class="content-card">
-                    <h2>❤️ Избранное</h2>
-                    <div id="favoritesList"></div>
-                </div>
-            </div>
-            
-            <!-- Реферальная программа -->
-            <div id="referralTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🎁 Реферальная программа</h2>
-                    <div style="text-align: center; padding: 20px;">
-                        <div class="stat-value" id="referralLink">Ссылка загружается...</div>
-                        <button class="btn-primary" id="copyReferralBtn">📋 Скопировать ссылку</button>
-                        <div class="stat-value" id="referralCount" style="font-size: 24px; margin-top: 20px;">0</div>
-                        <div class="stat-label">Приглашено друзей</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- История просмотров -->
-            <div id="historyTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🕐 История просмотров</h2>
-                    <div id="historyList"></div>
-                    <button class="btn" id="clearHistoryBtn">Очистить историю</button>
-                </div>
-            </div>
-            
-            <!-- Чёрный список -->
-            <div id="blacklistTab" class="tab-content">
-                <div class="content-card">
-                    <h2>🚫 Чёрный список</h2>
-                    <div class="empty-state">Нет заблокированных пользователей</div>
-                    <button class="btn-primary" id="blockUserBtn">➕ Заблокировать пользователя</button>
-                </div>
-            </div>
-            
-            <!-- Настройки -->
             <div id="settingsTab" class="tab-content">
                 <div class="content-card">
                     <h2>⚙️ Настройки</h2>
                     <div class="form-row"><label>Тёмная тема</label><select id="themeSelect"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div>
-                    <div class="form-row"><label>Push-уведомления</label><button class="btn" id="enablePushBtn">🔔 Включить</button></div>
-                    <div class="form-row"><label>Скрывать телефон</label><input type="checkbox" id="hidePhoneCheckbox"> Покупатели не увидят ваш номер</div>
-                    <hr style="margin: 20px 0; border-color: #2d1e32;">
                     <button class="btn" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
-                    <button class="btn" id="deleteAccountBtn" style="background: #7a1a2e; margin-top: 12px;">🗑️ Удалить аккаунт</button>
+                    <button class="btn" id="deleteAccountBtn" style="background:#7a1a2e; margin-top:12px;">🗑️ Удалить аккаунт</button>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Модальное окно пополнения -->
-<div id="topUpModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal" onclick="document.getElementById('topUpModal').style.display='none'">&times;</span>
-        <h3 style="margin-bottom: 20px;">💰 Пополнение баланса</h3>
-        <div class="form-row"><label>Сумма</label><input type="number" id="topUpAmount" placeholder="Введите сумму"></div>
-        <div class="form-row"><label>Промокод</label><input type="text" id="topUpPromo" placeholder="Введите промокод"></div>
-        <button class="btn-primary" id="confirmTopUpBtn">✅ Пополнить</button>
     </div>
 </div>
 
@@ -330,37 +111,21 @@
         appId: "1:315986487804:web:29f131e8a57bffadac2a79",
         measurementId: "G-ETWXCGL9HK"
     };
-    
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
     let currentUser = null;
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
         currentUser = user;
-        
-        document.getElementById('userActions').innerHTML = `
-            <div class="user-info">
-                <img src="${user.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar-small">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
-            </div>
-            <button class="btn" id="logoutBtn">Выйти</button>
-        `;
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar-small"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        
         await loadProfile();
         await loadListings();
-        await loadOrders();
-        await loadWallet();
-        await loadFavorites();
-        await loadReferral();
-        await loadHistory();
     });
     
-    // Меню навигации
     document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
             const tabId = item.dataset.tab;
@@ -378,21 +143,15 @@
         document.getElementById('profileEmail').value = currentUser.email;
         document.getElementById('profilePhone').value = data.phone || '';
         document.getElementById('profileCity').value = data.city || '';
-        document.getElementById('profileBio').value = data.bio || '';
-        
         const avatarDiv = document.getElementById('profileAvatar');
-        if (data.photoURL || currentUser.photoURL) {
-            avatarDiv.innerHTML = `<img src="${data.photoURL || currentUser.photoURL}">`;
-        }
+        if (data.photoURL || currentUser.photoURL) avatarDiv.innerHTML = `<img src="${data.photoURL || currentUser.photoURL}">`;
     }
     
     document.getElementById('saveProfileBtn').onclick = async () => {
         await db.collection("users").doc(currentUser.uid).update({
             name: document.getElementById('profileName').value,
             phone: document.getElementById('profilePhone').value,
-            city: document.getElementById('profileCity').value,
-            bio: document.getElementById('profileBio').value,
-            updatedAt: new Date().toISOString()
+            city: document.getElementById('profileCity').value
         });
         alert('✅ Профиль обновлён');
     };
@@ -403,8 +162,7 @@
         const confirm = document.getElementById('confirmPassword').value;
         if (!current || !newPass) { alert('Заполните все поля'); return; }
         if (newPass !== confirm) { alert('Пароли не совпадают'); return; }
-        if (newPass.length < 6) { alert('Пароль должен быть минимум 6 символов'); return; }
-        
+        if (newPass.length < 6) { alert('Минимум 6 символов'); return; }
         try {
             const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, current);
             await currentUser.reauthenticateWithCredential(credential);
@@ -413,125 +171,16 @@
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
-        } catch (error) {
-            alert('❌ Неверный текущий пароль');
-        }
+        } catch (error) { alert('❌ Неверный текущий пароль'); }
     };
     
     async function loadListings() {
         const snapshot = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
         const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const container = document.getElementById('myListingsTable');
-        if (listings.length === 0) {
-            container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>';
-            return;
-        }
-        container.innerHTML = `
-            <table>
-                <thead><tr><th>Фото</th><th>Название</th><th>Цена</th><th>Статус</th><th>Просмотры</th><th>Действия</th></tr></thead>
-                <tbody>
-                    ${listings.map(ad => `
-                        <tr>
-                            <td><div style="width:50px;height:50px;background:#1a1620;border-radius:12px;display:flex;align-items:center;justify-content:center;">${ad.image || '📦'}</div></td>
-                            <td>${ad.title}</td>
-                            <td>${ad.price.toLocaleString()} ₽</td>
-                            <td><span class="status-badge status-active">${ad.status || 'active'}</span></td>
-                            <td>${ad.views || 0}</td>
-                            <td><a href="post-ad.html?edit=${ad.id}" class="btn" style="padding:4px 12px;">✏️</a></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
+        const container = document.getElementById('myListings');
+        if (listings.length === 0) { container.innerHTML = '<div class="empty-state">У вас пока нет объявлений</div>'; return; }
+        container.innerHTML = listings.map(ad => `<div style="padding:12px; border-bottom:1px solid #2d1e32;"><strong>${ad.title}</strong> - ${ad.price} ₽<br><small>${ad.status || 'active'}</small></div>`).join('');
     }
-    
-    async function loadOrders() {
-        const snapshot = await db.collection("orders").where("userId", "==", currentUser.uid).get();
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const container = document.getElementById('ordersTable');
-        if (orders.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет заказов</div>';
-            return;
-        }
-        container.innerHTML = `
-            <table>
-                <thead><tr><th>Товар</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
-                <tbody>
-                    ${orders.map(order => `
-                        <tr>
-                            <td>${order.listingTitle || 'Товар'}</td>
-                            <td>${order.price?.toLocaleString() || 0} ₽</td>
-                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-    
-    async function loadWallet() {
-        const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        const balance = userDoc.data()?.balance || 0;
-        document.getElementById('walletBalance').innerHTML = balance.toLocaleString() + ' ₽';
-        document.getElementById('adBalance').innerHTML = userDoc.data()?.adBalance?.toLocaleString() + ' ₽' || '0 ₽';
-        
-        const transactions = await db.collection("transactions").where("userId", "==", currentUser.uid).orderBy("createdAt", "desc").limit(20).get();
-        const tbody = document.getElementById('transactionsList');
-        if (transactions.empty) {
-            tbody.innerHTML = '<div class="empty-state">Нет операций</div>';
-        } else {
-            tbody.innerHTML = `
-                <table style="width:100%"><thead><tr><th>Описание</th><th>Сумма</th><th>Дата</th></tr></thead>
-                <tbody>${transactions.docs.map(t => `
-                    <tr><td>${t.data().description}</td><td style="color:${t.data().amount > 0 ? '#5cb85c' : '#d9534f'}">${t.data().amount > 0 ? '+' : ''}${t.data().amount} ₽</td><td>${new Date(t.data().createdAt).toLocaleDateString()}</td></tr>
-                `).join('')}</tbody></table>
-            `;
-        }
-    }
-    
-    document.getElementById('topUpBtn').onclick = () => document.getElementById('topUpModal').style.display = 'flex';
-    document.getElementById('confirmTopUpBtn').onclick = async () => {
-        const amount = parseInt(document.getElementById('topUpAmount').value);
-        if (!amount || amount < 100) { alert('Минимальная сумма 100 ₽'); return; }
-        alert(`Демо: добавлено ${amount} ₽ на счёт. В реальном проекте здесь будет платёжная система.`);
-        document.getElementById('topUpModal').style.display = 'none';
-    };
-    
-    async function loadFavorites() {
-        const snapshot = await db.collection("favorites").where("userId", "==", currentUser.uid).get();
-        const container = document.getElementById('favoritesList');
-        if (snapshot.empty) {
-            container.innerHTML = '<div class="empty-state">Нет избранных объявлений</div>';
-        } else {
-            container.innerHTML = '<div class="empty-state">Избранные объявления будут здесь</div>';
-        }
-    }
-    
-    async function loadReferral() {
-        const refLink = `https://kuki.ru/ref/${currentUser.uid}`;
-        document.getElementById('referralLink').innerHTML = refLink;
-        document.getElementById('copyReferralBtn').onclick = () => { navigator.clipboard.writeText(refLink); alert('Ссылка скопирована!'); };
-    }
-    
-    async function loadHistory() {
-        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
-        const container = document.getElementById('historyList');
-        if (history.length === 0) {
-            container.innerHTML = '<div class="empty-state">Нет просмотренных объявлений</div>';
-        } else {
-            container.innerHTML = history.map(id => `<div class="history-item">Объявление #${id}</div>`).join('');
-        }
-    }
-    
-    document.getElementById('clearHistoryBtn').onclick = () => { localStorage.removeItem('viewHistory'); loadHistory(); alert('История очищена'); };
-    
-    document.getElementById('enableDeliveryBtn').onclick = () => alert('✅ Доставка через ПВЗ включена для всех объявлений');
-    document.getElementById('disableDeliveryBtn').onclick = () => alert('❌ Доставка отключена');
-    document.getElementById('blockUserBtn').onclick = () => {
-        const userId = prompt('Введите ID пользователя для блокировки:');
-        if (userId) alert(`Пользователь ${userId} добавлен в чёрный список`);
-    };
     
     document.getElementById('logoutAllBtn').onclick = async () => { await auth.signOut(); window.location.href = "login.html"; };
     document.getElementById('deleteAccountBtn').onclick = async () => { if(confirm('Удалить аккаунт навсегда?')) { await currentUser.delete(); window.location.href = "login.html"; } };

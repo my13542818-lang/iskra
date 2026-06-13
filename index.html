@@ -4,670 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Куки — доска объявлений</title>
-    
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-        
-        body {
-            background: #0a0a0c;
-            color: #ededee;
-            min-height: 100vh;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(255,59,47,0.05) 0%, rgba(176,44,230,0.05) 50%, transparent 80%);
-            pointer-events: none;
-            z-index: -1;
-            animation: pulse 8s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-        
-        .header {
-            background: rgba(11,11,14,0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(42,26,44,0.5);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 12px 24px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-        
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ff3b2f, #b02ce6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .logo:hover {
-            transform: scale(1.05);
-            text-shadow: 0 0 20px rgba(255,59,47,0.5);
-        }
-        
-        .search-wrapper {
-            flex: 1;
-            max-width: 500px;
-            position: relative;
-        }
-        
-        .search-container {
-            position: relative;
-            width: 100%;
-        }
-        
-        .search-input-wrapper {
-            display: flex;
-            align-items: center;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 48px;
-            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-            backdrop-filter: blur(10px);
-        }
-        
-        .search-input-wrapper:focus-within {
-            background: rgba(255,255,255,0.12);
-            border-color: #ff6b4a;
-            box-shadow: 0 0 0 3px rgba(255,107,74,0.2);
-            transform: scale(1.01);
-        }
-        
-        .search-icon {
-            padding-left: 18px;
-            display: flex;
-            align-items: center;
-            color: #a492b0;
-        }
-        
-        .search-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 16px;
-            padding: 14px 12px;
-            outline: none;
-        }
-        
-        .search-input::placeholder {
-            color: #6b6b7a;
-        }
-        
-        .search-clear {
-            padding: 0 8px;
-            background: transparent;
-            border: none;
-            color: #a492b0;
-            cursor: pointer;
-            font-size: 18px;
-            display: none;
-        }
-        
-        .search-clear:hover {
-            color: #ff6b4a;
-        }
-        
-        .search-button {
-            background: linear-gradient(135deg, #ff3b2f, #b02ce6);
-            border: none;
-            border-radius: 48px;
-            padding: 8px 24px;
-            margin: 4px;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .search-button:hover {
-            transform: scale(0.98);
-            box-shadow: 0 4px 15px rgba(255,59,47,0.4);
-        }
-        
-        .search-categories {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .search-category-chip {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 40px;
-            padding: 6px 14px;
-            font-size: 12px;
-            color: #a492b0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .search-category-chip:hover {
-            background: rgba(255,107,74,0.15);
-            border-color: rgba(255,107,74,0.3);
-            color: #ff6b4a;
-            transform: translateY(-1px);
-        }
-        
-        .btn {
-            padding: 8px 18px;
-            border-radius: 40px;
-            border: 1px solid #441d46;
-            background: rgba(17,16,20,0.9);
-            color: #f0e6f0;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            border-color: #ff6b4a;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(95deg, #b52b1a, #8a1c50);
-            border: none;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255,107,74,0.4);
-        }
-        
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .balance-badge {
-            background: linear-gradient(135deg, #2a7a4b, #1a4a2b);
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .balance-badge:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(42,122,75,0.5);
-        }
-        
-        .filters {
-            background: rgba(12,11,16,0.9);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid #291e2c;
-            padding: 12px 24px;
-            position: sticky;
-            top: 70px;
-            z-index: 99;
-            overflow-x: auto;
-        }
-        
-        .filters-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .filter-group {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(24,20,28,0.8);
-            padding: 6px 14px;
-            border-radius: 40px;
-            border: 1px solid #3a253e;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-group:hover {
-            border-color: #ff6b4a;
-            transform: translateY(-2px);
-        }
-        
-        .filter-group span {
-            font-size: 12px;
-            font-weight: 500;
-            color: #ffcfbf;
-        }
-        
-        .filter-group select, .filter-group input {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 6px 0;
-            outline: none;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        
-        .filter-reset {
-            background: #ac2f3a;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-reset:hover {
-            background: #c13a44;
-            transform: scale(0.98);
-        }
-        
-        .sidebar-filter {
-            width: 280px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .filter-card {
-            background: rgba(15,14,19,0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255,107,74,0.15);
-            overflow: hidden;
-        }
-        
-        .filter-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 10px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .filter-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #a492b0;
-            text-transform: uppercase;
-        }
-        
-        .filter-category-list {
-            padding: 8px 0;
-        }
-        
-        .filter-category-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            padding: 10px 16px;
-            background: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-        }
-        
-        .filter-category-item:hover {
-            background: rgba(255,255,255,0.05);
-            transform: translateX(4px);
-        }
-        
-        .filter-category-icon {
-            font-size: 20px;
-        }
-        
-        .filter-category-name {
-            flex: 1;
-            font-size: 14px;
-            color: #a492b0;
-        }
-        
-        .filter-category-item:hover .filter-category-name {
-            color: #ffcfbf;
-        }
-        
-        .filter-category-count {
-            font-size: 12px;
-            color: #a492b0;
-            background: rgba(255,255,255,0.05);
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-        
-        .filter-category-item.active {
-            background: linear-gradient(95deg, rgba(181,43,26,0.15), rgba(138,28,80,0.15));
-            border-left: 3px solid #ff6b4a;
-        }
-        
-        .filter-category-item.active .filter-category-name {
-            color: #ff6b4a;
-            font-weight: 500;
-        }
-        
-        .recommendations-section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .recommendations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .recommend-card {
-            background: rgba(15,14,19,0.7);
-            border-radius: 16px;
-            border: 1px solid rgba(255,107,74,0.1);
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .recommend-card:hover {
-            transform: translateY(-3px);
-            border-color: #ff6b4a;
-        }
-        
-        .recommend-img {
-            height: 140px;
-            background: #1a1620;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-        
-        .recommend-info {
-            padding: 10px;
-        }
-        
-        .recommend-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #ffddd3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .recommend-price {
-            font-size: 15px;
-            font-weight: 700;
-            color: #ff6b4a;
-            margin-top: 4px;
-        }
-        
-        .main-layout {
-            display: flex;
-            gap: 24px;
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 24px;
-        }
-        
-        .listings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-        }
-        
-        .listing-card {
-            background: rgba(15,14,19,0.9);
-            backdrop-filter: blur(5px);
-            border-radius: 24px;
-            border: 1px solid #2d1e32;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .listing-card:hover {
-            transform: translateY(-5px);
-            border-color: #ff6b4a;
-            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.5);
-        }
-        
-        .listing-img {
-            height: 180px;
-            background: #1a1620;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .listing-card:hover .listing-img {
-            transform: scale(1.05);
-        }
-        
-        .listing-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .listing-info {
-            padding: 16px;
-        }
-        
-        .listing-title {
-            font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: #ffddd3;
-        }
-        
-        .listing-price {
-            font-size: 20px;
-            font-weight: 800;
-            color: #ff6b4a;
-            margin: 8px 0;
-        }
-        
-        .listing-meta {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: #a492b0;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .listing-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-        
-        .action-btn {
-            flex: 1;
-            padding: 8px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        
-        .action-call {
-            background: #2a7a4b;
-            border: none;
-            color: white;
-        }
-        
-        .action-call:hover {
-            background: #3a9a5b;
-            transform: scale(0.98);
-        }
-        
-        .action-chat {
-            background: rgba(255,107,74,0.15);
-            border: 1px solid rgba(255,107,74,0.3);
-            color: #ff6b4a;
-        }
-        
-        .action-chat:hover {
-            background: rgba(255,107,74,0.25);
-            transform: scale(0.98);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 80px;
-            background: rgba(15,14,19,0.8);
-            border-radius: 32px;
-        }
-        
-        .footer {
-            background: rgba(11,11,14,0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid #2a1a2c;
-            padding: 40px 24px;
-            margin-top: 60px;
-        }
-        
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 30px;
-        }
-        
-        .footer-section {
-            flex: 1;
-            min-width: 180px;
-        }
-        
-        .footer-section h4 {
-            color: #ffcfbf;
-            margin-bottom: 15px;
-        }
-        
-        .footer-section p, .footer-section a {
-            color: #a492b0;
-            font-size: 13px;
-            text-decoration: none;
-            line-height: 1.8;
-            display: block;
-        }
-        
-        .footer-section a:hover {
-            color: #ff6b4a;
-            transform: translateX(5px);
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            margin-top: 30px;
-            border-top: 1px solid #2a1a2c;
-            color: #666;
-            font-size: 12px;
-        }
-        
-        @media (max-width: 1024px) {
-            .main-layout { flex-direction: column; }
-            .sidebar-filter { width: 100%; }
-            .filter-category-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
-            .filter-category-item { width: auto; padding: 8px 16px; border-radius: 40px; background: rgba(255,255,255,0.05); }
-            .filter-category-item.active { background: linear-gradient(95deg, #b52b1a, #8a1c50); }
-            .filter-category-item.active .filter-category-name { color: white; }
-        }
-        
-        @media (max-width: 768px) {
-            .header-container { flex-direction: column; text-align: center; }
-            .search-wrapper { max-width: 100%; width: 100%; }
-            .user-actions { justify-content: center; }
-            .listings-grid { grid-template-columns: 1fr; }
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: #0a0a0c; color: #ededee; min-height: 100vh; }
+        .header { background: rgba(11,11,14,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(42,26,44,0.5); position: sticky; top: 0; z-index: 100; }
+        .header-container { max-width: 1400px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; }
+        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
+        .search-wrapper { flex: 1; max-width: 500px; position: relative; }
+        .search-bar { display: flex; gap: 8px; background: rgba(18,17,20,0.9); border: 1px solid #2f2332; border-radius: 60px; padding: 4px 4px 4px 18px; }
+        .search-bar input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 15px; padding: 10px 0; }
+        .search-bar button { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; padding: 8px 24px; border-radius: 60px; color: white; cursor: pointer; font-weight: bold; }
+        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: rgba(17,16,20,0.9); color: white; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(95deg, #b52b1a, #8a1c50); border: none; color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,74,0.4); }
+        .user-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .balance-badge { background: linear-gradient(135deg, #2a7a4b, #1a4a2b); padding: 6px 14px; border-radius: 40px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .filters { background: rgba(12,11,16,0.9); border-bottom: 1px solid #291e2c; padding: 12px 24px; position: sticky; top: 70px; z-index: 99; overflow-x: auto; }
+        .filters-container { max-width: 1400px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .filter-group { display: inline-flex; align-items: center; gap: 8px; background: rgba(24,20,28,0.8); padding: 6px 14px; border-radius: 40px; border: 1px solid #3a253e; }
+        .filter-group span { font-size: 12px; color: #ffcfbf; }
+        .filter-group select, .filter-group input { background: transparent; border: none; color: white; padding: 6px 0; outline: none; font-size: 12px; cursor: pointer; }
+        .filter-reset { background: #ac2f3a; border: none; padding: 6px 16px; border-radius: 40px; color: white; cursor: pointer; }
+        .sidebar-filter { width: 280px; flex-shrink: 0; }
+        .filter-card { background: rgba(15,14,19,0.9); border-radius: 20px; border: 1px solid rgba(255,107,74,0.15); overflow: hidden; }
+        .filter-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .filter-title { font-size: 11px; font-weight: 700; color: #a492b0; text-transform: uppercase; }
+        .filter-category-list { padding: 8px 0; }
+        .filter-category-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 16px; background: transparent; border: none; color: white; cursor: pointer; text-align: left; }
+        .filter-category-item:hover { background: rgba(255,255,255,0.05); }
+        .filter-category-icon { font-size: 20px; }
+        .filter-category-name { flex: 1; font-size: 14px; color: #a492b0; }
+        .filter-category-count { font-size: 12px; color: #a492b0; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 20px; }
+        .filter-category-item.active { background: linear-gradient(95deg, rgba(181,43,26,0.15), rgba(138,28,80,0.15)); border-left: 3px solid #ff6b4a; }
+        .filter-category-item.active .filter-category-name { color: #ff6b4a; }
+        .main-layout { display: flex; gap: 24px; max-width: 1400px; margin: 30px auto; padding: 0 24px; }
+        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .listing-card { background: rgba(15,14,19,0.9); border-radius: 24px; border: 1px solid #2d1e32; overflow: hidden; cursor: pointer; transition: all 0.3s ease; }
+        .listing-card:hover { transform: translateY(-5px); border-color: #ff6b4a; }
+        .listing-img { height: 180px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 60px; overflow: hidden; }
+        .listing-info { padding: 16px; }
+        .listing-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; color: #ffddd3; }
+        .listing-price { font-size: 20px; font-weight: 800; color: #ff6b4a; margin: 8px 0; }
+        .listing-meta { display: flex; gap: 12px; font-size: 12px; color: #a492b0; margin-bottom: 10px; flex-wrap: wrap; }
+        .listing-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .action-btn { flex: 1; padding: 8px; border-radius: 40px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.3s ease; }
+        .action-call { background: #2a7a4b; border: none; color: white; }
+        .action-chat { background: rgba(255,107,74,0.15); border: 1px solid rgba(255,107,74,0.3); color: #ff6b4a; }
+        .empty-state { text-align: center; padding: 80px; background: rgba(15,14,19,0.8); border-radius: 32px; }
+        .footer { background: rgba(11,11,14,0.95); border-top: 1px solid #2a1a2c; padding: 40px 24px; margin-top: 60px; }
+        .footer-container { max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; }
+        .footer-section { flex: 1; min-width: 180px; }
+        .footer-section h4 { color: #ffcfbf; margin-bottom: 15px; }
+        .footer-section p, .footer-section a { color: #a492b0; font-size: 13px; text-decoration: none; line-height: 1.8; display: block; }
+        .footer-section a:hover { color: #ff6b4a; }
+        .footer-bottom { text-align: center; padding-top: 30px; margin-top: 30px; border-top: 1px solid #2a1a2c; color: #666; font-size: 12px; }
+        @media (max-width: 1024px) { .main-layout { flex-direction: column; } .sidebar-filter { width: 100%; } .filter-category-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; } .filter-category-item { width: auto; padding: 8px 16px; border-radius: 40px; background: rgba(255,255,255,0.05); } }
+        @media (max-width: 768px) { .header-container { flex-direction: column; } .search-wrapper { max-width: 100%; width: 100%; } .user-actions { justify-content: center; } .listings-grid { grid-template-columns: 1fr; } }
         .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        
-        .user-dropdown {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            background: #0f0e13;
-            border: 1px solid #2d1e32;
-            border-radius: 20px;
-            width: 220px;
-            z-index: 200;
-            overflow: hidden;
-        }
-        
-        .dropdown-item {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-        
+        .user-dropdown { position: absolute; top: 60px; right: 20px; background: #0f0e13; border: 1px solid #2d1e32; border-radius: 20px; width: 220px; z-index: 200; overflow: hidden; }
+        .dropdown-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; text-decoration: none; color: white; }
         .dropdown-item:hover { background: #1a1620; }
         .dropdown-divider { height: 1px; background: #2d1e32; margin: 4px 0; }
     </style>
@@ -678,25 +77,9 @@
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
         <div class="search-wrapper">
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <div class="search-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Найти товары, услуги и мастеров..." autocomplete="off">
-                    <button class="search-clear" id="searchClearBtn" style="display: none;">✕</button>
-                    <button class="search-button" id="searchBtn">Найти</button>
-                </div>
-                
-                <div class="search-categories">
-                    <span class="search-category-chip" data-cat="электроника">📱 Электроника</span>
-                    <span class="search-category-chip" data-cat="одежда">👕 Одежда</span>
-                    <span class="search-category-chip" data-cat="авто">🚗 Авто</span>
-                    <span class="search-category-chip" data-cat="недвижимость">🏠 Недвижимость</span>
-                    <span class="search-category-chip" data-cat="услуги">🔧 Услуги</span>
-                </div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Найти товары, услуги и мастеров...">
+                <button id="searchBtn">Найти</button>
             </div>
         </div>
         <div class="user-actions" id="userActions"></div>
@@ -708,7 +91,6 @@
         <div class="filter-group"><span>💰 Цена до</span><input type="number" id="priceFilter" placeholder="Любая"></div>
         <div class="filter-group"><span>📌 Состояние</span><select id="conditionFilter"><option value="all">Любое</option><option value="new">✨ Новое</option><option value="used">🔄 Б/У</option></select></div>
         <div class="filter-group"><span>🌍 Город</span><input type="text" id="locationFilter" placeholder="Город"></div>
-        <div class="filter-group"><span>⭐ Рейтинг</span><select id="ratingFilter"><option value="0">Любой</option><option value="4">4+</option><option value="3">3+</option></select></div>
         <button class="filter-reset" id="resetFiltersBtn">🔄 Сбросить</button>
     </div>
 </div>
@@ -716,71 +98,23 @@
 <div class="main-layout">
     <aside class="sidebar-filter">
         <div class="filter-card">
-            <div class="filter-header">
-                <span class="filter-title">📂 Категории</span>
-                <span>Все · <span id="totalListingsCount">0</span></span>
-            </div>
+            <div class="filter-header"><span class="filter-title">📂 Категории</span><span>Все · <span id="totalListingsCount">0</span></span></div>
             <div class="filter-category-list">
-                <button class="filter-category-item active" data-cat="all">
-                    <span class="filter-category-icon">🎯</span>
-                    <span class="filter-category-name">Все объявления</span>
-                    <span class="filter-category-count" id="allCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="электроника">
-                    <span class="filter-category-icon">📱</span>
-                    <span class="filter-category-name">Электроника</span>
-                    <span class="filter-category-count" id="electronicsCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="одежда">
-                    <span class="filter-category-icon">👕</span>
-                    <span class="filter-category-name">Одежда</span>
-                    <span class="filter-category-count" id="clothingCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="обувь">
-                    <span class="filter-category-icon">👟</span>
-                    <span class="filter-category-name">Обувь</span>
-                    <span class="filter-category-count" id="shoesCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="авто">
-                    <span class="filter-category-icon">🚗</span>
-                    <span class="filter-category-name">Авто</span>
-                    <span class="filter-category-count" id="autoCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="недвижимость">
-                    <span class="filter-category-icon">🏠</span>
-                    <span class="filter-category-name">Недвижимость</span>
-                    <span class="filter-category-count" id="realtyCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="для дома">
-                    <span class="filter-category-icon">🛋️</span>
-                    <span class="filter-category-name">Для дома</span>
-                    <span class="filter-category-count" id="homeCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="спорт">
-                    <span class="filter-category-icon">⚽</span>
-                    <span class="filter-category-name">Спорт</span>
-                    <span class="filter-category-count" id="sportCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="игрушки">
-                    <span class="filter-category-icon">🧸</span>
-                    <span class="filter-category-name">Игрушки</span>
-                    <span class="filter-category-count" id="toysCount">0</span>
-                </button>
-                <button class="filter-category-item" data-cat="услуги">
-                    <span class="filter-category-icon">🔧</span>
-                    <span class="filter-category-name">Услуги</span>
-                    <span class="filter-category-count" id="servicesCount">0</span>
-                </button>
+                <button class="filter-category-item active" data-cat="all"><span class="filter-category-icon">🎯</span><span class="filter-category-name">Все объявления</span><span class="filter-category-count" id="allCount">0</span></button>
+                <button class="filter-category-item" data-cat="электроника"><span class="filter-category-icon">📱</span><span class="filter-category-name">Электроника</span><span class="filter-category-count" id="electronicsCount">0</span></button>
+                <button class="filter-category-item" data-cat="одежда"><span class="filter-category-icon">👕</span><span class="filter-category-name">Одежда</span><span class="filter-category-count" id="clothingCount">0</span></button>
+                <button class="filter-category-item" data-cat="обувь"><span class="filter-category-icon">👟</span><span class="filter-category-name">Обувь</span><span class="filter-category-count" id="shoesCount">0</span></button>
+                <button class="filter-category-item" data-cat="авто"><span class="filter-category-icon">🚗</span><span class="filter-category-name">Авто</span><span class="filter-category-count" id="autoCount">0</span></button>
+                <button class="filter-category-item" data-cat="недвижимость"><span class="filter-category-icon">🏠</span><span class="filter-category-name">Недвижимость</span><span class="filter-category-count" id="realtyCount">0</span></button>
+                <button class="filter-category-item" data-cat="для дома"><span class="filter-category-icon">🛋️</span><span class="filter-category-name">Для дома</span><span class="filter-category-count" id="homeCount">0</span></button>
+                <button class="filter-category-item" data-cat="спорт"><span class="filter-category-icon">⚽</span><span class="filter-category-name">Спорт</span><span class="filter-category-count" id="sportCount">0</span></button>
+                <button class="filter-category-item" data-cat="игрушки"><span class="filter-category-icon">🧸</span><span class="filter-category-name">Игрушки</span><span class="filter-category-count" id="toysCount">0</span></button>
+                <button class="filter-category-item" data-cat="услуги"><span class="filter-category-icon">🔧</span><span class="filter-category-name">Услуги</span><span class="filter-category-count" id="servicesCount">0</span></button>
             </div>
         </div>
     </aside>
     
-    <main style="flex: 1; min-width: 0;">
-        <div class="recommendations-section" id="recommendationsSection" style="display: none;">
-            <div class="section-title">🎯 Рекомендации под вас</div>
-            <div class="recommendations-grid" id="recommendationsGrid"></div>
-        </div>
-        
+    <main style="flex:1; min-width:0;">
         <div id="listingsContainer" class="listings-grid"></div>
     </main>
 </div>
@@ -813,12 +147,6 @@
     
     let currentUser = null;
     let allListings = [];
-    let viewHistory = JSON.parse(localStorage.getItem('viewHistory') || '[]');
-    
-    function saveToHistory(id) {
-        viewHistory = [id, ...viewHistory.filter(i => i !== id)].slice(0, 10);
-        localStorage.setItem('viewHistory', JSON.stringify(viewHistory));
-    }
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
@@ -842,7 +170,6 @@
         
         await loadListings();
         await updateCategoryCounts();
-        loadRecommendations();
     });
     
     function showUserDropdown() {
@@ -850,12 +177,7 @@
         if (existing) { existing.remove(); return; }
         const dropdown = document.createElement('div');
         dropdown.className = 'user-dropdown';
-        dropdown.innerHTML = `
-            <a href="profile.html" class="dropdown-item">👤 Мой профиль</a>
-            <a href="post-ad.html" class="dropdown-item">➕ Создать объявление</a>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="dropdownLogout">🚪 Выйти</div>
-        `;
+        dropdown.innerHTML = `<a href="profile.html" class="dropdown-item">👤 Мой профиль</a><a href="post-ad.html" class="dropdown-item">➕ Создать объявление</a><div class="dropdown-divider"></div><div class="dropdown-item" id="dropdownLogout">🚪 Выйти</div>`;
         document.body.appendChild(dropdown);
         document.getElementById('dropdownLogout').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
         setTimeout(() => {
@@ -869,12 +191,12 @@
     }
     
     async function loadListings() {
-        const category = document.querySelector('.filter-category-item.active')?.dataset.cat || 'all';
+        const categoryBtn = document.querySelector('.filter-category-item.active');
+        const category = categoryBtn ? categoryBtn.dataset.cat : 'all';
         const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
         const condition = document.getElementById('conditionFilter')?.value || 'all';
         const location = document.getElementById('locationFilter')?.value || '';
-        const minRating = parseInt(document.getElementById('ratingFilter')?.value) || 0;
-        const search = document.getElementById('searchInput')?.value.trim();
+        const search = document.getElementById('searchInput')?.value || '';
         
         let query = db.collection("listings").where("status", "==", "active");
         const snapshot = await query.get();
@@ -885,7 +207,6 @@
         if (maxPrice !== Infinity) listings = listings.filter(l => l.price <= maxPrice);
         if (condition !== 'all') listings = listings.filter(l => l.condition === condition);
         if (location) listings = listings.filter(l => l.location && l.location.toLowerCase().includes(location.toLowerCase()));
-        if (minRating > 0) listings = listings.filter(l => (l.sellerRating || 0) >= minRating);
         if (search) listings = listings.filter(l => l.title.toLowerCase().includes(search.toLowerCase()));
         
         listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -917,35 +238,10 @@
         document.querySelectorAll('.listing-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (!e.target.closest('.action-btn')) {
-                    saveToHistory(card.dataset.id);
                     window.location.href = `product.html?id=${card.dataset.id}`;
                 }
             });
         });
-    }
-    
-    function loadRecommendations() {
-        if (viewHistory.length === 0) {
-            document.getElementById('recommendationsSection').style.display = 'none';
-            return;
-        }
-        const lastViewed = viewHistory[0];
-        const lastItem = allListings.find(l => l.id === lastViewed);
-        if (lastItem && lastItem.category) {
-            const similar = allListings.filter(l => l.category === lastItem.category && l.id !== lastViewed).slice(0, 6);
-            if (similar.length > 0) {
-                document.getElementById('recommendationsSection').style.display = 'block';
-                document.getElementById('recommendationsGrid').innerHTML = similar.map(ad => `
-                    <div class="recommend-card" onclick="window.location.href='product.html?id=${ad.id}'">
-                        <div class="recommend-img">${ad.image || '📦'}</div>
-                        <div class="recommend-info">
-                            <div class="recommend-title">${escapeHtml(ad.title)}</div>
-                            <div class="recommend-price">${Number(ad.price).toLocaleString()} ₽</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
     }
     
     async function updateCategoryCounts() {
@@ -984,39 +280,19 @@
         });
     });
     
-    document.querySelectorAll('.search-category-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const category = chip.dataset.cat;
-            const categoryBtn = Array.from(document.querySelectorAll('.filter-category-item')).find(btn => btn.dataset.cat === category);
-            if (categoryBtn) categoryBtn.click();
-        });
-    });
-    
     document.getElementById('resetFiltersBtn').addEventListener('click', () => {
         document.getElementById('priceFilter').value = '';
         document.getElementById('conditionFilter').value = 'all';
         document.getElementById('locationFilter').value = '';
-        document.getElementById('ratingFilter').value = '0';
         document.getElementById('searchInput').value = '';
         document.querySelector('.filter-category-item[data-cat="all"]').click();
-        loadListings();
     });
     
     document.getElementById('searchBtn').addEventListener('click', () => loadListings());
     document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
-    document.getElementById('searchClearBtn').addEventListener('click', () => {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('searchClearBtn').style.display = 'none';
-        loadListings();
-    });
-    document.getElementById('searchInput').addEventListener('input', () => {
-        document.getElementById('searchClearBtn').style.display = document.getElementById('searchInput').value.length > 0 ? 'block' : 'none';
-    });
-    
     document.getElementById('priceFilter').addEventListener('input', loadListings);
     document.getElementById('conditionFilter').addEventListener('change', loadListings);
     document.getElementById('locationFilter').addEventListener('input', loadListings);
-    document.getElementById('ratingFilter').addEventListener('change', loadListings);
     
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 </script>
