@@ -6,13 +6,152 @@
     <meta name="referrer" content="origin">
     <title>Куки — доска объявлений</title>
     
-    <!-- ПОДКЛЮЧЕНИЕ СТИЛЕЙ (ТОЛЬКО ОДНА СТРОКА!) -->
+    <!-- Подключение стилей -->
     <link rel="stylesheet" href="styles.css">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Дополнительные стили для красивого интерфейса */
+        .search-wrapper {
+            position: relative;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #b8a9d4;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .search-bar input {
+            padding-left: 45px !important;
+        }
+        
+        /* Анимация для карточек */
+        .listing-card {
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        
+        /* Кастомные скроллы для категорий */
+        .filter-category-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        /* Бейджи */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .badge-new {
+            background: linear-gradient(135deg, #e84393, #c13584);
+            color: white;
+        }
+        
+        .badge-popular {
+            background: #f5f0ff;
+            color: #9b59b6;
+        }
+        
+        /* Кнопка скролла вверх */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        }
+        
+        .scroll-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(232, 67, 147, 0.4);
+        }
+        
+        /* Скелетон загрузки */
+        .skeleton-card {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #f0e6ff;
+            overflow: hidden;
+        }
+        
+        .skeleton-img {
+            height: 200px;
+            background: linear-gradient(90deg, #f0e6ff 25%, #f5f0ff 50%, #f0e6ff 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Иконка корзины с бейджем */
+        .cart-icon {
+            position: relative;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, #e84393, #c13584);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        /* Контейнер для главного контента */
+        .main-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Красивые градиентные кнопки */
+        .gradient-btn {
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 67, 147, 0.4);
+        }
+    </style>
 </head>
 <body>
 
@@ -21,7 +160,8 @@
         <a href="index.html" class="logo">🍪 КУКИ</a>
         <div class="search-wrapper">
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Что вы ищете?">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Поиск товаров, услуг и мастеров...">
                 <button id="searchBtn">Найти</button>
             </div>
         </div>
@@ -39,31 +179,84 @@
     </div>
 </div>
 
-<div class="main-layout">
-    <aside class="sidebar-filter">
-        <div class="filter-card">
-            <div class="filter-header">
-                <span class="filter-title">📂 Категории</span>
-                <span>Все · <span id="totalListingsCount">0</span></span>
+<div class="main-wrapper">
+    <div class="main-layout">
+        <aside class="sidebar-filter">
+            <div class="filter-card">
+                <div class="filter-header">
+                    <span class="filter-title">📂 Категории</span>
+                    <span class="badge badge-popular">Все · <span id="totalListingsCount">0</span></span>
+                </div>
+                <div class="filter-category-list">
+                    <button class="filter-category-item active" data-cat="all">
+                        <span class="filter-category-icon">🎯</span>
+                        <span class="filter-category-name">Все объявления</span>
+                        <span class="filter-category-count" id="allCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="электроника">
+                        <span class="filter-category-icon">📱</span>
+                        <span class="filter-category-name">Электроника</span>
+                        <span class="filter-category-count" id="electronicsCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="одежда">
+                        <span class="filter-category-icon">👕</span>
+                        <span class="filter-category-name">Одежда</span>
+                        <span class="filter-category-count" id="clothingCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="обувь">
+                        <span class="filter-category-icon">👟</span>
+                        <span class="filter-category-name">Обувь</span>
+                        <span class="filter-category-count" id="shoesCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="авто">
+                        <span class="filter-category-icon">🚗</span>
+                        <span class="filter-category-name">Авто</span>
+                        <span class="filter-category-count" id="autoCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="недвижимость">
+                        <span class="filter-category-icon">🏠</span>
+                        <span class="filter-category-name">Недвижимость</span>
+                        <span class="filter-category-count" id="realtyCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="для дома">
+                        <span class="filter-category-icon">🛋️</span>
+                        <span class="filter-category-name">Для дома</span>
+                        <span class="filter-category-count" id="homeCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="спорт">
+                        <span class="filter-category-icon">⚽</span>
+                        <span class="filter-category-name">Спорт</span>
+                        <span class="filter-category-count" id="sportCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="игрушки">
+                        <span class="filter-category-icon">🧸</span>
+                        <span class="filter-category-name">Игрушки</span>
+                        <span class="filter-category-count" id="toysCount">0</span>
+                    </button>
+                    <button class="filter-category-item" data-cat="услуги">
+                        <span class="filter-category-icon">🔧</span>
+                        <span class="filter-category-name">Услуги</span>
+                        <span class="filter-category-count" id="servicesCount">0</span>
+                    </button>
+                </div>
             </div>
-            <div class="filter-category-list">
-                <button class="filter-category-item active" data-cat="all"><span class="filter-category-icon">🎯</span><span class="filter-category-name">Все объявления</span><span class="filter-category-count" id="allCount">0</span></button>
-                <button class="filter-category-item" data-cat="электроника"><span class="filter-category-icon">📱</span><span class="filter-category-name">Электроника</span><span class="filter-category-count" id="electronicsCount">0</span></button>
-                <button class="filter-category-item" data-cat="одежда"><span class="filter-category-icon">👕</span><span class="filter-category-name">Одежда</span><span class="filter-category-count" id="clothingCount">0</span></button>
-                <button class="filter-category-item" data-cat="обувь"><span class="filter-category-icon">👟</span><span class="filter-category-name">Обувь</span><span class="filter-category-count" id="shoesCount">0</span></button>
-                <button class="filter-category-item" data-cat="авто"><span class="filter-category-icon">🚗</span><span class="filter-category-name">Авто</span><span class="filter-category-count" id="autoCount">0</span></button>
-                <button class="filter-category-item" data-cat="недвижимость"><span class="filter-category-icon">🏠</span><span class="filter-category-name">Недвижимость</span><span class="filter-category-count" id="realtyCount">0</span></button>
-                <button class="filter-category-item" data-cat="для дома"><span class="filter-category-icon">🛋️</span><span class="filter-category-name">Для дома</span><span class="filter-category-count" id="homeCount">0</span></button>
-                <button class="filter-category-item" data-cat="спорт"><span class="filter-category-icon">⚽</span><span class="filter-category-name">Спорт</span><span class="filter-category-count" id="sportCount">0</span></button>
-                <button class="filter-category-item" data-cat="игрушки"><span class="filter-category-icon">🧸</span><span class="filter-category-name">Игрушки</span><span class="filter-category-count" id="toysCount">0</span></button>
-                <button class="filter-category-item" data-cat="услуги"><span class="filter-category-icon">🔧</span><span class="filter-category-name">Услуги</span><span class="filter-category-count" id="servicesCount">0</span></button>
+        </aside>
+        
+        <main style="flex: 1; min-width: 0;">
+            <div id="listingsContainer" class="listings-grid">
+                <!-- Скелетоны загрузки -->
+                <div class="skeleton-card"><div class="skeleton-img"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div></div>
             </div>
-        </div>
-    </aside>
-    
-    <main style="flex: 1; min-width: 0;">
-        <div id="listingsContainer" class="listings-grid"></div>
-    </main>
+        </main>
+    </div>
+</div>
+
+<div class="scroll-top" id="scrollTopBtn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
 </div>
 
 <div class="footer">
@@ -73,7 +266,7 @@
         <div class="footer-section"><h4>📜 Документы</h4><a href="offer.html">📄 Договор оферты</a><a href="privacy.html">🔒 Политика конфиденциальности</a></div>
         <div class="footer-section"><h4>💰 Реквизиты</h4><p>Самозанятая Вагина Нина Васильевна<br>ИНН: 233501711069</p></div>
     </div>
-    <div class="footer-bottom"><p>© 2024-2025 Куки. Все права защищены.</p></div>
+    <div class="footer-bottom"><p>© 2024-2025 Куки. Все права защищены. 💜</p></div>
 </div>
 
 <script>
@@ -95,6 +288,20 @@
     let currentUser = null;
     let allListings = [];
     
+    // Кнопка скролла вверх
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('scrollTopBtn');
+        if (window.scrollY > 300) {
+            btn.classList.add('show');
+        } else {
+            btn.classList.remove('show');
+        }
+    });
+    
+    document.getElementById('scrollTopBtn').onclick = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
     auth.onAuthStateChanged(async (user) => {
         if (!user) { 
             window.location.href = "login.html"; 
@@ -114,7 +321,10 @@
         
         document.getElementById('userActions').innerHTML = `
             <div class="balance-badge" id="balanceBtn">💰 ${balance.toLocaleString()} ₽</div>
-            <a href="cart.html" class="btn">🛒 Корзина</a>
+            <div class="cart-icon">
+                <a href="cart.html" class="btn">🛒 Корзина</a>
+                <span class="cart-count" id="cartCount" style="display:none;">0</span>
+            </div>
             <a href="wallet.html" class="btn">💳 Кошелёк</a>
             <div class="user-info" id="userMenuBtn">
                 <img src="${user.photoURL || userData?.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar-small">
@@ -127,7 +337,22 @@
         
         await loadListings();
         await updateCategoryCounts();
+        updateCartCount();
     });
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.length;
+        const cartCountEl = document.getElementById('cartCount');
+        if (cartCountEl) {
+            if (count > 0) {
+                cartCountEl.style.display = 'inline-block';
+                cartCountEl.textContent = count;
+            } else {
+                cartCountEl.style.display = 'none';
+            }
+        }
+    }
     
     function showUserDropdown() {
         const existing = document.querySelector('.user-dropdown');
@@ -155,6 +380,9 @@
     }
     
     async function loadListings() {
+        const container = document.getElementById('listingsContainer');
+        container.innerHTML = '<div class="skeleton-card"><div class="skeleton-img"></div></div><div class="skeleton-card"><div class="skeleton-img"></div></div><div class="skeleton-card"><div class="skeleton-img"></div></div>';
+        
         const categoryBtn = document.querySelector('.filter-category-item.active');
         const category = categoryBtn ? categoryBtn.dataset.cat : 'all';
         const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
@@ -183,30 +411,75 @@
     function renderListings(listings) {
         const container = document.getElementById('listingsContainer');
         if (!listings || listings.length === 0) {
-            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте изменить параметры поиска</p></div>`;
+            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте изменить параметры поиска</p><button class="btn-primary" id="clearFiltersBtn" style="margin-top:20px;">🧹 Очистить фильтры</button></div>`;
+            document.getElementById('clearFiltersBtn')?.addEventListener('click', () => {
+                document.getElementById('priceFilter').value = '';
+                document.getElementById('conditionFilter').value = 'all';
+                document.getElementById('locationFilter').value = '';
+                document.getElementById('ratingFilter').value = '0';
+                document.getElementById('searchInput').value = '';
+                document.querySelector('.filter-category-item[data-cat="all"]').click();
+            });
             return;
         }
+        
         container.innerHTML = listings.map(ad => `
             <div class="listing-card" data-id="${ad.id}">
-                <div class="listing-img">${ad.image || '📦'}</div>
+                <div class="listing-img">
+                    ${ad.image && ad.image.startsWith('http') ? `<img src="${ad.image}" alt="${escapeHtml(ad.title)}">` : (ad.image || '📦')}
+                    ${ad.isNew ? '<span class="badge badge-new" style="position:absolute; top:12px; left:12px;">NEW</span>' : ''}
+                </div>
                 <div class="listing-info">
                     <div class="listing-title">${escapeHtml(ad.title)}</div>
                     <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
-                    <div class="listing-meta">📍 ${ad.location || 'Не указан'} | ⭐ ${ad.sellerRating || 0}</div>
+                    <div class="listing-meta">
+                        <span>📍 ${ad.location || 'Не указан'}</span>
+                        <span>⭐ ${ad.sellerRating || 0}</span>
+                        <span>👁️ ${ad.views || 0}</span>
+                    </div>
                     <div class="listing-actions">
-                        <button class="action-btn action-call" onclick="event.stopPropagation(); window.location.href='tel:${ad.sellerPhone || '+79531114942'}'">📞 Позвонить</button>
                         <button class="action-btn action-chat" onclick="event.stopPropagation(); window.location.href='chat.html?sellerId=${ad.sellerId}&listingId=${ad.id}&title=${encodeURIComponent(ad.title)}'">💬 Написать</button>
+                        <button class="action-btn action-call" onclick="event.stopPropagation(); window.location.href='tel:${ad.sellerPhone || '+79531114942'}'">📞 Позвонить</button>
+                        <button class="small-btn fav-btn" data-id="${ad.id}">❤️</button>
                     </div>
                 </div>
             </div>
         `).join('');
         
+        attachCardEvents();
+    }
+    
+    function attachCardEvents() {
         document.querySelectorAll('.listing-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
+                if (!e.target.closest('.action-btn') && !e.target.closest('.fav-btn')) {
                     window.location.href = `product.html?id=${card.dataset.id}`;
                 }
             });
+        });
+        
+        document.querySelectorAll('.fav-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                if (!currentUser) { window.location.href = "login.html"; return; }
+                const id = btn.dataset.id;
+                btn.classList.toggle('fav-active');
+                const isFavorite = btn.classList.contains('fav-active');
+                if (isFavorite) {
+                    await db.collection("favorites").add({
+                        userId: currentUser.uid,
+                        listingId: id,
+                        addedAt: new Date().toISOString()
+                    });
+                    btn.innerHTML = '❤️';
+                } else {
+                    const snapshot = await db.collection("favorites")
+                        .where("userId", "==", currentUser.uid)
+                        .where("listingId", "==", id).get();
+                    snapshot.forEach(doc => doc.ref.delete());
+                    btn.innerHTML = '🤍';
+                }
+            };
         });
     }
     
@@ -261,11 +534,196 @@
     document.getElementById('conditionFilter').addEventListener('change', loadListings);
     document.getElementById('locationFilter').addEventListener('input', loadListings);
     document.getElementById('ratingFilter').addEventListener('change', loadListings);
-
+    
     function escapeHtml(str) { 
         if (!str) return ''; 
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); 
     }
 </script>
+
+<style>
+    /* Дополнительные стили, которых нет в основном CSS */
+    .user-avatar-small {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e84393;
+    }
+    
+    .user-dropdown {
+        position: absolute;
+        top: 70px;
+        right: 20px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(155, 89, 182, 0.15);
+        width: 220px;
+        overflow: hidden;
+        z-index: 200;
+        border: 1px solid #f0e6ff;
+    }
+    
+    .dropdown-item {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: #2d1b4e;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .dropdown-item:hover {
+        background: #f5f0ff;
+        color: #e84393;
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        background: #f0e6ff;
+        margin: 4px 0;
+    }
+    
+    .fav-btn {
+        background: #f5f0ff;
+        border: 1px solid #e8d5f5;
+        padding: 6px 12px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .fav-btn.fav-active {
+        background: linear-gradient(135deg, #e84393, #c13584);
+        color: white;
+    }
+    
+    .main-layout {
+        display: flex;
+        gap: 30px;
+        margin: 30px 0;
+    }
+    
+    .sidebar-filter {
+        width: 280px;
+        flex-shrink: 0;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f0e6ff;
+        overflow: hidden;
+        position: sticky;
+        top: 120px;
+    }
+    
+    .filter-header {
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid #f0e6ff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .filter-title {
+        font-weight: 600;
+        color: #9b59b6;
+        font-size: 14px;
+    }
+    
+    .filter-category-list {
+        padding: 8px 0;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .filter-category-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 16px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.3s ease;
+        color: #666;
+    }
+    
+    .filter-category-item:hover {
+        background: #f5f0ff;
+    }
+    
+    .filter-category-item.active {
+        background: linear-gradient(95deg, #f5f0ff, #fff5f8);
+        border-left: 3px solid #e84393;
+        color: #e84393;
+    }
+    
+    .filter-category-name {
+        flex: 1;
+        font-size: 14px;
+    }
+    
+    .filter-category-count {
+        font-size: 12px;
+        color: #b8a9d4;
+        background: #f5f0ff;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    
+    @media (max-width: 1024px) {
+        .main-layout {
+            flex-direction: column;
+        }
+        .sidebar-filter {
+            width: 100%;
+        }
+        .filter-category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            max-height: none;
+        }
+        .filter-category-item {
+            width: auto;
+            padding: 8px 16px;
+            border-radius: 40px;
+            background: #f5f0ff;
+        }
+        .filter-category-item.active {
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            color: white;
+            border-left: none;
+        }
+        .filter-category-count {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .header-container {
+            flex-direction: column;
+            text-align: center;
+        }
+        .search-wrapper {
+            width: 100%;
+        }
+        .user-actions {
+            justify-content: center;
+        }
+        .listings-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 </body>
 </html>
