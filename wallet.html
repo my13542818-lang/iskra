@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
@@ -19,20 +20,52 @@
 </div>
 
 <div class="wallet-container">
-    <div class="balance-card">
-        <h3>💰 Мой кошелёк</h3>
-        <div class="balance-amount" id="balance">0 ₽</div>
-        <button class="btn" id="addFundsBtn" style="background:white; color:#9b59b6;">Пополнить</button>
-    </div>
-    <div class="content-card" style="margin-top:24px;">
-        <h3>🎁 Промокод</h3>
-        <div class="promo-input" style="display:flex; gap:12px;">
-            <input type="text" id="promoCode" class="form-control" placeholder="Введите промокод">
-            <button class="btn-primary" id="applyPromoBtn">Активировать</button>
+    <div class="wallet-grid">
+        <div class="wallet-card">
+            <h3>💰 Основной баланс</h3>
+            <div class="wallet-balance" id="mainBalance">0 ₽</div>
+            <div class="wallet-actions">
+                <button class="btn" id="topUpBtn">Пополнить</button>
+                <button class="btn" id="withdrawBtn">Вывести</button>
+            </div>
+        </div>
+        <div class="wallet-card" style="background: linear-gradient(135deg, #e84393, #c13584);">
+            <h3>🎁 Реферальный баланс</h3>
+            <div class="wallet-balance" id="referralBalance">0 ₽</div>
+            <div class="wallet-actions">
+                <button class="btn" id="referralLinkBtn">📋 Реферальная ссылка</button>
+            </div>
+        </div>
+        <div class="wallet-card" style="background: linear-gradient(135deg, #f0ad4e, #e67e22);">
+            <h3>⭐ Бонусный баланс</h3>
+            <div class="wallet-balance" id="bonusBalance">0 ₽</div>
+            <div class="wallet-actions">
+                <button class="btn" id="convertBonusBtn">Конвертировать</button>
+            </div>
         </div>
     </div>
-    <div class="content-card">
-        <h3>📋 История операций</h3>
+    
+    <div class="transfer-form">
+        <h3>📤 Перевести средства</h3>
+        <div class="grid-2" style="display:grid; gap:16px; margin-top:16px;">
+            <div class="form-row"><label>Email или телефон получателя</label><input type="text" id="transferTo" placeholder="user@example.com"></div>
+            <div class="form-row"><label>Сумма</label><input type="number" id="transferAmount" placeholder="Сумма перевода"></div>
+        </div>
+        <button class="btn-primary" id="transferBtn">💸 Перевести</button>
+    </div>
+    
+    <div class="transfer-form">
+        <h3>🎁 Активировать бонусный код</h3>
+        <div style="display: flex; gap: 12px;">
+            <input type="text" id="bonusCode" class="form-control" placeholder="Введите бонусный код">
+            <button class="btn-primary" id="activateBonusBtn">Активировать</button>
+        </div>
+    </div>
+    
+    <div class="transactions-list">
+        <div style="padding: 16px; border-bottom: 1px solid #f0e6ff;">
+            <h3>📋 История операций</h3>
+        </div>
         <div id="transactionsList"></div>
     </div>
 </div>
@@ -48,28 +81,152 @@
         measurementId: "G-ETWXCGL9HK"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let currentUser = null;
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
+        currentUser = user;
         document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
         await loadWallet();
+        await loadTransactions();
     });
     
     async function loadWallet() {
-        const userDoc = await db.collection("users").doc(auth.currentUser.uid).get();
-        const balance = userDoc.data()?.balance || 0;
-        document.getElementById('balance').innerHTML = balance.toLocaleString() + ' ₽';
-        const transactions = await db.collection("transactions").where("userId", "==", auth.currentUser.uid).orderBy("createdAt", "desc").get();
-        const container = document.getElementById('transactionsList');
-        if (transactions.empty) { container.innerHTML = '<div class="empty-state">Нет операций</div>'; return; }
-        container.innerHTML = transactions.docs.map(t => `<div class="transaction-item"><span>${t.data().description}</span><span>${t.data().amount > 0 ? '+' : ''}${t.data().amount} ₽</span></div>`).join('');
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const data = userDoc.data() || {};
+        document.getElementById('mainBalance').innerHTML = (data.balance || 0).toLocaleString() + ' ₽';
+        document.getElementById('referralBalance').innerHTML = (data.referralBalance || 0).toLocaleString() + ' ₽';
+        document.getElementById('bonusBalance').innerHTML = (data.bonusBalance || 0).toLocaleString() + ' ₽';
     }
     
-    document.getElementById('addFundsBtn').onclick = () => { const amount = prompt('Введите сумму пополнения (от 100 ₽):'); if(amount && parseInt(amount) >= 100) alert(`Демо: добавлено ${amount} ₽ на счёт.`); };
-    document.getElementById('applyPromoBtn').onclick = () => { const code = document.getElementById('promoCode').value; if(code) alert(`✅ Промокод ${code} активирован! Бонус зачислен.`); };
+    async function loadTransactions() {
+        const snapshot = await db.collection("transactions").where("userId", "==", currentUser.uid).orderBy("createdAt", "desc").limit(50).get();
+        const container = document.getElementById('transactionsList');
+        if (snapshot.empty) {
+            container.innerHTML = '<div class="empty-state">Нет операций</div>';
+            return;
+        }
+        container.innerHTML = snapshot.docs.map(doc => {
+            const t = doc.data();
+            const isPositive = t.amount > 0;
+            return `
+                <div class="transaction-item">
+                    <div>
+                        <div style="font-weight:500;">${t.description}</div>
+                        <div style="font-size:12px; color:#b8a9d4;">${new Date(t.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div class="${isPositive ? 'transaction-positive' : 'transaction-negative'}">${isPositive ? '+' : ''}${t.amount.toLocaleString()} ₽</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    document.getElementById('topUpBtn').onclick = () => {
+        const amount = prompt('Введите сумму пополнения (от 100 ₽):');
+        if (amount && parseInt(amount) >= 100) {
+            alert(`Демо: добавлено ${amount} ₽ на счёт. Реальный платёж будет через банк.`);
+        }
+    };
+    
+    document.getElementById('withdrawBtn').onclick = () => {
+        const amount = prompt('Введите сумму вывода (от 500 ₽):');
+        if (amount && parseInt(amount) >= 500) {
+            alert(`Демо: запрос на вывод ${amount} ₽ отправлен. Деньги поступят в течение 3-5 дней.`);
+        }
+    };
+    
+    document.getElementById('referralLinkBtn').onclick = () => {
+        const link = `https://kuki.ru/ref/${currentUser.uid}`;
+        navigator.clipboard.writeText(link);
+        alert('📋 Реферальная ссылка скопирована!');
+    };
+    
+    document.getElementById('convertBonusBtn').onclick = async () => {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const bonus = userDoc.data()?.bonusBalance || 0;
+        if (bonus < 100) { alert('Минимальная сумма для конвертации — 100 бонусов'); return; }
+        await db.collection("users").doc(currentUser.uid).update({
+            balance: firebase.firestore.FieldValue.increment(bonus),
+            bonusBalance: 0
+        });
+        await db.collection("transactions").add({
+            userId: currentUser.uid,
+            amount: bonus,
+            description: 'Конвертация бонусов в основной баланс',
+            createdAt: new Date().toISOString()
+        });
+        alert(`✅ ${bonus} бонусов конвертировано в основной баланс!`);
+        await loadWallet();
+        await loadTransactions();
+    };
+    
+    document.getElementById('activateBonusBtn').onclick = async () => {
+        const code = document.getElementById('bonusCode').value.trim();
+        if (!code) { alert('Введите бонусный код'); return; }
+        // Демо-бонусы
+        const bonusAmount = code === 'WELCOME' ? 500 : code === 'THANKS' ? 200 : 0;
+        if (bonusAmount === 0) { alert('Неверный бонусный код'); return; }
+        await db.collection("users").doc(currentUser.uid).update({
+            bonusBalance: firebase.firestore.FieldValue.increment(bonusAmount)
+        });
+        await db.collection("transactions").add({
+            userId: currentUser.uid,
+            amount: bonusAmount,
+            description: `Активация бонусного кода ${code}`,
+            createdAt: new Date().toISOString()
+        });
+        alert(`✅ Активирован бонусный код! +${bonusAmount} бонусов`);
+        document.getElementById('bonusCode').value = '';
+        await loadWallet();
+        await loadTransactions();
+    };
+    
+    document.getElementById('transferBtn').onclick = async () => {
+        const to = document.getElementById('transferTo').value;
+        const amount = parseInt(document.getElementById('transferAmount').value);
+        if (!to || !amount) { alert('Заполните все поля'); return; }
+        if (amount < 10) { alert('Минимальная сумма перевода 10 ₽'); return; }
+        
+        // Поиск пользователя по email или телефону
+        const usersRef = db.collection("users");
+        let userQuery = await usersRef.where("email", "==", to).get();
+        if (userQuery.empty) {
+            userQuery = await usersRef.where("phone", "==", to).get();
+        }
+        if (userQuery.empty) { alert('Пользователь не найден'); return; }
+        
+        const recipient = userQuery.docs[0];
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        if ((userDoc.data()?.balance || 0) < amount) { alert('Недостаточно средств'); return; }
+        
+        await db.collection("users").doc(currentUser.uid).update({
+            balance: firebase.firestore.FieldValue.increment(-amount)
+        });
+        await db.collection("users").doc(recipient.id).update({
+            balance: firebase.firestore.FieldValue.increment(amount)
+        });
+        await db.collection("transactions").add({
+            userId: currentUser.uid,
+            amount: -amount,
+            description: `Перевод пользователю ${recipient.data().email || recipient.data().phone}`,
+            createdAt: new Date().toISOString()
+        });
+        await db.collection("transactions").add({
+            userId: recipient.id,
+            amount: amount,
+            description: `Перевод от ${currentUser.email || currentUser.phoneNumber}`,
+            createdAt: new Date().toISOString()
+        });
+        alert(`✅ Перевод ${amount} ₽ выполнен!`);
+        document.getElementById('transferTo').value = '';
+        document.getElementById('transferAmount').value = '';
+        await loadWallet();
+        await loadTransactions();
+    };
 </script>
 </body>
 </html>
