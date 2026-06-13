@@ -14,15 +14,16 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Сервисы (только если ещё не объявлены)
+// Проверяем, не объявлены ли уже глобальные переменные
 if (typeof window.firebaseAuth === 'undefined') {
     window.firebaseAuth = firebase.auth();
     window.firebaseDb = firebase.firestore();
+    
+    // Отключаем персистентность, чтобы избежать ошибок с несколькими вкладками
+    window.firebaseDb.settings({ persistence: false });
 }
 
-// Включаем кэширование
-window.firebaseDb.enablePersistence()
-    .catch(err => console.log("Ошибка кэша:", err));
+console.log("✅ Firebase инициализирован");
 
 // Коллекции
 window.USERS_COLLECTION = "users";
@@ -33,5 +34,3 @@ window.CHATS_COLLECTION = "chats";
 window.MESSAGES_COLLECTION = "messages";
 window.NOTIFICATIONS_COLLECTION = "notifications";
 window.PROMOCODES_COLLECTION = "promocodes";
-
-console.log("✅ Firebase инициализирован");
