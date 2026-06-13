@@ -4,37 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Избранное — Куки</title>
-    
-    <!-- Firebase SDK -->
+    <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: #0a0a0c; color: white; }
-        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
-        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
-        .btn-primary { background: #ac2f3a; border-color: #d44545; }
-        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .listing-card { background: #0f0e13; border-radius: 20px; border: 1px solid #2d1e32; overflow: hidden; cursor: pointer; transition: 0.2s; }
-        .listing-card:hover { border-color: #b6474a; transform: translateY(-3px); background: #131118; }
-        .listing-img { height: 170px; background: #1a1620; display: flex; align-items: center; justify-content: center; font-size: 50px; overflow: hidden; }
-        .listing-info { padding: 12px; }
-        .listing-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; color: #ffddd3; }
-        .listing-price { font-size: 18px; font-weight: 800; color: #ff6b4a; margin: 5px 0; }
-        .card-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .small-btn { padding: 5px 12px; border-radius: 30px; background: #19161f; border: 1px solid #3f2a44; color: white; cursor: pointer; font-size: 11px; }
-        .empty-state { text-align: center; padding: 60px; background: #0f0e13; border-radius: 20px; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .favorites-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
     </style>
 </head>
 <body>
-
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
@@ -42,12 +21,10 @@
         <div id="userActions"></div>
     </div>
 </div>
-
-<div class="main-container">
-    <h1 style="margin-bottom: 24px;">❤️ Избранные объявления</h1>
-    <div id="favoritesContainer" class="listings-grid"></div>
+<div class="favorites-container">
+    <h1 style="margin-bottom: 24px;">❤️ Избранное</h1>
+    <div id="favoritesGrid" class="favorites-grid"></div>
 </div>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -58,87 +35,36 @@
         appId: "1:315986487804:web:29f131e8a57bffadac2a79",
         measurementId: "G-ETWXCGL9HK"
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    async function getFavorites() {
-        const user = auth.currentUser;
-        if (!user) return [];
-        
-        const snapshot = await db.collection("favorites").where("userId", "==", user.uid).get();
-        const favorites = [];
-        for (const favDoc of snapshot.docs) {
-            const listingDoc = await db.collection("listings").doc(favDoc.data().listingId).get();
-            if (listingDoc.exists) {
-                favorites.push({ id: listingDoc.id, ...listingDoc.data() });
-            }
-        }
-        return favorites;
-    }
-    
-    async function removeFromFavorites(listingId) {
-        const user = auth.currentUser;
-        if (!user) return false;
-        
-        const snapshot = await db.collection("favorites")
-            .where("userId", "==", user.uid)
-            .where("listingId", "==", listingId).get();
-        snapshot.forEach(async (doc) => { await doc.ref.delete(); });
-        return true;
-    }
-    
     auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        document.getElementById('userActions').innerHTML = `
-            <div class="user-info">
-                <img src="${user.photoURL || ''}" class="user-avatar">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
-            </div>
-            <button class="btn" id="logoutBtn">Выйти</button>
-        `;
-        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = 'index.html');
-        
+        if (!user) { window.location.href = "login.html"; return; }
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
         await loadFavorites();
     });
     
     async function loadFavorites() {
-        const favorites = await getFavorites();
-        const container = document.getElementById('favoritesContainer');
-        
-        if (favorites.length === 0) {
-            container.innerHTML = '<div class="empty-state"><h3>⭐ Нет избранных</h3><p>Добавляйте товары в избранное, чтобы не потерять их</p><a href="index.html" class="btn-primary" style="margin-top:15px; display:inline-block;">📱 Перейти к ленте</a></div>';
-            return;
+        const snapshot = await db.collection("favorites").where("userId", "==", auth.currentUser.uid).get();
+        const favorites = [];
+        for (const fav of snapshot.docs) {
+            const listing = await db.collection("listings").doc(fav.data().listingId).get();
+            if (listing.exists) favorites.push({ id: listing.id, ...listing.data() });
         }
-        
+        const container = document.getElementById('favoritesGrid');
+        if (favorites.length === 0) { container.innerHTML = '<div class="empty-state"><h3>⭐ Нет избранных</h3><a href="index.html" class="btn-primary">Перейти к покупкам</a></div>'; return; }
         container.innerHTML = favorites.map(ad => `
             <div class="listing-card" onclick="window.location.href='product.html?id=${ad.id}'">
                 <div class="listing-img">${ad.image || '📦'}</div>
                 <div class="listing-info">
                     <div class="listing-title">${ad.title}</div>
-                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
-                    <div class="card-actions">
-                        <button class="small-btn remove-fav" data-id="${ad.id}">❤️ Удалить</button>
-                    </div>
+                    <div class="listing-price">${ad.price} ₽</div>
+                    <div class="listing-meta">📍 ${ad.location || 'Не указан'}</div>
                 </div>
             </div>
         `).join('');
-        
-        document.querySelectorAll('.remove-fav').forEach(btn => {
-            btn.onclick = async (e) => {
-                e.stopPropagation();
-                await removeFromFavorites(btn.dataset.id);
-                await loadFavorites();
-            };
-        });
     }
 </script>
 </body>

@@ -4,91 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создать объявление — Куки</title>
-    
-    <!-- Firebase SDK -->
+    <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: #0a0a0c; color: white; }
-        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
-        .header-container { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
-        .btn-primary { background: #ac2f3a; border-color: #d44545; }
-        .main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-        .post-form { background: #0f0e13; border-radius: 24px; padding: 28px; border: 1px solid #2d1e32; }
-        .post-form h3 { margin-bottom: 24px; }
-        .form-row { margin-bottom: 18px; }
-        .form-row label { display: block; margin-bottom: 8px; font-size: 14px; color: #a492b0; }
-        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 12px; background: #191520; border: 1px solid #432e48; border-radius: 20px; color: white; font-size: 14px; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        .error-msg { background: #d9534f; padding: 10px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        .post-container { max-width: 700px; margin: 30px auto; padding: 0 24px; }
     </style>
 </head>
 <body>
-
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
         <div id="userActions"></div>
     </div>
 </div>
-
-<div class="main-container">
-    <div class="post-form">
-        <h3 id="formTitle">📢 Создать объявление</h3>
-        <div id="errorMsg" class="error-msg"></div>
-        <form id="postForm">
-            <div class="form-row">
-                <label>Название товара</label>
-                <input type="text" id="title" placeholder="Например: iPhone 14 Pro" required>
-            </div>
-            <div class="form-row">
-                <label>Цена (₽)</label>
-                <input type="number" id="price" placeholder="74990" required>
-            </div>
-            <div class="form-row">
-                <label>Категория</label>
-                <select id="category" required>
-                    <option value="электроника">Электроника</option>
-                    <option value="одежда">Одежда</option>
-                    <option value="авто">Авто</option>
-                    <option value="недвижимость">Недвижимость</option>
-                    <option value="для дома">Для дома</option>
-                    <option value="спорт">Спорт</option>
-                    <option value="игрушки">Игрушки</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label>Состояние</label>
-                <select id="condition" required>
-                    <option value="new">Новое</option>
-                    <option value="used">Б/У</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label>Город</label>
-                <input type="text" id="location" placeholder="Москва, СПб, ...">
-            </div>
-            <div class="form-row">
-                <label>Описание</label>
-                <textarea id="description" rows="4" placeholder="Подробно опишите товар..."></textarea>
-            </div>
-            <div class="form-row">
-                <label>Ссылка на фото (URL)</label>
-                <input type="text" id="imageUrl" placeholder="https://example.com/photo.jpg или оставьте пустым">
-            </div>
-            <button type="submit" id="submitBtn" class="btn-primary" style="width: 100%; padding: 14px;">📤 Опубликовать</button>
-        </form>
+<div class="post-container">
+    <div class="content-card">
+        <h2 id="formTitle">📢 Создать объявление</h2>
+        <div id="errorMsg" class="error-message" style="display:none; background:#f8d7da; color:#721c24; padding:12px; border-radius:12px; margin-bottom:16px;"></div>
+        <div class="form-row"><label>Название</label><input type="text" id="title"></div>
+        <div class="form-row"><label>Цена (₽)</label><input type="number" id="price"></div>
+        <div class="form-row"><label>Категория</label>
+            <select id="category"><option value="электроника">📱 Электроника</option><option value="одежда">👕 Одежда</option><option value="авто">🚗 Авто</option><option value="недвижимость">🏠 Недвижимость</option><option value="для дома">🛋️ Для дома</option><option value="спорт">⚽ Спорт</option><option value="игрушки">🧸 Игрушки</option><option value="услуги">🔧 Услуги</option></select>
+        </div>
+        <div class="form-row"><label>Состояние</label><select id="condition"><option value="new">✨ Новое</option><option value="used">🔄 Б/У</option></select></div>
+        <div class="form-row"><label>Город</label><input type="text" id="location"></div>
+        <div class="form-row"><label>Описание</label><textarea id="description" rows="4"></textarea></div>
+        <div class="form-row"><label>Ссылка на фото</label><input type="text" id="imageUrl" placeholder="https://example.com/photo.jpg"></div>
+        <button class="btn-primary" id="submitBtn" style="width:100%; padding:14px;">📤 Опубликовать</button>
     </div>
 </div>
-
 <script>
-    // Firebase конфигурация
     const firebaseConfig = {
         apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
         authDomain: "kyki-5e91a.firebaseapp.com",
@@ -98,141 +45,65 @@
         appId: "1:315986487804:web:29f131e8a57bffadac2a79",
         measurementId: "G-ETWXCGL9HK"
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
-    let currentUser = null;
     let editingId = null;
-    
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('edit');
     
-    // Функции
-    async function addListing(listing) {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Не авторизован");
-        
-        const docRef = await db.collection("listings").add({
-            ...listing,
-            sellerId: user.uid,
-            sellerName: user.displayName || user.phoneNumber,
-            sellerPhoto: user.photoURL || "",
-            createdAt: new Date().toISOString(),
-            views: 0,
-            status: "active"
-        });
-        return docRef.id;
-    }
-    
-    async function updateListing(id, data) {
-        await db.collection("listings").doc(id).update({
-            ...data,
-            updatedAt: new Date().toISOString()
-        });
-        return true;
-    }
-    
-    async function getListingById(id) {
-        const doc = await db.collection("listings").doc(id).get();
-        return doc.exists ? { id: doc.id, ...doc.data() } : null;
-    }
-    
     auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        currentUser = user;
-        
-        document.getElementById('userActions').innerHTML = `
-            <div class="user-info">
-                <img src="${user.photoURL || ''}" class="user-avatar">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
-            </div>
-            <a href="index.html" class="btn">🏠</a>
-            <a href="profile.html" class="btn">👤</a>
-            <button class="btn" id="logoutBtn">🚪</button>
-        `;
-        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = 'index.html');
-        
+        if (!user) { window.location.href = "login.html"; return; }
+        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
         if (editId) {
             editingId = editId;
             document.getElementById('formTitle').innerHTML = '✏️ Редактировать объявление';
-            document.getElementById('submitBtn').innerHTML = '💾 Сохранить изменения';
-            await loadListingForEdit(editId);
+            document.getElementById('submitBtn').innerHTML = '💾 Сохранить';
+            await loadListing();
         }
     });
     
-    async function loadListingForEdit(id) {
-        const listing = await getListingById(id);
-        if (listing && listing.sellerId === currentUser?.uid) {
-            document.getElementById('title').value = listing.title;
-            document.getElementById('price').value = listing.price;
-            document.getElementById('category').value = listing.category;
-            document.getElementById('condition').value = listing.condition;
-            document.getElementById('location').value = listing.location || '';
-            document.getElementById('description').value = listing.description || '';
-            document.getElementById('imageUrl').value = listing.imageUrl || '';
+    async function loadListing() {
+        const doc = await db.collection("listings").doc(editingId).get();
+        if (doc.exists) {
+            const data = doc.data();
+            document.getElementById('title').value = data.title;
+            document.getElementById('price').value = data.price;
+            document.getElementById('category').value = data.category;
+            document.getElementById('condition').value = data.condition;
+            document.getElementById('location').value = data.location || '';
+            document.getElementById('description').value = data.description || '';
+            document.getElementById('imageUrl').value = data.imageUrl || '';
         }
     }
     
-    function showError(msg) {
-        const errorDiv = document.getElementById('errorMsg');
-        errorDiv.textContent = msg;
-        errorDiv.style.display = 'block';
-        setTimeout(() => errorDiv.style.display = 'none', 3000);
-    }
-    
-    document.getElementById('postForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
+    document.getElementById('submitBtn').onclick = async () => {
         const title = document.getElementById('title').value.trim();
         const price = parseInt(document.getElementById('price').value);
-        
-        if (!title) { showError('Введите название товара'); return; }
-        if (!price || isNaN(price) || price <= 0) { showError('Введите корректную цену'); return; }
-        
-        const listingData = {
-            title: title,
-            price: price,
-            category: document.getElementById('category').value,
+        if (!title || !price) { alert('Заполните название и цену'); return; }
+        const data = {
+            title, price, category: document.getElementById('category').value,
             condition: document.getElementById('condition').value,
             location: document.getElementById('location').value || 'Не указан',
-            description: document.getElementById('description').value || '',
+            description: document.getElementById('description').value,
             image: document.getElementById('imageUrl').value || '📦',
-            imageUrl: document.getElementById('imageUrl').value || ''
+            imageUrl: document.getElementById('imageUrl').value,
+            status: 'active', views: 0
         };
-        
-        try {
-            let result;
-            if (editingId) {
-                result = await updateListing(editingId, listingData);
-                if (result) {
-                    alert('✅ Объявление обновлено!');
-                    window.location.href = 'profile.html';
-                } else {
-                    showError('Ошибка при обновлении');
-                }
-            } else {
-                const newId = await addListing(listingData);
-                if (newId) {
-                    alert('✅ Объявление опубликовано!');
-                    window.location.href = 'index.html';
-                } else {
-                    showError('Ошибка при публикации');
-                }
-            }
-        } catch (error) {
-            console.error("Ошибка:", error);
-            showError('Ошибка: ' + error.message);
+        if (editingId) {
+            await db.collection("listings").doc(editingId).update({ ...data, updatedAt: new Date().toISOString() });
+            alert('✅ Обновлено!');
+            window.location.href = 'profile.html';
+        } else {
+            data.sellerId = auth.currentUser.uid;
+            data.sellerName = auth.currentUser.displayName;
+            data.createdAt = new Date().toISOString();
+            await db.collection("listings").add(data);
+            alert('✅ Опубликовано!');
+            window.location.href = 'index.html';
         }
-    });
+    };
 </script>
 </body>
 </html>
