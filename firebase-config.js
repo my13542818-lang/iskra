@@ -14,36 +14,24 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Сервисы
-const auth = firebase.auth();
-const db = firebase.firestore();
+// Сервисы (только если ещё не объявлены)
+if (typeof window.firebaseAuth === 'undefined') {
+    window.firebaseAuth = firebase.auth();
+    window.firebaseDb = firebase.firestore();
+}
 
-// Включаем кэширование для ускорения загрузки
-db.enablePersistence()
-    .catch(err => console.log("Ошибка кэша (не критично):", err));
+// Включаем кэширование
+window.firebaseDb.enablePersistence()
+    .catch(err => console.log("Ошибка кэша:", err));
 
 // Коллекции
-const USERS_COLLECTION = "users";
-const LISTINGS_COLLECTION = "listings";
-const FAVORITES_COLLECTION = "favorites";
-const ORDERS_COLLECTION = "orders";
-const CHATS_COLLECTION = "chats";
-const MESSAGES_COLLECTION = "messages";
-const NOTIFICATIONS_COLLECTION = "notifications";
-const PROMOCODES_COLLECTION = "promocodes";
+window.USERS_COLLECTION = "users";
+window.LISTINGS_COLLECTION = "listings";
+window.FAVORITES_COLLECTION = "favorites";
+window.ORDERS_COLLECTION = "orders";
+window.CHATS_COLLECTION = "chats";
+window.MESSAGES_COLLECTION = "messages";
+window.NOTIFICATIONS_COLLECTION = "notifications";
+window.PROMOCODES_COLLECTION = "promocodes";
 
 console.log("✅ Firebase инициализирован");
-
-// Экспорт для использования в других файлах (через глобальный объект)
-window.firebaseApp = {
-    auth,
-    db,
-    USERS_COLLECTION,
-    LISTINGS_COLLECTION,
-    FAVORITES_COLLECTION,
-    ORDERS_COLLECTION,
-    CHATS_COLLECTION,
-    MESSAGES_COLLECTION,
-    NOTIFICATIONS_COLLECTION,
-    PROMOCODES_COLLECTION
-};
