@@ -14,14 +14,12 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Проверяем, не объявлены ли уже глобальные переменные
-if (typeof window.firebaseAuth === 'undefined') {
-    window.firebaseAuth = firebase.auth();
-    window.firebaseDb = firebase.firestore();
-    
-    // Отключаем персистентность, чтобы избежать ошибок с несколькими вкладками
-    window.firebaseDb.settings({ persistence: false });
-}
+// Глобальные переменные
+window.firebaseAuth = firebase.auth();
+window.firebaseDb = firebase.firestore();
+
+// Отключаем персистентность
+window.firebaseDb.settings({ persistence: false });
 
 console.log("✅ Firebase инициализирован");
 
@@ -34,3 +32,4 @@ window.CHATS_COLLECTION = "chats";
 window.MESSAGES_COLLECTION = "messages";
 window.NOTIFICATIONS_COLLECTION = "notifications";
 window.PROMOCODES_COLLECTION = "promocodes";
+window.SUPPORT_TICKETS_COLLECTION = "support_tickets";
