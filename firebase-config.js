@@ -34,7 +34,7 @@ window.signInWithGoogle = async function() {
         const userRef = db.collection(USERS_COLLECTION).doc(user.uid);
         const userSnap = await userRef.get();
         
-        if (!userSnap.exists) {
+        if (!userSnap.exists()) {
             await userRef.set({
                 uid: user.uid,
                 name: user.displayName,
