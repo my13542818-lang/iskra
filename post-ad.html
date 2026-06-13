@@ -8,33 +8,70 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
-        .post-container { max-width: 700px; margin: 30px auto; padding: 0 24px; }
+        .post-container { max-width: 800px; margin: 30px auto; padding: 0 24px; }
+        .specs-section { background: #f8f4ff; border-radius: 20px; padding: 20px; margin-top: 20px; }
+        .specs-title { font-size: 18px; font-weight: 600; color: #9b59b6; margin-bottom: 16px; }
+        .file-upload-area { border: 2px dashed #e8d5f5; border-radius: 20px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; }
+        .file-preview { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+        .preview-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; }
+        .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
+        .remove-file { position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 </head>
 <body>
+
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
         <div id="userActions"></div>
     </div>
 </div>
+
 <div class="post-container">
     <div class="content-card">
         <h2 id="formTitle">📢 Создать объявление</h2>
-        <div id="errorMsg" class="error-message" style="display:none; background:#f8d7da; color:#721c24; padding:12px; border-radius:12px; margin-bottom:16px;"></div>
+        <div id="errorMsg" style="display:none; background:#f8d7da; color:#721c24; padding:12px; border-radius:12px; margin-bottom:16px;"></div>
+        
+        <div class="file-upload-area" id="fileUploadArea">
+            📁 Нажмите или перетащите файлы (фото/видео)
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display:none">
+        </div>
+        <div class="file-preview" id="filePreview"></div>
+        
         <div class="form-row"><label>Название</label><input type="text" id="title"></div>
         <div class="form-row"><label>Цена (₽)</label><input type="number" id="price"></div>
         <div class="form-row"><label>Категория</label>
-            <select id="category"><option value="электроника">📱 Электроника</option><option value="одежда">👕 Одежда</option><option value="авто">🚗 Авто</option><option value="недвижимость">🏠 Недвижимость</option><option value="для дома">🛋️ Для дома</option><option value="спорт">⚽ Спорт</option><option value="игрушки">🧸 Игрушки</option><option value="услуги">🔧 Услуги</option></select>
+            <select id="category">
+                <option value="электроника">📱 Электроника</option>
+                <option value="одежда">👕 Одежда</option>
+                <option value="обувь">👟 Обувь</option>
+                <option value="авто">🚗 Авто</option>
+                <option value="недвижимость">🏠 Недвижимость</option>
+                <option value="для дома">🛋️ Для дома</option>
+                <option value="спорт">⚽ Спорт</option>
+                <option value="игрушки">🧸 Игрушки</option>
+                <option value="услуги">🔧 Услуги</option>
+            </select>
         </div>
-        <div class="form-row"><label>Состояние</label><select id="condition"><option value="new">✨ Новое</option><option value="used">🔄 Б/У</option></select></div>
+        <div class="form-row"><label>Состояние</label>
+            <select id="condition">
+                <option value="new">✨ Новое</option>
+                <option value="used">🔄 Б/У</option>
+            </select>
+        </div>
+        
+        <!-- Динамические критерии для категорий -->
+        <div id="specsContainer"></div>
+        
         <div class="form-row"><label>Город</label><input type="text" id="location"></div>
         <div class="form-row"><label>Описание</label><textarea id="description" rows="4"></textarea></div>
-        <div class="form-row"><label>Ссылка на фото</label><input type="text" id="imageUrl" placeholder="https://example.com/photo.jpg"></div>
+        
         <button class="btn-primary" id="submitBtn" style="width:100%; padding:14px;">📤 Опубликовать</button>
     </div>
 </div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -46,22 +83,178 @@
         measurementId: "G-ETWXCGL9HK"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
+    
+    let currentUser = null;
+    let selectedFiles = [];
     let editingId = null;
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('edit');
     
+    // Критерии для категорий
+    const categorySpecs = {
+        электроника: [
+            { label: 'Бренд', type: 'text', placeholder: 'Apple, Samsung, Xiaomi...' },
+            { label: 'Модель', type: 'text', placeholder: 'iPhone 14 Pro' },
+            { label: 'Год выпуска', type: 'number', placeholder: '2023' },
+            { label: 'Состояние', type: 'select', options: ['Отличное', 'Хорошее', 'Среднее', 'Требует ремонта'] },
+            { label: 'Наличие гарантии', type: 'select', options: ['Есть', 'Нет'] },
+            { label: 'Комплектация', type: 'text', placeholder: 'Зарядка, коробка, чек' }
+        ],
+        одежда: [
+            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas, Zara...' },
+            { label: 'Размер', type: 'text', placeholder: 'S, M, L, XL, XXL' },
+            { label: 'Материал', type: 'text', placeholder: 'Хлопок, полиэстер, шерсть...' },
+            { label: 'Цвет', type: 'text', placeholder: 'Чёрный, белый, синий...' },
+            { label: 'Сезон', type: 'select', options: ['Лето', 'Зима', 'Демисезон', 'Всесезон'] }
+        ],
+        обувь: [
+            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas, Puma...' },
+            { label: 'Размер RU', type: 'number', placeholder: '36-45' },
+            { label: 'Материал', type: 'text', placeholder: 'Кожа, замша, текстиль...' },
+            { label: 'Тип', type: 'select', options: ['Кроссовки', 'Ботинки', 'Туфли', 'Сандалии', 'Сапоги'] }
+        ],
+        авто: [
+            { label: 'Марка', type: 'text', placeholder: 'Toyota, BMW, Mercedes...' },
+            { label: 'Модель', type: 'text', placeholder: 'Camry, X5, E-class' },
+            { label: 'Год выпуска', type: 'number', placeholder: '2015' },
+            { label: 'Пробег', type: 'text', placeholder: '120 000 км' },
+            { label: 'Объём двигателя', type: 'text', placeholder: '2.0 л' },
+            { label: 'Коробка передач', type: 'select', options: ['Механика', 'Автомат', 'Робот', 'Вариатор'] },
+            { label: 'Привод', type: 'select', options: ['Передний', 'Задний', 'Полный'] }
+        ],
+        недвижимость: [
+            { label: 'Тип', type: 'select', options: ['Квартира', 'Дом', 'Комната', 'Участок', 'Коммерция'] },
+            { label: 'Площадь', type: 'text', placeholder: '65 м²' },
+            { label: 'Количество комнат', type: 'number', placeholder: '3' },
+            { label: 'Этаж', type: 'text', placeholder: '5/9' },
+            { label: 'Состояние', type: 'select', options: ['Новостройка', 'Вторичка', 'Требует ремонта'] }
+        ],
+        'для дома': [
+            { label: 'Тип', type: 'select', options: ['Мебель', 'Техника', 'Посуда', 'Декор', 'Освещение'] },
+            { label: 'Материал', type: 'text', placeholder: 'Дерево, пластик, металл...' },
+            { label: 'Цвет', type: 'text', placeholder: 'Белый, чёрный, дуб...' },
+            { label: 'Состояние', type: 'select', options: ['Новое', 'Как новое', 'Хорошее', 'Б/У'] }
+        ],
+        спорт: [
+            { label: 'Тип', type: 'select', options: ['Тренажёры', 'Велосипеды', 'Мячи', 'Форма', 'Инвентарь'] },
+            { label: 'Бренд', type: 'text', placeholder: 'Adidas, Nike, Reebok...' },
+            { label: 'Размер', type: 'text', placeholder: 'S, M, L' }
+        ],
+        игрушки: [
+            { label: 'Тип', type: 'select', options: ['Мягкие', 'Конструкторы', 'Машинки', 'Куклы', 'Настольные'] },
+            { label: 'Возраст', type: 'text', placeholder: '3+' },
+            { label: 'Материал', type: 'text', placeholder: 'Пластик, текстиль, дерево' }
+        ],
+        услуги: [
+            { label: 'Категория услуг', type: 'select', options: ['Ремонт', 'Красота', 'Обучение', 'Консультации', 'Уборка', 'Доставка'] },
+            { label: 'Опыт работы', type: 'text', placeholder: '5 лет' },
+            { label: 'Срок выполнения', type: 'text', placeholder: '1-3 дня' }
+        ]
+    };
+    
+    document.getElementById('category').addEventListener('change', () => {
+        renderSpecs();
+    });
+    
+    function renderSpecs() {
+        const category = document.getElementById('category').value;
+        const specs = categorySpecs[category] || [];
+        const container = document.getElementById('specsContainer');
+        
+        if (specs.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="specs-section">
+                <div class="specs-title">📋 Характеристики</div>
+                ${specs.map(spec => `
+                    <div class="form-row">
+                        <label>${spec.label}</label>
+                        ${spec.type === 'select' ? 
+                            `<select id="spec_${spec.label.replace(/\s/g, '_')}">
+                                ${spec.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>` :
+                            `<input type="${spec.type}" id="spec_${spec.label.replace(/\s/g, '_')}" placeholder="${spec.placeholder}">`
+                        }
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // Загрузка файлов
+    const uploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    
+    uploadArea.onclick = () => fileInput.click();
+    uploadArea.ondragover = (e) => { e.preventDefault(); uploadArea.style.borderColor = '#e84393'; };
+    uploadArea.ondragleave = () => uploadArea.style.borderColor = '#e8d5f5';
+    uploadArea.ondrop = (e) => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer.files);
+        selectedFiles.push(...files);
+        updateFilePreview();
+        uploadArea.style.borderColor = '#e8d5f5';
+    };
+    
+    fileInput.onchange = (e) => {
+        const files = Array.from(e.target.files);
+        selectedFiles.push(...files);
+        updateFilePreview();
+        fileInput.value = '';
+    };
+    
+    function updateFilePreview() {
+        filePreview.innerHTML = selectedFiles.map((file, idx) => `
+            <div class="preview-item">
+                ${file.type.startsWith('image/') ? 
+                    `<img src="${URL.createObjectURL(file)}">` : 
+                    `<video src="${URL.createObjectURL(file)}"></video>`}
+                <div class="remove-file" data-idx="${idx}">✕</div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.remove-file').forEach(btn => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.dataset.idx);
+                selectedFiles.splice(idx, 1);
+                updateFilePreview();
+            };
+        });
+    }
+    
+    async function uploadFiles() {
+        const urls = [];
+        for (const file of selectedFiles) {
+            const ext = file.type.startsWith('image/') ? 'images' : 'videos';
+            const storageRef = storage.ref(`listings/${Date.now()}_${file.name}`);
+            await storageRef.put(file);
+            const url = await storageRef.getDownloadURL();
+            urls.push({ url, type: file.type.startsWith('image/') ? 'image' : 'video' });
+        }
+        return urls;
+    }
+    
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
+        currentUser = user;
         document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
+        
         if (editId) {
             editingId = editId;
             document.getElementById('formTitle').innerHTML = '✏️ Редактировать объявление';
             document.getElementById('submitBtn').innerHTML = '💾 Сохранить';
             await loadListing();
         }
+        renderSpecs();
     });
     
     async function loadListing() {
@@ -74,7 +267,12 @@
             document.getElementById('condition').value = data.condition;
             document.getElementById('location').value = data.location || '';
             document.getElementById('description').value = data.description || '';
-            document.getElementById('imageUrl').value = data.imageUrl || '';
+            if (data.specs) {
+                for (const [key, value] of Object.entries(data.specs)) {
+                    const el = document.getElementById(`spec_${key.replace(/\s/g, '_')}`);
+                    if (el) el.value = value;
+                }
+            }
         }
     }
     
@@ -82,22 +280,37 @@
         const title = document.getElementById('title').value.trim();
         const price = parseInt(document.getElementById('price').value);
         if (!title || !price) { alert('Заполните название и цену'); return; }
+        
+        // Сбор характеристик
+        const category = document.getElementById('category').value;
+        const specsList = categorySpecs[category] || [];
+        const specs = {};
+        for (const spec of specsList) {
+            const el = document.getElementById(`spec_${spec.label.replace(/\s/g, '_')}`);
+            if (el) specs[spec.label] = el.value;
+        }
+        
+        const mediaUrls = await uploadFiles();
         const data = {
-            title, price, category: document.getElementById('category').value,
+            title, price,
+            category: category,
             condition: document.getElementById('condition').value,
             location: document.getElementById('location').value || 'Не указан',
             description: document.getElementById('description').value,
-            image: document.getElementById('imageUrl').value || '📦',
-            imageUrl: document.getElementById('imageUrl').value,
-            status: 'active', views: 0
+            image: mediaUrls.length > 0 ? mediaUrls[0].url : '📦',
+            mediaFiles: mediaUrls,
+            specs: specs,
+            status: 'active',
+            views: 0
         };
+        
         if (editingId) {
             await db.collection("listings").doc(editingId).update({ ...data, updatedAt: new Date().toISOString() });
             alert('✅ Обновлено!');
             window.location.href = 'profile.html';
         } else {
-            data.sellerId = auth.currentUser.uid;
-            data.sellerName = auth.currentUser.displayName;
+            data.sellerId = currentUser.uid;
+            data.sellerName = currentUser.displayName;
             data.createdAt = new Date().toISOString();
             await db.collection("listings").add(data);
             alert('✅ Опубликовано!');
