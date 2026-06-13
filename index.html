@@ -348,8 +348,11 @@
     document.getElementById('conditionFilter').addEventListener('change', loadListings);
     document.getElementById('locationFilter').addEventListener('input', loadListings);
     document.getElementById('ratingFilter').addEventListener('change', loadListings);
-    
+
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+
+    <link rel="stylesheet" href="styles.css">
 </script>
 </body>
 </html>
