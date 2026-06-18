@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата и доставка — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .payment-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        .payment-section {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #f0e6ff;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(155,89,182,0.08);
+        }
+        .payment-section h2 {
+            color: #9b59b6;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .payment-section h3 {
+            color: #e84393;
+            margin: 20px 0 12px;
+            font-size: 18px;
+        }
+        .payment-section p {
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 12px;
+        }
+        .payment-section ul, .payment-section ol {
+            padding-left: 24px;
+            margin-bottom: 16px;
+            color: #444;
+        }
+        .payment-section ul li, .payment-section ol li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .payment-method {
+            background: #f8f4ff;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid #f0e6ff;
+        }
+        .payment-method-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        .payment-method-name {
+            font-weight: 600;
+            color: #2d1b4e;
+        }
+        .delivery-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+        .delivery-table th, .delivery-table td {
+            padding: 12px;
+            border: 1px solid #f0e6ff;
+            text-align: left;
+        }
+        .delivery-table th {
+            background: #f8f4ff;
+            color: #9b59b6;
+        }
+        .step-card {
+            background: #f8f4ff;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-left: 4px solid #e84393;
+        }
+        .step-number {
+            font-weight: 700;
+            color: #e84393;
+            font-size: 18px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 16px 0;
+            border: 1px solid #f0e6ff;
+        }
+        @media (max-width: 768px) {
+            .payment-section {
+                padding: 20px;
+            }
+            .delivery-table {
+                font-size: 13px;
+            }
+            .delivery-table th, .delivery-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-container">
+        <a href="index.html" class="logo">🍪 КУКИ</a>
+        <a href="index.html" class="btn">🏠 На главную</a>
+        <div id="userActions"></div>
+    </div>
+</div>
+
+<div class="payment-container">
+    <h1 style="font-size: 32px; color: #2d1b4e; margin-bottom: 8px;">💳 Оплата и доставка</h1>
+    <p style="color: #b8a9d4; margin-bottom: 32px;">Всё, что нужно знать о покупках на Куки</p>
+
+    <!-- Способы оплаты -->
+    <div class="payment-section">
+        <h2>💳 Способы оплаты</h2>
+        <p>Оплата заказов на сайте Куки производится безналичным способом через платёжную систему. Вы можете выбрать удобный для вас вариант:</p>
+        
+        <div class="payment-methods">
+            <div class="payment-method">
+                <div class="payment-method-icon">💳</div>
+                <div class="payment-method-name">Банковские карты</div>
+                <div style="font-size: 12px; color: #b8a9d4;">Visa, Mastercard, МИР</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-method-icon">📱</div>
+                <div class="payment-method-name">СБП</div>
+                <div style="font-size: 12px; color: #b8a9d4;">Система быстрых платежей</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-method-icon">🟡</div>
+                <div class="payment-method-name">ЮMoney</div>
+                <div style="font-size: 12px; color: #b8a9d4;">Электронный кошелёк</div>
+            </div>
+            <div class="payment-method">
+                <div class="payment-method-icon">🟣</div>
+                <div class="payment-method-name">QIWI</div>
+                <div style="font-size: 12px; color: #b8a9d4;">Электронный кошелёк</div>
+            </div>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>🔒 Безопасность:</strong> Все платежи проходят через защищённый канал. Ваши платёжные данные не передаются третьим лицам.
+        </div>
+    </div>
+
+    <!-- Доставка -->
+    <div class="payment-section">
+        <h2>🚚 Доставка</h2>
+        <p>Доставка товара осуществляется после его полной оплаты. Мы сотрудничаем с ведущими транспортными компаниями:</p>
+        
+        <table class="delivery-table">
+            <thead>
+                <tr><th>Способ доставки</th><th>Стоимость</th><th>Сроки</th><th>Регионы</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Курьерская доставка</strong></td>
+                    <td>600 ₽</td>
+                    <td>3-7 рабочих дней</td>
+                    <td>Москва, СПб, крупные города</td>
+                </tr>
+                <tr>
+                    <td><strong>Самовывоз из ПВЗ</strong></td>
+                    <td>300 ₽</td>
+                    <td>3-7 рабочих дней</td>
+                    <td>Все регионы</td>
+                </tr>
+                <tr>
+                    <td><strong>Почта России</strong></td>
+                    <td>От 250 ₽</td>
+                    <td>7-14 рабочих дней</td>
+                    <td>Все регионы</td>
+                </tr>
+                <tr>
+                    <td><strong>Яндекс Доставка</strong></td>
+                    <td>От 400 ₽</td>
+                    <td>1-3 рабочих дня</td>
+                    <td>Москва и область</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="highlight-box">
+            <strong>📦 Отслеживание:</strong> После отправки вы получите трек-номер для отслеживания вашего заказа.
+        </div>
+    </div>
+
+    <!-- Возврат -->
+    <div class="payment-section">
+        <h2>🔄 Возврат товара и денежных средств</h2>
+        
+        <h3>📋 Условия возврата товара надлежащего качества</h3>
+        <p>Вы можете вернуть товар надлежащего качества в течение <strong>7 дней</strong> с момента получения, если он не был в употреблении и сохранены его потребительские свойства, товарный вид и заводская упаковка.</p>
+        
+        <h3>📋 Возврат товара ненадлежащего качества</h3>
+        <p>Если вы обнаружили брак или недостатки, свяжитесь с нашей службой поддержки. Мы решим ваш вопрос в индивидуальном порядке. Возврат осуществляется за счёт продавца.</p>
+        
+        <h3>📋 Пошаговый алгоритм возврата денежных средств</h3>
+        
+        <div class="step-card">
+            <div class="step-number">Шаг 1</div>
+            <p><strong>Направьте заявление на возврат</strong></p>
+            <p>Отправьте письмо на электронную почту: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p>
+            <ul>
+                <li>Укажите номер заказа</li>
+                <li>Причину возврата</li>
+                <li>Сумму возврата</li>
+                <li>Приложите фото товара (при необходимости)</li>
+            </ul>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">Шаг 2</div>
+            <p><strong>Отправьте товар</strong></p>
+            <p>Отправьте товар по адресу: <strong>г. Кортовск, ул. Центральная, д. 1</strong></p>
+            <ul>
+                <li>Стоимость доставки при возврате оплачивает покупатель</li>
+                <li>Сохраните трек-номер отправления</li>
+            </ul>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">Шаг 3</div>
+            <p><strong>Проверка товара</strong></p>
+            <p>После получения товара мы проводим проверку в течение <strong>3 рабочих дней</strong>.</p>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">Шаг 4</div>
+            <p><strong>Возврат денежных средств</strong></p>
+            <p>Деньги возвращаются на тот же счёт, с которого была произведена оплата.</p>
+            <ul>
+                <li>Срок возврата: <strong>до 10 рабочих дней</strong> с момента получения товара</li>
+                <li>Возврат производится без удержания комиссий</li>
+            </ul>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">Шаг 5</div>
+            <p><strong>Подтверждение возврата</strong></p>
+            <p>После возврата вы получите уведомление на указанную почту.</p>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>📌 Важно:</strong> Возврат денежных средств производится в полном объёме, без вычета комиссий платежных сервисов или банков. Это соответствует требованиям законодательства РФ.
+        </div>
+    </div>
+
+    <!-- Правила оформления заказа -->
+    <div class="payment-section">
+        <h2>📝 Правила оформления заказа</h2>
+        <ol>
+            <li><strong>Выбор товара:</strong> Добавьте товар в корзину.</li>
+            <li><strong>Оформление заказа:</strong> Заполните форму с ФИО, адресом доставки и контактным телефоном.</li>
+            <li><strong>Выбор способа доставки:</strong> Выберите удобный вариант доставки.</li>
+            <li><strong>Оплата:</strong> Выберите способ оплаты и произведите оплату.</li>
+            <li><strong>Подтверждение:</strong> После оплаты вы получите подтверждение заказа на email.</li>
+            <li><strong>Отправка:</strong> Товар отправляется в течение 1-3 рабочих дней после оплаты.</li>
+            <li><strong>Получение:</strong> Получите товар и проверьте его при получении.</li>
+        </ol>
+    </div>
+
+    <a href="index.html" class="btn btn-primary back-link">← Вернуться на главную</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+        authDomain: "kyki-5e91a.firebaseapp.com",
+        projectId: "kyki-5e91a",
+        storageBucket: "kyki-5e91a.firebasestorage.app",
+        messagingSenderId: "315986487804",
+        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+        measurementId: "G-ETWXCGL9HK"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('userActions').innerHTML = `
+                <div class="user-info" style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='profile.html'">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/35'}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">
+                    <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+                </div>
+                <button class="btn" id="logoutBtn">Выйти</button>
+            `;
+            document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "index.html");
+        } else {
+            document.getElementById('userActions').innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
+            document.getElementById('loginBtn').onclick = () => window.location.href = "login.html";
+        }
+    });
+</script>
+</body>
+</html>
