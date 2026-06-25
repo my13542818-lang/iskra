@@ -13,7 +13,7 @@
         /* ===== PROFILE LAYOUT ===== */
         .profile-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 320px 1fr;
             gap: 30px;
             max-width: 1400px;
             margin: 30px auto;
@@ -41,6 +41,7 @@
             box-shadow: var(--shadow-glow);
         }
 
+        /* ===== AVATAR ===== */
         .profile-avatar-wrap {
             position: relative;
             width: 130px;
@@ -51,10 +52,12 @@
             overflow: hidden;
             cursor: pointer;
             transition: var(--transition);
+            flex-shrink: 0;
         }
         .profile-avatar-wrap:hover {
-            transform: scale(1.02);
+            transform: scale(1.03);
             border-color: var(--secondary-light);
+            box-shadow: 0 0 30px rgba(232, 67, 147, 0.3);
         }
         .profile-avatar-wrap img {
             width: 100%;
@@ -64,7 +67,7 @@
         .profile-avatar-wrap .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(4px);
             display: flex;
             flex-direction: column;
@@ -83,6 +86,7 @@
             font-size: 28px;
         }
 
+        /* ===== PROFILE INFO ===== */
         .profile-name {
             font-size: 22px;
             font-weight: 700;
@@ -105,6 +109,7 @@
             font-size: 14px;
         }
 
+        /* ===== STATS ===== */
         .profile-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -113,6 +118,7 @@
             padding: 16px;
             background: var(--bg-input);
             border-radius: var(--radius);
+            border: 1px solid var(--border-color);
         }
         .profile-stats .stat {
             text-align: center;
@@ -265,6 +271,7 @@
             gap: 12px;
             padding: 8px 0;
             cursor: pointer;
+            user-select: none;
         }
         .toggle {
             width: 48px;
@@ -290,6 +297,7 @@
             background: white;
             border-radius: 50%;
             transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .toggle.active::after {
             transform: translateX(20px);
@@ -330,6 +338,7 @@
             .profile-stats {
                 grid-template-columns: 1fr 1fr 1fr;
                 gap: 4px;
+                padding: 12px;
             }
             .profile-stats .stat .value {
                 font-size: 18px;
@@ -341,6 +350,13 @@
                 width: 100%;
                 justify-content: flex-end;
             }
+            .profile-avatar-wrap {
+                width: 100px;
+                height: 100px;
+            }
+            .profile-name {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -350,13 +366,17 @@
 <header class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 Куки</a>
+        <div class="header-search" style="flex:1; max-width:400px; display:none;">
+            <input type="text" placeholder="Поиск..." id="profileSearch">
+            <button>🔍</button>
+        </div>
         <div class="header-actions" id="headerActions">
             <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
         </div>
     </div>
 </header>
 
-<!-- ===== PROFILE ===== -->
+<!-- ===== PROFILE LAYOUT ===== -->
 <div class="profile-layout">
 
     <!-- ===== SIDEBAR ===== -->
@@ -555,7 +575,9 @@
 
 <!-- ===== SCRIPTS ===== -->
 <script type="module">
-    // ===== ИМПОРТЫ из firebase-config.js =====
+    // ========================================
+    // ИМПОРТЫ ИЗ firebase-config.js
+    // ========================================
     import { 
         auth, 
         db, 
@@ -564,14 +586,20 @@
         getUserData,
         updateUserData,
         signOutUser,
-        getStatusText
+        getStatusText,
+        getFavorites,
+        toggleFavorite
     } from './firebase-config.js';
 
-    // ===== STATE =====
+    // ========================================
+    // STATE
+    // ========================================
     let currentUser = null;
     let userData = {};
 
-    // ===== DOM REFS =====
+    // ========================================
+    // DOM REFS
+    // ========================================
     const headerActions = document.getElementById('headerActions');
     const avatarWrap = document.getElementById('avatarWrap');
     const profileAvatar = document.getElementById('profileAvatar');
@@ -580,7 +608,9 @@
     const profileEmail = document.getElementById('profileEmail');
     const profileRating = document.getElementById('profileRating');
 
-    // ===== AUTH =====
+    // ========================================
+    // AUTH
+    // ========================================
     auth.onAuthStateChanged(async (user) => {
         if (!user) {
             window.location.href = 'login.html';
@@ -597,7 +627,9 @@
         setupEvents();
     });
 
-    // ===== LOAD USER DATA =====
+    // ========================================
+    // LOAD USER DATA
+    // ========================================
     async function loadUserData() {
         const data = await getUserData(currentUser.uid);
         userData = data || {};
@@ -625,7 +657,9 @@
         setToggle('privacyEmail', userData.privacyEmail === true);
     }
 
-    // ===== TOGGLE HELPERS =====
+    // ========================================
+    // TOGGLE HELPERS
+    // ========================================
     function getToggleEl(setting) {
         const map = {
             'notifyEmail': 'toggleNotifyEmail',
@@ -653,182 +687,212 @@
         return el ? el.classList.contains('active') : false;
     }
 
-    // ===== LOAD STATS =====
+    // ========================================
+    // LOAD STATS
+    // ========================================
     async function loadStats() {
-        const listings = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
-        document.getElementById('statListings').textContent = listings.size;
-        
-        const orders = await db.collection("orders").where("buyerId", "==", currentUser.uid).get();
-        document.getElementById('statOrders').textContent = orders.size;
-        
-        document.getElementById('statBalance').textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+        try {
+            const listings = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
+            document.getElementById('statListings').textContent = listings.size;
+            
+            const orders = await db.collection("orders").where("buyerId", "==", currentUser.uid).get();
+            document.getElementById('statOrders').textContent = orders.size;
+            
+            document.getElementById('statBalance').textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
     }
 
-    // ===== LOAD MY LISTINGS =====
+    // ========================================
+    // LOAD MY LISTINGS
+    // ========================================
     async function loadMyListings() {
         const container = document.getElementById('myListingsContainer');
-        const snapshot = await db.collection("listings")
-            .where("sellerId", "==", currentUser.uid)
-            .orderBy("createdAt", "desc")
-            .get();
-        
-        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        if (listings.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">📋</div>
-                    <h3>Нет объявлений</h3>
-                    <p>Создайте своё первое объявление</p>
-                    <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = listings.map(ad => `
-            <div class="mini-listing">
-                <div class="thumb">${ad.image || '📦'}</div>
-                <div class="info">
-                    <div class="title">${escapeHtml(ad.title)}</div>
-                    <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
-                    <div class="meta">${ad.status === 'active' ? '✅ Активно' : '⛔ Снято'} • 👁️ ${ad.views || 0}</div>
-                </div>
-                <div class="actions">
-                    <a href="post-ad.html?edit=${ad.id}" class="btn btn-secondary btn-sm">✏️</a>
-                    <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
-                    <button class="btn btn-danger btn-sm delete-listing" data-id="${ad.id}">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-        
-        container.querySelectorAll('.delete-listing').forEach(btn => {
-            btn.onclick = async () => {
-                if (confirm('Удалить объявление?')) {
-                    await db.collection("listings").doc(btn.dataset.id).delete();
-                    await loadMyListings();
-                    await loadStats();
-                    showNotification('Объявление удалено', 'success');
-                }
-            };
-        });
-    }
-
-    // ===== LOAD MY ORDERS =====
-    async function loadMyOrders() {
-        const container = document.getElementById('myOrdersContainer');
-        const snapshot = await db.collection("orders")
-            .where("buyerId", "==", currentUser.uid)
-            .orderBy("createdAt", "desc")
-            .get();
-        
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        if (orders.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">📦</div>
-                    <h3>Нет заказов</h3>
-                    <p>Вы ещё не совершали покупок</p>
-                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = orders.map(order => `
-            <div class="mini-listing">
-                <div class="thumb">📦</div>
-                <div class="info">
-                    <div class="title">${escapeHtml(order.listingTitle || 'Товар')}</div>
-                    <div class="price">${Number(order.total || order.price || 0).toLocaleString()} ₽</div>
-                    <div class="meta">
-                        <span class="badge ${order.status === 'completed' ? 'badge-success' : order.status === 'cancelled' ? 'badge-danger' : 'badge-warning'}">
-                            ${getStatusText(order.status)}
-                        </span>
-                        ${order.trackingNumber ? `📮 ${order.trackingNumber}` : ''}
+        try {
+            const snapshot = await db.collection("listings")
+                .where("sellerId", "==", currentUser.uid)
+                .orderBy("createdAt", "desc")
+                .get();
+            
+            const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            if (listings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <h3>Нет объявлений</h3>
+                        <p>Создайте своё первое объявление</p>
+                        <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = listings.map(ad => `
+                <div class="mini-listing">
+                    <div class="thumb">${ad.image || '📦'}</div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(ad.title)}</div>
+                        <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
+                        <div class="meta">${ad.status === 'active' ? '✅ Активно' : '⛔ Снято'} • 👁️ ${ad.views || 0}</div>
+                    </div>
+                    <div class="actions">
+                        <a href="post-ad.html?edit=${ad.id}" class="btn btn-secondary btn-sm">✏️</a>
+                        <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
+                        <button class="btn btn-danger btn-sm delete-listing" data-id="${ad.id}">🗑️</button>
                     </div>
                 </div>
-                <div class="actions">
-                    <a href="product.html?id=${order.listingId}" class="btn btn-secondary btn-sm">👁️</a>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+            
+            container.querySelectorAll('.delete-listing').forEach(btn => {
+                btn.onclick = async () => {
+                    if (confirm('Удалить объявление навсегда?')) {
+                        try {
+                            await db.collection("listings").doc(btn.dataset.id).delete();
+                            await loadMyListings();
+                            await loadStats();
+                            showNotification('Объявление удалено', 'success');
+                        } catch (error) {
+                            showNotification('Ошибка удаления', 'error');
+                        }
+                    }
+                };
+            });
+        } catch (error) {
+            console.error('Error loading listings:', error);
+            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+        }
     }
 
-    // ===== LOAD FAVORITES =====
+    // ========================================
+    // LOAD MY ORDERS
+    // ========================================
+    async function loadMyOrders() {
+        const container = document.getElementById('myOrdersContainer');
+        try {
+            const snapshot = await db.collection("orders")
+                .where("buyerId", "==", currentUser.uid)
+                .orderBy("createdAt", "desc")
+                .get();
+            
+            const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📦</div>
+                        <h3>Нет заказов</h3>
+                        <p>Вы ещё не совершали покупок</p>
+                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => `
+                <div class="mini-listing">
+                    <div class="thumb">📦</div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(order.listingTitle || 'Товар')}</div>
+                        <div class="price">${Number(order.total || order.price || 0).toLocaleString()} ₽</div>
+                        <div class="meta">
+                            <span class="badge ${order.status === 'completed' ? 'badge-success' : order.status === 'cancelled' ? 'badge-danger' : 'badge-warning'}">
+                                ${getStatusText(order.status)}
+                            </span>
+                            ${order.trackingNumber ? `📮 ${order.trackingNumber}` : ''}
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <a href="product.html?id=${order.listingId}" class="btn btn-secondary btn-sm">👁️</a>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+        }
+    }
+
+    // ========================================
+    // LOAD FAVORITES
+    // ========================================
     async function loadFavorites() {
         const container = document.getElementById('favoritesContainer');
-        const snapshot = await db.collection("favorites")
-            .where("userId", "==", currentUser.uid)
-            .get();
-        
-        const favoriteIds = snapshot.docs.map(doc => doc.data().listingId);
-        
-        if (favoriteIds.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">❤️</div>
-                    <h3>Нет избранных</h3>
-                    <p>Добавляйте товары в избранное</p>
-                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
-                </div>
-            `;
-            return;
-        }
-        
-        const listings = [];
-        for (const id of favoriteIds) {
-            const doc = await db.collection("listings").doc(id).get();
-            if (doc.exists) {
-                listings.push({ id: doc.id, ...doc.data() });
+        try {
+            const favoriteIds = await getFavorites(currentUser.uid);
+            
+            if (favoriteIds.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❤️</div>
+                        <h3>Нет избранных</h3>
+                        <p>Добавляйте товары в избранное</p>
+                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
             }
+            
+            const listings = [];
+            for (const id of favoriteIds) {
+                const doc = await db.collection("listings").doc(id).get();
+                if (doc.exists) {
+                    listings.push({ id: doc.id, ...doc.data() });
+                }
+            }
+            
+            if (listings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❤️</div>
+                        <h3>Нет избранных</h3>
+                        <p>Добавляйте товары в избранное</p>
+                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = listings.map(ad => `
+                <div class="mini-listing">
+                    <div class="thumb">${ad.image || '📦'}</div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(ad.title)}</div>
+                        <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
+                    </div>
+                    <div class="actions">
+                        <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
+                        <button class="btn btn-danger btn-sm remove-favorite" data-id="${ad.id}">❤️</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.querySelectorAll('.remove-favorite').forEach(btn => {
+                btn.onclick = async () => {
+                    try {
+                        await toggleFavorite(currentUser.uid, btn.dataset.id);
+                        await loadFavorites();
+                        showNotification('Удалено из избранного', 'info');
+                    } catch (error) {
+                        showNotification('Ошибка', 'error');
+                    }
+                };
+            });
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
         }
-        
-        if (listings.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">❤️</div>
-                    <h3>Нет избранных</h3>
-                    <p>Добавляйте товары в избранное</p>
-                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = listings.map(ad => `
-            <div class="mini-listing">
-                <div class="thumb">${ad.image || '📦'}</div>
-                <div class="info">
-                    <div class="title">${escapeHtml(ad.title)}</div>
-                    <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
-                </div>
-                <div class="actions">
-                    <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
-                    <button class="btn btn-danger btn-sm remove-favorite" data-id="${ad.id}">❤️</button>
-                </div>
-            </div>
-        `).join('');
-        
-        container.querySelectorAll('.remove-favorite').forEach(btn => {
-            btn.onclick = async () => {
-                const snap = await db.collection("favorites")
-                    .where("userId", "==", currentUser.uid)
-                    .where("listingId", "==", btn.dataset.id)
-                    .get();
-                snap.forEach(doc => doc.ref.delete());
-                await loadFavorites();
-                showNotification('Удалено из избранного', 'info');
-            };
-        });
     }
 
-    // ===== SETUP HEADER =====
+    // ========================================
+    // SETUP HEADER
+    // ========================================
     function setupHeader() {
         headerActions.innerHTML = `
             <div class="balance-badge" id="headerBalance">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
             <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+            <a href="wallet.html" class="btn btn-secondary btn-sm">💳</a>
             <div class="header-user" onclick="window.location.href='profile.html'">
                 <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
                 <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
@@ -837,7 +901,9 @@
         document.getElementById('headerBalance').onclick = () => window.location.href = 'wallet.html';
     }
 
-    // ===== SETUP TABS =====
+    // ========================================
+    // SETUP TABS
+    // ========================================
     function setupTabs() {
         const menuBtns = document.querySelectorAll('.profile-menu button');
         const panels = {
@@ -862,7 +928,9 @@
         });
     }
 
-    // ===== SETUP EVENTS =====
+    // ========================================
+    // SETUP EVENTS
+    // ========================================
     function setupEvents() {
         // Avatar upload
         avatarWrap.onclick = () => avatarInput.click();
@@ -885,17 +953,29 @@
 
         // Save profile
         document.getElementById('saveProfileBtn').onclick = async () => {
-            const data = {
-                name: document.getElementById('editName').value,
-                phone: document.getElementById('editPhone').value,
-                city: document.getElementById('editCity').value,
-                bio: document.getElementById('editBio').value
-            };
-            await updateUserData(currentUser.uid, data);
-            userData = { ...userData, ...data };
-            profileName.textContent = data.name || 'Пользователь';
-            showNotification('Профиль обновлён', 'success');
-            setupHeader();
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            
+            if (!name || !phone) {
+                showNotification('Заполните имя и телефон', 'error');
+                return;
+            }
+            
+            try {
+                const data = {
+                    name: name,
+                    phone: phone,
+                    city: document.getElementById('editCity').value.trim(),
+                    bio: document.getElementById('editBio').value.trim()
+                };
+                await updateUserData(currentUser.uid, data);
+                userData = { ...userData, ...data };
+                profileName.textContent = data.name || 'Пользователь';
+                showNotification('Профиль обновлён', 'success');
+                setupHeader();
+            } catch (error) {
+                showNotification('Ошибка сохранения', 'error');
+            }
         };
 
         // Change password
@@ -947,13 +1027,13 @@
 
         // Delete account
         document.getElementById('deleteAccountBtn').onclick = async () => {
-            if (confirm('Вы уверены? Это действие необратимо!')) {
-                if (confirm('Все ваши данные будут удалены. Продолжить?')) {
+            if (confirm('⚠️ Вы уверены? Это действие необратимо!')) {
+                if (confirm('Все ваши данные будут удалены навсегда. Продолжить?')) {
                     try {
                         await currentUser.delete();
                         window.location.href = 'index.html';
                     } catch (e) {
-                        showNotification('Ошибка удаления аккаунта', 'error');
+                        showNotification('Ошибка удаления аккаунта. Попробуйте войти заново.', 'error');
                     }
                 }
             }
@@ -961,40 +1041,50 @@
 
         // 2FA
         document.getElementById('enable2faBtn').onclick = () => {
-            showNotification('Функция будет доступна в ближайшее время', 'info');
+            showNotification('🔐 Функция будет доступна в ближайшее время', 'info');
         };
 
         // Save settings
         document.getElementById('saveSettingsBtn').onclick = async () => {
-            const settings = {
-                notifyEmail: getToggleValue('notifyEmail'),
-                notifyPush: getToggleValue('notifyPush'),
-                notifySMS: getToggleValue('notifySMS'),
-                privacyPhone: getToggleValue('privacyPhone'),
-                privacyEmail: getToggleValue('privacyEmail')
-            };
-            await updateUserData(currentUser.uid, settings);
-            userData = { ...userData, ...settings };
-            showNotification('Настройки сохранены', 'success');
+            try {
+                const settings = {
+                    notifyEmail: getToggleValue('notifyEmail'),
+                    notifyPush: getToggleValue('notifyPush'),
+                    notifySMS: getToggleValue('notifySMS'),
+                    privacyPhone: getToggleValue('privacyPhone'),
+                    privacyEmail: getToggleValue('privacyEmail')
+                };
+                await updateUserData(currentUser.uid, settings);
+                userData = { ...userData, ...settings };
+                showNotification('Настройки сохранены', 'success');
+            } catch (error) {
+                showNotification('Ошибка сохранения настроек', 'error');
+            }
         };
     }
 
-    // ===== HELPERS =====
+    // ========================================
+    // HELPERS
+    // ========================================
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
     }
 
     function showNotification(message, type = 'info') {
+        // Удаляем старые уведомления
+        document.querySelectorAll('.notification').forEach(el => el.remove());
+        
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
         document.body.appendChild(notification);
+        
         setTimeout(() => {
             notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
+            notification.style.transform = 'translateX(100px)';
+            setTimeout(() => notification.remove(), 400);
+        }, 3500);
     }
 </script>
 </body>
