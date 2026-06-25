@@ -9,355 +9,219 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        /* ===== PRODUCT PAGE ===== */
-        .product-page {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 24px;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6C3B8E;
+            --secondary: #E84393;
+            --gradient-main: linear-gradient(135deg, #6C3B8E 0%, #E84393 50%, #FF6B35 100%);
+            --bg-dark: #0D0B14;
+            --bg-card: #15121E;
+            --bg-input: #1A1625;
+            --border-color: #2D1F3D;
+            --text-primary: #FFFFFF;
+            --text-secondary: #C4B5D8;
+            --text-muted: #7A6B8A;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-lg: 0 12px 48px rgba(108, 59, 142, 0.5);
         }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-        }
-
-        /* ===== GALLERY ===== */
-        .product-gallery {
-            padding: 30px;
-            background: var(--bg-input);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .main-image-wrap {
-            position: relative;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-dark);
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: var(--text-primary);
+            min-height: 100vh;
         }
-
-        .main-image-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.3s ease;
+        .header {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(13, 11, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
         }
-
-        .main-image-wrap img:hover {
-            transform: scale(1.05);
+        .header-container {
+            max-width: 1400px; margin: 0 auto; padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
         }
-
-        .main-image-wrap .placeholder {
-            font-size: 80px;
-            opacity: 0.5;
+        .logo {
+            font-size: 28px; font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; text-decoration: none;
         }
+        .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .balance-badge {
+            padding: 8px 16px; border-radius: var(--radius-full);
+            background: var(--gradient-main); color: white;
+            font-weight: 700; font-size: 13px; cursor: pointer;
+            transition: var(--transition);
+        }
+        .balance-badge:hover { transform: scale(1.05); }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 12px 28px; border-radius: var(--radius-full);
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: var(--transition); text-decoration: none; border: none;
+        }
+        .btn-primary {
+            background: var(--gradient-main); color: white;
+            box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6); }
+        .btn-secondary {
+            background: var(--bg-card); color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { border-color: var(--secondary); transform: translateY(-2px); }
+        .btn-sm { padding: 6px 16px; font-size: 12px; }
+        .header-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 12px 6px 6px; border-radius: var(--radius-full);
+            cursor: pointer; background: var(--bg-card);
+            border: 1px solid var(--border-color); transition: var(--transition);
+        }
+        .header-user:hover { border-color: var(--secondary); }
+        .header-user .avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--secondary);
+        }
+        .header-user .name { font-size: 14px; font-weight: 500; }
 
+        .product-page { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        .product-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl); overflow: hidden;
+        }
+        .product-gallery { padding: 30px; background: var(--bg-input); display: flex; flex-direction: column; gap: 16px; }
+        .main-image-wrap {
+            position: relative; border-radius: var(--radius-lg); overflow: hidden;
+            background: var(--bg-dark); aspect-ratio: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .main-image-wrap img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
+        .main-image-wrap img:hover { transform: scale(1.05); }
+        .main-image-wrap .placeholder { font-size: 80px; opacity: 0.5; }
         .main-image-wrap .badge-top {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            position: absolute; top: 16px; left: 16px;
+            display: flex; gap: 8px; flex-wrap: wrap;
         }
-
         .thumbnail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 10px;
         }
-
         .thumbnail {
-            aspect-ratio: 1;
-            border-radius: var(--radius);
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: var(--transition);
-            background: var(--bg-dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            aspect-ratio: 1; border-radius: var(--radius); overflow: hidden;
+            cursor: pointer; border: 2px solid transparent;
+            transition: var(--transition); background: var(--bg-dark);
+            display: flex; align-items: center; justify-content: center;
         }
+        .thumbnail:hover { border-color: var(--border-light); transform: translateY(-2px); }
+        .thumbnail.active { border-color: var(--secondary); box-shadow: 0 0 20px rgba(232, 67, 147, 0.3); }
+        .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+        .thumbnail .thumb-placeholder { font-size: 30px; opacity: 0.3; }
 
-        .thumbnail:hover {
-            border-color: var(--border-light);
-            transform: translateY(-2px);
-        }
-
-        .thumbnail.active {
-            border-color: var(--secondary);
-            box-shadow: 0 0 20px rgba(232, 67, 147, 0.3);
-        }
-
-        .thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .thumbnail .thumb-placeholder {
-            font-size: 30px;
-            opacity: 0.3;
-        }
-
-        /* ===== INFO ===== */
-        .product-info {
-            padding: 30px 40px 30px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
+        .product-info { padding: 30px 40px 30px 0; display: flex; flex-direction: column; gap: 16px; }
         .product-info .category-badge {
-            display: inline-block;
-            padding: 4px 14px;
+            display: inline-block; padding: 4px 14px;
             border-radius: var(--radius-full);
             background: rgba(155, 89, 182, 0.2);
-            color: var(--primary-light);
-            font-size: 12px;
-            font-weight: 600;
+            color: var(--primary-light); font-size: 12px; font-weight: 600;
             width: fit-content;
         }
-
-        .product-info .title {
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .product-info .price {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--secondary);
-        }
-
+        .product-info .title { font-size: 28px; font-weight: 700; line-height: 1.2; }
+        .product-info .price { font-size: 32px; font-weight: 800; color: var(--secondary); }
         .product-info .meta-row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            font-size: 14px;
-            color: var(--text-muted);
+            display: flex; gap: 20px; flex-wrap: wrap;
+            font-size: 14px; color: var(--text-muted);
             padding: 12px 0;
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
         }
+        .product-info .meta-row span { display: flex; align-items: center; gap: 6px; }
+        .product-info .description { color: var(--text-secondary); line-height: 1.7; font-size: 15px; }
 
-        .product-info .meta-row span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .product-info .description {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            font-size: 15px;
-        }
-
-        /* ===== SPECS ===== */
         .specs-block {
-            background: var(--bg-input);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            border: 1px solid var(--border-color);
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 20px 24px; border: 1px solid var(--border-color);
         }
-
-        .specs-block h4 {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-
-        .specs-block .spec-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px 20px;
-        }
-
+        .specs-block h4 { font-size: 15px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+        .specs-block .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
         .specs-block .spec-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; justify-content: space-between;
+            padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
             font-size: 14px;
         }
+        .specs-block .spec-item .label { color: var(--text-muted); }
+        .specs-block .spec-item .value { color: var(--text-primary); font-weight: 500; }
 
-        .specs-block .spec-item .label {
-            color: var(--text-muted);
-        }
-
-        .specs-block .spec-item .value {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        /* ===== SELLER ===== */
         .seller-card {
-            background: var(--bg-input);
-            border-radius: var(--radius);
-            padding: 16px 20px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 16px;
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 16px 20px; border: 1px solid var(--border-color);
+            display: flex; align-items: center; gap: 16px;
         }
-
         .seller-card .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--secondary);
+            width: 48px; height: 48px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--secondary);
         }
+        .seller-card .info { flex: 1; }
+        .seller-card .info .name { font-weight: 600; font-size: 16px; }
+        .seller-card .info .rating { font-size: 13px; color: #F1C40F; }
+        .seller-card .info .stats { font-size: 12px; color: var(--text-muted); }
 
-        .seller-card .info {
-            flex: 1;
-        }
+        .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+        .action-buttons .btn { flex: 1; min-width: 140px; justify-content: center; padding: 14px 24px; font-size: 15px; }
+        .action-buttons .btn-secondary { flex: 0.5; min-width: 60px; }
 
-        .seller-card .info .name {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .seller-card .info .rating {
-            font-size: 13px;
-            color: #F1C40F;
-        }
-
-        .seller-card .info .stats {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        /* ===== ACTIONS ===== */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .action-buttons .btn {
-            flex: 1;
-            min-width: 140px;
-            justify-content: center;
-            padding: 14px 24px;
-            font-size: 15px;
-        }
-
-        .action-buttons .btn-secondary {
-            flex: 0.5;
-            min-width: 60px;
-        }
-
-        /* ===== LOADING ===== */
         .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            gap: 16px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 80px 20px; gap: 16px;
         }
-
         .loading-state .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--secondary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            width: 48px; height: 48px;
+            border: 3px solid var(--border-color); border-top-color: var(--secondary);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 992px) {
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-            .product-info {
-                padding: 24px;
-            }
-            .specs-block .spec-grid {
-                grid-template-columns: 1fr;
-            }
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 12px; border-radius: var(--radius-full);
+            font-size: 12px; font-weight: 600;
         }
+        .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .badge-danger { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
 
-        @media (max-width: 600px) {
-            .product-info .title {
-                font-size: 22px;
-            }
-            .product-info .price {
-                font-size: 26px;
-            }
-            .thumbnail-grid {
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            }
-            .action-buttons .btn {
-                min-width: 100%;
-            }
-            .action-buttons .btn-secondary {
-                flex: 1;
-                min-width: 100%;
-            }
-            .product-gallery {
-                padding: 16px;
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* ===== NOTIFICATION ===== */
         .notification {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 16px 24px;
-            border-radius: var(--radius);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-lg);
-            z-index: 9999;
-            max-width: 400px;
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 16px 24px; border-radius: var(--radius);
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-primary); box-shadow: var(--shadow-lg);
+            z-index: 9999; max-width: 400px;
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        .notification-success {
-            border-left: 4px solid #2ECC71;
+        .notification-success { border-left: 4px solid #2ECC71; }
+        .notification-error { border-left: 4px solid #E74C3C; }
+        .notification-warning { border-left: 4px solid #F1C40F; }
+        .notification-info { border-left: 4px solid #3498DB; }
+
+        @media (max-width: 992px) {
+            .product-grid { grid-template-columns: 1fr; }
+            .product-info { padding: 24px; }
+            .specs-block .spec-grid { grid-template-columns: 1fr; }
         }
-        .notification-error {
-            border-left: 4px solid #E74C3C;
-        }
-        .notification-warning {
-            border-left: 4px solid #F1C40F;
-        }
-        .notification-info {
-            border-left: 4px solid #3498DB;
+        @media (max-width: 600px) {
+            .product-info .title { font-size: 22px; }
+            .product-info .price { font-size: 26px; }
+            .thumbnail-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+            .action-buttons .btn { min-width: 100%; }
+            .action-buttons .btn-secondary { flex: 1; min-width: 100%; }
+            .product-gallery { padding: 16px; }
         }
     </style>
 </head>
@@ -385,7 +249,7 @@
 
     <script>
         // ========================================
-        // FIREBASE CONFIG
+        // FIREBASE
         // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -410,7 +274,7 @@
         let isFavorite = false;
 
         // ========================================
-        // DOM REFS
+        // DOM
         // ========================================
         const headerActions = document.getElementById('headerActions');
         const productContent = document.getElementById('productContent');
@@ -422,14 +286,11 @@
             currentUser = user;
             setupHeader();
             await loadProduct();
-
-            if (user && listingId) {
-                await checkFavorite();
-            }
+            if (user && listingId) await checkFavorite();
         });
 
         // ========================================
-        // SETUP HEADER
+        // HEADER
         // ========================================
         function setupHeader() {
             if (currentUser) {
@@ -451,7 +312,7 @@
         }
 
         // ========================================
-        // LOAD PRODUCT
+        // LOAD
         // ========================================
         async function loadProduct() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -462,7 +323,6 @@
                     <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                         <div style="font-size:64px;margin-bottom:16px;">🔍</div>
                         <h3>Товар не найден</h3>
-                        <p>Проверьте ссылку или вернитесь на главную</p>
                         <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
                     </div>
                 `;
@@ -471,7 +331,6 @@
 
             try {
                 const doc = await db.collection("listings").doc(listingId).get();
-
                 if (!doc.exists) {
                     productContent.innerHTML = `
                         <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
@@ -484,12 +343,9 @@
                 }
 
                 listing = { id: doc.id, ...doc.data() };
-
-                // Увеличиваем просмотры
                 await db.collection("listings").doc(listingId).update({
                     views: (listing.views || 0) + 1
                 });
-
                 renderProduct();
 
             } catch (error) {
@@ -498,7 +354,6 @@
                     <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                         <div style="font-size:64px;margin-bottom:16px;">❌</div>
                         <h3>Ошибка загрузки</h3>
-                        <p>${error.message}</p>
                         <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
                     </div>
                 `;
@@ -506,7 +361,7 @@
         }
 
         // ========================================
-        // CHECK FAVORITE
+        // FAVORITE
         // ========================================
         async function checkFavorite() {
             if (!currentUser || !listingId) return;
@@ -517,13 +372,11 @@
                     .get();
                 isFavorite = !snapshot.empty;
                 updateFavoriteButton();
-            } catch (e) {
-                console.error('Favorite check error:', e);
-            }
+            } catch (e) { console.error('Favorite check error:', e); }
         }
 
         // ========================================
-        // RENDER PRODUCT
+        // RENDER
         // ========================================
         function renderProduct() {
             if (!listing) return;
@@ -532,7 +385,6 @@
             const mainImage = mediaFiles.length > 0 ? mediaFiles[0].url : (listing.image || null);
             const hasMultiple = mediaFiles.length > 1;
 
-            // Характеристики
             const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
                 <div class="spec-item">
                     <span class="label">${escapeHtml(key)}</span>
@@ -540,22 +392,20 @@
                 </div>
             `).join('') : '';
 
-            // Статус
             const statusBadge = listing.status === 'active' ?
-                '<span class="badge badge-success">✅ Активно</span>' :
-                '<span class="badge badge-danger">⛔ Снято</span>';
+                '<span class="badge badge-success">Активно</span>' :
+                '<span class="badge badge-danger">Снято</span>';
 
-            const conditionLabel = listing.condition === 'new' ? '✨ Новое' : '🔄 Б/У';
+            const conditionLabel = listing.condition === 'new' ? 'Новое' : 'Б/У';
 
             productContent.innerHTML = `
                 <div class="product-grid">
-                    <!-- ===== GALLERY ===== -->
                     <div class="product-gallery">
                         <div class="main-image-wrap">
                             ${mainImage ? `<img src="${mainImage}" alt="${escapeHtml(listing.title)}" id="mainImage">` : `<div class="placeholder">📦</div>`}
                             <div class="badge-top">
                                 ${statusBadge}
-                                ${listing.condition === 'new' ? '<span class="badge badge-success">✨ Новое</span>' : ''}
+                                ${listing.condition === 'new' ? '<span class="badge badge-success">Новое</span>' : ''}
                             </div>
                         </div>
                         ${hasMultiple ? `
@@ -569,12 +419,9 @@
                         ` : ''}
                     </div>
 
-                    <!-- ===== INFO ===== -->
                     <div class="product-info">
                         <span class="category-badge">${escapeHtml(listing.category || 'Без категории')}</span>
-
                         <h1 class="title">${escapeHtml(listing.title)}</h1>
-
                         <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
 
                         <div class="meta-row">
@@ -598,7 +445,6 @@
                             </div>
                         ` : ''}
 
-                        <!-- ===== SELLER ===== -->
                         <div class="seller-card">
                             <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'Продавец') + '&background=6C3B8E&color=fff'}" class="avatar" alt="Продавец">
                             <div class="info">
@@ -609,21 +455,18 @@
                             <button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>
                         </div>
 
-                        <!-- ===== ACTIONS ===== -->
                         <div class="action-buttons">
                             <button class="btn btn-primary" id="cartBtn">🛒 В корзину</button>
-                            <button class="btn btn-secondary" id="favoriteBtn">❤️</button>
+                            <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
                             <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
                         </div>
                     </div>
                 </div>
             `;
 
-            // ===== EVENTS =====
             document.getElementById('cartBtn')?.addEventListener('click', addToCart);
             document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
             document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
-
             updateFavoriteButton();
         }
 
@@ -633,19 +476,15 @@
         window.changeImage = function(index) {
             const mediaFiles = listing?.mediaFiles || [];
             if (!mediaFiles[index]) return;
-
             const mainImg = document.getElementById('mainImage');
-            if (mainImg) {
-                mainImg.src = mediaFiles[index].url;
-            }
-
+            if (mainImg) mainImg.src = mediaFiles[index].url;
             document.querySelectorAll('.thumbnail').forEach((el, i) => {
                 el.classList.toggle('active', i === index);
             });
         };
 
         // ========================================
-        // ADD TO CART
+        // ACTIONS
         // ========================================
         async function addToCart() {
             if (!currentUser) {
@@ -653,38 +492,31 @@
                 window.location.href = 'login.html';
                 return;
             }
-
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             if (cart.some(item => item.id === listingId)) {
                 showNotification('Товар уже в корзине', 'info');
                 return;
             }
-
             cart.push({ id: listingId, qty: 1 });
             localStorage.setItem('cart', JSON.stringify(cart));
-            showNotification('✅ Добавлено в корзину', 'success');
+            showNotification('Добавлено в корзину', 'success');
         }
 
-        // ========================================
-        // TOGGLE FAVORITE
-        // ========================================
         async function toggleFavorite() {
             if (!currentUser) {
                 showNotification('Войдите в аккаунт', 'warning');
                 window.location.href = 'login.html';
                 return;
             }
-
             try {
                 const snapshot = await db.collection("favorites")
                     .where("userId", "==", currentUser.uid)
                     .where("listingId", "==", listingId)
                     .get();
-
                 if (!snapshot.empty) {
                     await snapshot.docs[0].ref.delete();
                     isFavorite = false;
-                    showNotification('❌ Удалено из избранного', 'info');
+                    showNotification('Удалено из избранного', 'info');
                 } else {
                     await db.collection("favorites").add({
                         userId: currentUser.uid,
@@ -692,7 +524,7 @@
                         addedAt: new Date().toISOString()
                     });
                     isFavorite = true;
-                    showNotification('❤️ Добавлено в избранное', 'success');
+                    showNotification('Добавлено в избранное', 'success');
                 }
                 updateFavoriteButton();
             } catch (error) {
@@ -701,9 +533,6 @@
             }
         }
 
-        // ========================================
-        // UPDATE FAVORITE BUTTON
-        // ========================================
         function updateFavoriteButton() {
             const btn = document.getElementById('favoriteBtn');
             if (btn) {
@@ -712,9 +541,6 @@
             }
         }
 
-        // ========================================
-        // SHARE
-        // ========================================
         function shareProduct() {
             const url = window.location.href;
             if (navigator.share) {
@@ -725,16 +551,13 @@
                 }).catch(() => {});
             } else {
                 navigator.clipboard?.writeText(url).then(() => {
-                    showNotification('✅ Ссылка скопирована', 'success');
+                    showNotification('Ссылка скопирована', 'success');
                 }).catch(() => {
                     showNotification('📤 ' + url, 'info');
                 });
             }
         }
 
-        // ========================================
-        // OPEN CHAT
-        // ========================================
         function openChat() {
             if (!currentUser) {
                 showNotification('Войдите в аккаунт', 'warning');
@@ -753,12 +576,10 @@
         // ========================================
         function showNotification(message, type = 'info') {
             document.querySelectorAll('.notification').forEach(el => el.remove());
-
             const notification = document.createElement('div');
             notification.className = `notification notification-${type}`;
             notification.textContent = message;
             document.body.appendChild(notification);
-
             setTimeout(() => {
                 notification.style.opacity = '0';
                 notification.style.transform = 'translateX(100px)';
@@ -775,17 +596,15 @@
         }
 
         // ========================================
-        // KEYBOARD NAVIGATION
+        // KEYBOARD
         // ========================================
         document.addEventListener('keydown', (e) => {
             if (!listing?.mediaFiles?.length) return;
             const mediaFiles = listing.mediaFiles;
             let currentIndex = 0;
-
             document.querySelectorAll('.thumbnail').forEach((el, i) => {
                 if (el.classList.contains('active')) currentIndex = i;
             });
-
             if (e.key === 'ArrowLeft' && currentIndex > 0) {
                 changeImage(currentIndex - 1);
             } else if (e.key === 'ArrowRight' && currentIndex < mediaFiles.length - 1) {
