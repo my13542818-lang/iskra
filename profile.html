@@ -346,6 +346,45 @@
         .badge-warning { background: rgba(243, 156, 18, 0.2); color: #F39C12; }
         .badge-info { background: rgba(52, 152, 219, 0.2); color: #3498DB; }
 
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .card-glow {
+            transition: var(--transition);
+        }
+        .card-glow:hover {
+            border-color: rgba(232, 67, 147, 0.2);
+            box-shadow: 0 0 30px rgba(232, 67, 147, 0.05);
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .profile-layout {
@@ -380,9 +419,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -392,7 +428,7 @@
         <div class="header-container">
             <a href="index.html" class="logo">🍪 Куки</a>
             <div class="header-actions" id="headerActions">
-                <div style="width:24px;height:24px;border:2px solid var(--border-color);border-top-color:var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
             </div>
         </div>
     </header>
@@ -612,7 +648,7 @@
     <!-- ======================================== -->
     <script>
         // ========================================
-        // FIREBASE
+        // FIREBASE — ВСЁ ВНУТРИ, БЕЗ ИМПОРТОВ!
         // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -929,7 +965,6 @@
                             updatedAt: new Date().toISOString()
                         });
 
-                        // Если заказ завершён — обновляем сделки продавца
                         if (status === 'completed') {
                             const orderDoc = await db.collection("orders").doc(orderId).get();
                             const order = orderDoc.data();
@@ -1286,7 +1321,6 @@
                 const orderDoc = await db.collection("orders").doc(orderId).get();
                 const order = orderDoc.data();
 
-                // Добавляем отзыв продавцу
                 const sellerRef = db.collection("users").doc(order.sellerId);
                 const sellerDoc = await sellerRef.get();
                 const sellerData = sellerDoc.data() || {};
@@ -1300,7 +1334,6 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // Обновляем рейтинг
                 const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
                 const avgRating = Math.round((totalRating / reviews.length) * 100);
 
@@ -1309,7 +1342,6 @@
                     rating: avgRating
                 });
 
-                // Отмечаем что отзыв оставлен
                 await db.collection("orders").doc(orderId).update({
                     reviewGiven: true
                 });
