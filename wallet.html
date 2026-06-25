@@ -9,221 +9,42 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        .wallet-container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 24px;
-        }
-        .wallet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .wallet-header h1 {
-            font-size: 32px;
-            color: #2d1b4e;
-        }
-        .wallet-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 30px;
-        }
-        .wallet-card {
-            border-radius: 28px;
-            padding: 28px;
-            color: white;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .wallet-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-        }
-        .wallet-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(155,89,182,0.3);
-        }
-        .wallet-card .icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-        }
-        .wallet-card .label {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        .wallet-balance {
-            font-size: 42px;
-            font-weight: 800;
-            margin: 12px 0;
-        }
-        .wallet-card.purple {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-        }
-        .wallet-card.pink {
-            background: linear-gradient(135deg, #e84393, #c13584);
-        }
-        .wallet-card.gold {
-            background: linear-gradient(135deg, #f0ad4e, #e67e22);
-        }
-        .wallet-card.green {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-        }
-        .wallet-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .wallet-actions .btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-        }
-        .wallet-actions .btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        .transfer-form, .topup-form {
-            background: white;
-            border-radius: 28px;
-            padding: 28px;
-            border: 1px solid #f0e6ff;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 15px rgba(155,89,182,0.06);
-        }
-        .transfer-form h3, .topup-form h3 {
-            font-size: 20px;
-            color: #2d1b4e;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .transfer-form .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        .telegram-pay {
-            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #f0e6ff;
-            margin-top: 12px;
-        }
-        .telegram-pay .tg-btn {
-            background: #0088cc;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .telegram-pay .tg-btn:hover {
-            background: #0099dd;
-            transform: scale(1.02);
-        }
-        .transactions-list {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #f0e6ff;
-            overflow: hidden;
-        }
-        .transactions-list .header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0e6ff;
-            background: #f8f4ff;
-            display: flex;
-            justify-content: space-between;
-        }
-        .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 20px;
-            border-bottom: 1px solid #f0e6ff;
-            transition: all 0.3s ease;
-        }
-        .transaction-item:hover {
-            background: #f8f4ff;
-        }
-        .transaction-item .info {
-            display: flex;
-            flex-direction: column;
-        }
-        .transaction-item .info .desc {
-            font-weight: 500;
-            color: #2d1b4e;
-        }
-        .transaction-item .info .date {
-            font-size: 12px;
-            color: #b8a9d4;
-        }
-        .transaction-positive {
-            color: #2ecc71;
-            font-weight: 700;
-        }
-        .transaction-negative {
-            color: #e74c3c;
-            font-weight: 700;
-        }
-        .empty-state {
-            padding: 40px;
-            text-align: center;
-            color: #b8a9d4;
-        }
-        .topup-presets {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 12px 0;
-        }
-        .topup-presets button {
-            padding: 8px 20px;
-            border-radius: 40px;
-            border: 1px solid #e8d5f5;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .topup-presets button:hover {
-            border-color: #e84393;
-            background: #f8f4ff;
-        }
-        .qr-code {
-            display: inline-block;
-            background: white;
-            padding: 16px;
-            border-radius: 16px;
-            margin: 12px 0;
-        }
-        @media (max-width: 768px) {
-            .transfer-form .grid-2 {
-                grid-template-columns: 1fr;
-            }
-            .wallet-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        @media (max-width: 480px) {
-            .wallet-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        .wallet-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        .wallet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+        .wallet-header h1 { font-size: 32px; color: #2d1b4e; }
+        .wallet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px; }
+        .wallet-card { border-radius: 28px; padding: 28px; color: white; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .wallet-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(155,89,182,0.3); }
+        .wallet-card .icon { font-size: 40px; margin-bottom: 8px; }
+        .wallet-balance { font-size: 42px; font-weight: 800; margin: 12px 0; }
+        .wallet-card.purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .wallet-card.pink { background: linear-gradient(135deg, #e84393, #c13584); }
+        .wallet-card.gold { background: linear-gradient(135deg, #f0ad4e, #e67e22); }
+        .wallet-card.green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .wallet-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .wallet-actions .btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; }
+        .wallet-actions .btn:hover { background: rgba(255,255,255,0.3); }
+        .operation-form { background: white; border-radius: 28px; padding: 28px; border: 1px solid #f0e6ff; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(155,89,182,0.06); }
+        .operation-form h3 { font-size: 20px; color: #2d1b4e; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .topup-presets { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+        .topup-presets button { padding: 8px 20px; border-radius: 40px; border: 1px solid #e8d5f5; background: white; cursor: pointer; transition: all 0.3s ease; }
+        .topup-presets button:hover { border-color: #e84393; background: #f8f4ff; }
+        .transactions-list { background: white; border-radius: 28px; border: 1px solid #f0e6ff; overflow: hidden; }
+        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f0e6ff; transition: all 0.3s ease; }
+        .transaction-item:hover { background: #f8f4ff; }
+        .transaction-positive { color: #2ecc71; font-weight: 700; }
+        .transaction-negative { color: #e74c3c; font-weight: 700; }
+        .transaction-pending { color: #f0ad4e; font-weight: 700; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+        .status-completed { background: #2ecc71; color: white; }
+        .status-pending { background: #f0ad4e; color: #000; }
+        .status-rejected { background: #e74c3c; color: white; }
+        .withdraw-methods { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+        .withdraw-method { padding: 12px 20px; border: 1px solid #e8d5f5; border-radius: 16px; background: #f8f4ff; cursor: pointer; transition: all 0.3s ease; }
+        .withdraw-method:hover { border-color: #e84393; background: #fff0f5; }
+        .withdraw-method.active { border-color: #e84393; background: #fff0f5; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -247,102 +68,54 @@
             <div class="icon">💰</div>
             <div class="label">Основной баланс</div>
             <div class="wallet-balance" id="mainBalance">0 ₽</div>
-            <div class="wallet-actions">
-                <button class="btn" id="topUpBtn">💳 Пополнить</button>
-                <button class="btn" id="withdrawBtn">🏦 Вывести</button>
-            </div>
-        </div>
-        <div class="wallet-card pink">
-            <div class="icon">🎁</div>
-            <div class="label">Бонусный баланс</div>
-            <div class="wallet-balance" id="bonusBalance">0 ₽</div>
-            <div class="wallet-actions">
-                <button class="btn" id="convertBonusBtn">🔄 Конвертировать</button>
-            </div>
         </div>
         <div class="wallet-card gold">
-            <div class="icon">👥</div>
-            <div class="label">Реферальный баланс</div>
-            <div class="wallet-balance" id="referralBalance">0 ₽</div>
-            <div class="wallet-actions">
-                <button class="btn" id="referralLinkBtn">📋 Ссылка</button>
-            </div>
-        </div>
-        <div class="wallet-card green">
             <div class="icon">📊</div>
             <div class="label">Всего заработано</div>
             <div class="wallet-balance" id="totalEarned">0 ₽</div>
-            <div class="wallet-actions">
-                <button class="btn" id="statsBtn">📈 Статистика</button>
-            </div>
         </div>
     </div>
 
-    <!-- Пополнение через Telegram -->
-    <div class="topup-form">
-        <h3>📱 Пополнение через Telegram</h3>
-        <p style="color: #666; margin-bottom: 12px;">Пополните баланс через нашего Telegram-бота. Мгновенное зачисление.</p>
-        
-        <div class="telegram-pay">
-            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 32px;">🤖</span>
-                    <div>
-                        <div style="font-weight: 600;">@CookyPayBot</div>
-                        <div style="font-size: 12px; color: #b8a9d4;">Перейдите в бота для пополнения</div>
-                    </div>
-                </div>
-                <button class="tg-btn" id="tgPayBtn">📲 Перейти в Telegram</button>
-            </div>
-            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0e6ff;">
-                <div style="font-size: 13px; color: #666;">
-                    <strong>Как пополнить:</strong>
-                    <ol style="padding-left: 20px; margin-top: 8px;">
-                        <li>Нажмите кнопку "Перейти в Telegram"</li>
-                        <li>Напишите боту команду /pay</li>
-                        <li>Введите сумму пополнения</li>
-                        <li>Оплатите через СБП или картой</li>
-                        <li>Баланс пополнится автоматически</li>
-                    </ol>
-                </div>
-            </div>
+    <!-- Пополнение баланса -->
+    <div class="operation-form">
+        <h3>💳 Пополнить баланс</h3>
+        <div class="topup-presets">
+            <button onclick="quickTopUp(100)">100 ₽</button>
+            <button onclick="quickTopUp(500)">500 ₽</button>
+            <button onclick="quickTopUp(1000)">1 000 ₽</button>
+            <button onclick="quickTopUp(2000)">2 000 ₽</button>
+            <button onclick="quickTopUp(5000)">5 000 ₽</button>
         </div>
-        
-        <div style="margin-top: 16px;">
-            <label style="font-weight: 500; color: #2d1b4e;">Быстрое пополнение</label>
-            <div class="topup-presets">
-                <button onclick="quickTopUp(100)">100 ₽</button>
-                <button onclick="quickTopUp(500)">500 ₽</button>
-                <button onclick="quickTopUp(1000)">1 000 ₽</button>
-                <button onclick="quickTopUp(2000)">2 000 ₽</button>
-                <button onclick="quickTopUp(5000)">5 000 ₽</button>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 8px;">
-                <input type="number" id="customAmount" placeholder="Своя сумма" style="flex:1; padding:12px; border:1px solid #e8d5f5; border-radius:40px; outline:none; background:#f8f4ff;">
-                <button class="btn-primary" id="customTopUpBtn">Пополнить</button>
-            </div>
+        <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <input type="number" id="topupAmount" placeholder="Своя сумма" style="flex:1; padding:12px; border:1px solid #e8d5f5; border-radius:40px; outline:none; background:#f8f4ff;">
+            <button class="btn-primary" id="topupBtn">Пополнить</button>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; color: #b8a9d4;">
+            💳 Пополнение через СБП, карты Visa/Mastercard/МИР
         </div>
     </div>
 
-    <!-- Перевод средств -->
-    <div class="transfer-form">
-        <h3>📤 Перевод средств</h3>
-        <div class="grid-2">
-            <div class="form-row">
-                <label>Email или телефон получателя</label>
-                <input type="text" id="transferTo" placeholder="user@example.com">
-            </div>
-            <div class="form-row">
-                <label>Сумма перевода</label>
-                <input type="number" id="transferAmount" placeholder="Сумма">
-            </div>
+    <!-- Вывод средств -->
+    <div class="operation-form">
+        <h3>🏦 Вывод средств</h3>
+        <div class="withdraw-methods">
+            <div class="withdraw-method active" data-method="card">💳 На карту</div>
+            <div class="withdraw-method" data-method="phone">📱 На телефон</div>
+            <div class="withdraw-method" data-method="sbp">📲 СБП</div>
         </div>
-        <button class="btn-primary" id="transferBtn" style="width:100%; padding:14px;">💸 Перевести</button>
+        <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+            <input type="text" id="withdrawDetails" placeholder="Реквизиты (номер карты/телефона)" style="flex:1; padding:12px; border:1px solid #e8d5f5; border-radius:40px; outline:none; background:#f8f4ff; min-width:200px;">
+            <input type="number" id="withdrawAmount" placeholder="Сумма" style="width:150px; padding:12px; border:1px solid #e8d5f5; border-radius:40px; outline:none; background:#f8f4ff;">
+            <button class="btn-primary" id="withdrawBtn">📤 Вывести</button>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; color: #b8a9d4;">
+            ⏱️ Вывод занимает до 3 рабочих дней. Минимальная сумма: 500 ₽
+        </div>
     </div>
 
     <!-- История операций -->
     <div class="transactions-list">
-        <div class="header">
+        <div style="padding: 16px 20px; border-bottom: 1px solid #f0e6ff; background: #f8f4ff; display: flex; justify-content: space-between;">
             <span style="font-weight:600;">📋 История операций</span>
             <span style="font-size:13px; color:#b8a9d4;" id="transactionCount">0 записей</span>
         </div>
@@ -365,6 +138,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUser = null;
+    let selectedMethod = 'card';
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
@@ -381,12 +155,18 @@
         await loadTransactions();
     });
     
+    document.querySelectorAll('.withdraw-method').forEach(el => {
+        el.onclick = () => {
+            document.querySelectorAll('.withdraw-method').forEach(m => m.classList.remove('active'));
+            el.classList.add('active');
+            selectedMethod = el.dataset.method;
+        };
+    });
+    
     async function loadWallet() {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const data = userDoc.data() || {};
         document.getElementById('mainBalance').innerHTML = (data.balance || 0).toLocaleString() + ' ₽';
-        document.getElementById('bonusBalance').innerHTML = (data.bonusBalance || 0).toLocaleString() + ' ₽';
-        document.getElementById('referralBalance').innerHTML = (data.referralBalance || 0).toLocaleString() + ' ₽';
         document.getElementById('totalEarned').innerHTML = (data.totalEarned || 0).toLocaleString() + ' ₽';
         document.getElementById('headerBalance').innerHTML = (data.balance || 0).toLocaleString() + ' ₽';
     }
@@ -402,20 +182,22 @@
         document.getElementById('transactionCount').textContent = snapshot.size + ' записей';
         
         if (snapshot.empty) {
-            container.innerHTML = '<div class="empty-state">Нет операций</div>';
+            container.innerHTML = '<div style="padding:40px; text-align:center; color:#b8a9d4;">Нет операций</div>';
             return;
         }
         
         container.innerHTML = snapshot.docs.map(doc => {
             const t = doc.data();
             const isPositive = t.amount > 0;
+            const statusClass = t.status === 'completed' ? 'status-completed' : t.status === 'pending' ? 'status-pending' : 'status-rejected';
             return `
                 <div class="transaction-item">
-                    <div class="info">
-                        <span class="desc">${escapeHtml(t.description)}</span>
-                        <span class="date">${new Date(t.createdAt).toLocaleString()}</span>
+                    <div>
+                        <div style="font-weight:500;">${escapeHtml(t.description)}</div>
+                        <div style="font-size:12px; color:#b8a9d4;">${new Date(t.createdAt).toLocaleString()}</div>
+                        ${t.status ? `<span class="status-badge ${statusClass}">${t.status}</span>` : ''}
                     </div>
-                    <span class="${isPositive ? 'transaction-positive' : 'transaction-negative'}">
+                    <span class="${isPositive ? 'transaction-positive' : t.status === 'pending' ? 'transaction-pending' : 'transaction-negative'}">
                         ${isPositive ? '+' : ''}${t.amount.toLocaleString()} ₽
                     </span>
                 </div>
@@ -428,25 +210,21 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
     
-    // Telegram пополнение
-    document.getElementById('tgPayBtn').onclick = () => {
-        window.open('https://t.me/CookyPayBot', '_blank');
-        alert('🤖 Перейдите в Telegram-бота @CookyPayBot и следуйте инструкциям для пополнения баланса.');
-    };
-    
-    // Быстрое пополнение
+    // Пополнение
     window.quickTopUp = async (amount) => {
         if (!currentUser) return;
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const currentBalance = userDoc.data()?.balance || 0;
         
         await db.collection("users").doc(currentUser.uid).update({
-            balance: currentBalance + amount
+            balance: currentBalance + amount,
+            totalEarned: firebase.firestore.FieldValue.increment(amount)
         });
         await db.collection("transactions").add({
             userId: currentUser.uid,
             amount: amount,
-            description: `Пополнение баланса (быстрый платёж)`,
+            description: 'Пополнение баланса',
+            status: 'completed',
             createdAt: new Date().toISOString()
         });
         alert(`✅ Баланс пополнен на ${amount} ₽!`);
@@ -454,110 +232,54 @@
         await loadTransactions();
     };
     
-    document.getElementById('customTopUpBtn').onclick = async () => {
-        const amount = parseInt(document.getElementById('customAmount').value);
+    document.getElementById('topupBtn').onclick = async () => {
+        const amount = parseInt(document.getElementById('topupAmount').value);
         if (!amount || amount < 10) { alert('Введите сумму от 10 ₽'); return; }
         await window.quickTopUp(amount);
-        document.getElementById('customAmount').value = '';
+        document.getElementById('topupAmount').value = '';
     };
     
-    // Обычное пополнение
-    document.getElementById('topUpBtn').onclick = () => {
-        const amount = prompt('Введите сумму пополнения (от 100 ₽):');
-        if (amount && parseInt(amount) >= 100) {
-            window.quickTopUp(parseInt(amount));
-        }
-    };
-    
-    // Вывод средств
-    document.getElementById('withdrawBtn').onclick = () => {
-        const amount = prompt('Введите сумму вывода (от 500 ₽):');
-        if (amount && parseInt(amount) >= 500) {
-            alert(`✅ Запрос на вывод ${amount} ₽ отправлен. Деньги поступят в течение 3-5 рабочих дней.`);
-        }
-    };
-    
-    // Конвертация бонусов
-    document.getElementById('convertBonusBtn').onclick = async () => {
+    // Вывод
+    document.getElementById('withdrawBtn').onclick = async () => {
+        const amount = parseInt(document.getElementById('withdrawAmount').value);
+        const details = document.getElementById('withdrawDetails').value.trim();
+        
+        if (!amount || amount < 500) { alert('Минимальная сумма вывода 500 ₽'); return; }
+        if (!details) { alert('Введите реквизиты для вывода'); return; }
+        
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        const bonus = userDoc.data()?.bonusBalance || 0;
-        if (bonus < 100) { alert('Минимальная сумма для конвертации — 100 бонусов'); return; }
+        const balance = userDoc.data()?.balance || 0;
+        
+        if (balance < amount) { alert('Недостаточно средств на балансе'); return; }
+        
+        // Списываем средства
         await db.collection("users").doc(currentUser.uid).update({
-            balance: firebase.firestore.FieldValue.increment(bonus),
-            bonusBalance: 0
+            balance: balance - amount
         });
-        await db.collection("transactions").add({
+        
+        // Создаём заявку на вывод
+        await db.collection("withdrawals").add({
             userId: currentUser.uid,
-            amount: bonus,
-            description: 'Конвертация бонусов в основной баланс',
+            userName: currentUser.displayName,
+            userEmail: currentUser.email,
+            amount: amount,
+            method: selectedMethod,
+            details: details,
+            status: 'pending',
             createdAt: new Date().toISOString()
         });
-        alert(`✅ ${bonus} бонусов конвертировано!`);
-        await loadWallet();
-        await loadTransactions();
-    };
-    
-    // Реферальная ссылка
-    document.getElementById('referralLinkBtn').onclick = () => {
-        const link = `https://kuki.ru/ref/${currentUser.uid}`;
-        navigator.clipboard.writeText(link);
-        alert('📋 Реферальная ссылка скопирована! Приглашайте друзей и получайте бонусы.');
-    };
-    
-    // Статистика
-    document.getElementById('statsBtn').onclick = async () => {
-        const snapshot = await db.collection("transactions")
-            .where("userId", "==", currentUser.uid)
-            .get();
-        let total = 0;
-        let count = 0;
-        snapshot.forEach(doc => {
-            const t = doc.data();
-            if (t.amount > 0) total += t.amount;
-            count++;
-        });
-        alert(`📊 Ваша статистика:\n\nВсего операций: ${count}\nСумма пополнений: ${total.toLocaleString()} ₽`);
-    };
-    
-    // Перевод средств
-    document.getElementById('transferBtn').onclick = async () => {
-        const to = document.getElementById('transferTo').value;
-        const amount = parseInt(document.getElementById('transferAmount').value);
-        if (!to || !amount) { alert('Заполните все поля'); return; }
-        if (amount < 10) { alert('Минимальная сумма перевода 10 ₽'); return; }
         
-        const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        if ((userDoc.data()?.balance || 0) < amount) { alert('Недостаточно средств'); return; }
-        
-        const usersRef = db.collection("users");
-        let userQuery = await usersRef.where("email", "==", to).get();
-        if (userQuery.empty) {
-            userQuery = await usersRef.where("phone", "==", to).get();
-        }
-        if (userQuery.empty) { alert('Пользователь не найден'); return; }
-        
-        const recipient = userQuery.docs[0];
-        await db.collection("users").doc(currentUser.uid).update({
-            balance: firebase.firestore.FieldValue.increment(-amount)
-        });
-        await db.collection("users").doc(recipient.id).update({
-            balance: firebase.firestore.FieldValue.increment(amount)
-        });
         await db.collection("transactions").add({
             userId: currentUser.uid,
             amount: -amount,
-            description: `Перевод пользователю ${recipient.data().email || recipient.data().phone}`,
+            description: `Заявка на вывод (${selectedMethod})`,
+            status: 'pending',
             createdAt: new Date().toISOString()
         });
-        await db.collection("transactions").add({
-            userId: recipient.id,
-            amount: amount,
-            description: `Перевод от ${currentUser.email || currentUser.phoneNumber}`,
-            createdAt: new Date().toISOString()
-        });
-        alert(`✅ Перевод ${amount} ₽ выполнен!`);
-        document.getElementById('transferTo').value = '';
-        document.getElementById('transferAmount').value = '';
+        
+        alert(`✅ Заявка на вывод ${amount} ₽ отправлена! Ожидайте до 3 рабочих дней.`);
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('withdrawDetails').value = '';
         await loadWallet();
         await loadTransactions();
     };
