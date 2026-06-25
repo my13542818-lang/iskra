@@ -304,7 +304,7 @@
                 <div class="subtitle">
                     Поддерживаются: <span class="formats">JPG, PNG, WEBP, GIF</span> до 16 МБ
                     <br>
-                    <span class="badge-free">✅ Без авторизации • Бесплатно</span>
+                    <span class="badge-free">Без авторизации • Бесплатно</span>
                 </div>
                 <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
             </div>
@@ -389,12 +389,11 @@
             measurementId: "G-ETWXCGL9HK"
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // ========================================
-        // IMGBB API — ТВОЙ КЛЮЧ
+        // IMGBB API
         // ========================================
         const IMGBB_API_KEY = '1ba0f59d8c0c0079dce45a876e2a07f5';
 
@@ -408,7 +407,7 @@
         let isUploading = false;
 
         // ========================================
-        // DOM REFS
+        // DOM
         // ========================================
         const headerActions = document.getElementById('headerActions');
         const formTitle = document.getElementById('formTitle');
@@ -487,7 +486,7 @@
         };
 
         // ========================================
-        // ЗАГРУЗКА В IMGBB
+        // IMGBB UPLOAD
         // ========================================
         async function uploadToImgbb(file) {
             return new Promise((resolve, reject) => {
@@ -498,7 +497,6 @@
                     formData.append('key', IMGBB_API_KEY);
                     formData.append('image', base64);
                     formData.append('name', file.name);
-
                     try {
                         const response = await fetch('https://api.imgbb.com/1/upload', {
                             method: 'POST',
@@ -532,13 +530,10 @@
                 return;
             }
             currentUser = user;
-            
             const userDoc = await db.collection("users").doc(user.uid).get();
             userData = userDoc.data() || {};
-            
             setupHeader();
             renderSpecs();
-
             const urlParams = new URLSearchParams(window.location.search);
             const editId = urlParams.get('edit');
             if (editId) {
@@ -547,12 +542,10 @@
                 submitBtn.textContent = '💾 Сохранить';
                 await loadListing(editId);
             }
-
-            console.log('✅ ImgBB API ключ установлен');
         });
 
         // ========================================
-        // SETUP HEADER
+        // HEADER
         // ========================================
         function setupHeader() {
             headerActions.innerHTML = `
@@ -579,49 +572,37 @@
         // ========================================
         async function uploadFiles(files) {
             if (isUploading) return;
-            
             isUploading = true;
-            
             uploadProgress.style.display = 'block';
             progressFill.style.width = '0%';
-            progressLabel.textContent = '⏳ Загрузка на ImgBB...';
+            progressLabel.textContent = '⏳ Загрузка...';
             progressPercent.textContent = '0%';
             progressStatus.textContent = `Подготовка ${files.length} файлов...`;
             submitBtn.disabled = true;
-
             const results = [];
-
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 try {
                     progressStatus.textContent = `Загрузка ${i + 1} из ${files.length}: ${file.name}`;
-                    
                     const result = await uploadToImgbb(file);
                     results.push(result);
-                    
                     addPreviewItem(result.url, i);
-                    
                     const percent = Math.round(((i + 1) / files.length) * 100);
                     progressFill.style.width = percent + '%';
                     progressPercent.textContent = percent + '%';
-                    
                 } catch (error) {
                     console.error('Ошибка загрузки:', error);
                     showNotification(`❌ Ошибка: ${file.name}`, 'error');
                 }
             }
-
             progressLabel.textContent = '✅ Готово!';
             progressStatus.textContent = `Загружено ${results.length} из ${files.length} файлов`;
             submitBtn.disabled = false;
             isUploading = false;
-
             uploadedUrls = [...uploadedUrls, ...results];
-            
             setTimeout(() => {
                 uploadProgress.style.display = 'none';
             }, 2000);
-
             return results;
         }
 
@@ -638,7 +619,6 @@
             `;
             filePreview.appendChild(item);
             emptyPreview.style.display = 'none';
-            
             item.querySelector('.remove').onclick = () => {
                 item.remove();
                 uploadedUrls = uploadedUrls.filter((_, i) => i !== index);
@@ -649,10 +629,9 @@
         }
 
         // ========================================
-        // FILE UPLOAD EVENTS
+        // FILE EVENTS
         // ========================================
         uploadZone.onclick = () => fileInput.click();
-
         uploadZone.ondragover = (e) => {
             e.preventDefault();
             uploadZone.classList.add('dragover');
@@ -668,7 +647,6 @@
                 await uploadFiles(files);
             }
         };
-
         fileInput.onchange = async (e) => {
             const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
             if (files.length) {
@@ -688,15 +666,12 @@
             const wrapper = document.getElementById('specsWrapper');
             const grid = document.getElementById('specsGrid');
             const count = document.getElementById('specsCount');
-
             if (specs.length === 0) {
                 wrapper.style.display = 'none';
                 return;
             }
-
             wrapper.style.display = 'block';
             count.textContent = `${specs.length} характеристик`;
-
             grid.innerHTML = specs.map(spec => `
                 <div class="form-group">
                     <label>${spec.label}</label>
@@ -721,30 +696,25 @@
                     return;
                 }
                 const data = doc.data();
-                
                 document.getElementById('title').value = data.title || '';
                 document.getElementById('price').value = data.price || '';
                 document.getElementById('category').value = data.category || 'электроника';
                 document.getElementById('condition').value = data.condition || 'new';
                 document.getElementById('location').value = data.location || '';
                 document.getElementById('description').value = data.description || '';
-                
                 if (data.mediaFiles && data.mediaFiles.length) {
                     uploadedUrls = data.mediaFiles;
                     uploadedUrls.forEach((item, i) => {
                         addPreviewItem(item.url || item, i);
                     });
                 }
-                
                 renderSpecs();
-                
                 if (data.specs) {
                     for (const [key, value] of Object.entries(data.specs)) {
                         const el = document.getElementById(`spec_${key.replace(/\s/g, '_')}`);
                         if (el) el.value = value;
                     }
                 }
-                
             } catch (error) {
                 console.error('Error loading listing:', error);
                 showNotification('Ошибка загрузки', 'error');
@@ -757,20 +727,16 @@
         submitBtn.onclick = async () => {
             const title = document.getElementById('title').value.trim();
             const price = parseInt(document.getElementById('price').value);
-            
             if (!title || !price) {
                 showNotification('Заполните название и цену', 'error');
                 return;
             }
-            
             if (uploadedUrls.length === 0 && !editingId) {
                 showNotification('Добавьте хотя бы одно фото', 'error');
                 return;
             }
-
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Публикация...';
-
             try {
                 const category = document.getElementById('category').value;
                 const specsList = categorySpecs[category] || [];
@@ -779,7 +745,6 @@
                     const el = document.getElementById(`spec_${spec.label.replace(/\s/g, '_')}`);
                     if (el) specs[spec.label] = el.value;
                 }
-
                 const data = {
                     title,
                     price,
@@ -794,7 +759,6 @@
                     views: 0,
                     updatedAt: new Date().toISOString()
                 };
-
                 if (editingId) {
                     await db.collection("listings").doc(editingId).update(data);
                     showNotification('✅ Объявление обновлено!', 'success');
@@ -821,20 +785,16 @@
         // ========================================
         function showNotification(message, type = 'info') {
             document.querySelectorAll('.notification').forEach(el => el.remove());
-            
             const notification = document.createElement('div');
             notification.className = `notification notification-${type}`;
             notification.textContent = message;
             document.body.appendChild(notification);
-            
             setTimeout(() => {
                 notification.style.opacity = '0';
                 notification.style.transform = 'translateX(100px)';
                 setTimeout(() => notification.remove(), 300);
             }, 3500);
         }
-
-        console.log('✅ Готово! ImgBB загружает фото без ебанины с Google!');
     </script>
 </body>
 </html>
