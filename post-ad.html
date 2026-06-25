@@ -8,10 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client"></script>
-    <!-- Google API Client -->
-    <script src="https://apis.google.com/js/api.js"></script>
     <style>
         * {
             margin: 0;
@@ -46,7 +42,6 @@
             min-height: 100vh;
         }
 
-        /* HEADER */
         .header {
             position: sticky;
             top: 0;
@@ -160,7 +155,6 @@
             font-weight: 500;
         }
 
-        /* POST PAGE */
         .post-page {
             max-width: 900px;
             margin: 30px auto;
@@ -190,7 +184,6 @@
             font-size: 14px;
         }
 
-        /* UPLOAD ZONE */
         .upload-zone {
             border: 2px dashed var(--border-color);
             border-radius: var(--radius-lg);
@@ -243,7 +236,6 @@
             font-weight: 600;
         }
 
-        /* PROGRESS */
         .upload-progress {
             display: none;
             margin: 12px 0 16px;
@@ -286,7 +278,6 @@
             margin-top: 6px;
         }
 
-        /* PREVIEW */
         .file-preview {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -347,7 +338,6 @@
             margin-bottom: 4px;
         }
 
-        /* FORM */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -407,7 +397,6 @@
             font-family: inherit;
         }
 
-        /* SPECS */
         .specs-wrapper {
             background: var(--bg-input);
             border-radius: var(--radius);
@@ -452,7 +441,6 @@
             font-size: 13px;
         }
 
-        /* SUBMIT */
         .submit-area {
             margin-top: 28px;
             display: flex;
@@ -471,7 +459,6 @@
             color: var(--text-muted);
         }
 
-        /* STATUS */
         .drive-status {
             display: inline-flex;
             align-items: center;
@@ -487,7 +474,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #4285F4;
+            background: #2ECC71;
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
@@ -495,39 +482,6 @@
             50% { opacity: 0.3; }
         }
 
-        /* AUTH BUTTON */
-        .auth-google-btn {
-            display: none;
-            background: #4285F4;
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 16px;
-            transition: var(--transition);
-            width: 100%;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .auth-google-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-        }
-        .auth-google-btn .icon {
-            font-size: 20px;
-        }
-        .auth-google-btn.authorized {
-            background: #2ECC71;
-        }
-        .auth-google-btn.authorized:hover {
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
-        }
-
-        /* NOTIFICATION */
         .notification {
             position: fixed;
             bottom: 24px;
@@ -592,14 +546,9 @@
             Заполните все поля и добавьте фотографии для привлечения покупателей
             <span class="drive-status">
                 <span class="dot"></span>
-                Хранится на Google Drive
+                Хранится на Google Drive (автоматически)
             </span>
         </div>
-
-        <!-- Кнопка авторизации Google -->
-        <button class="auth-google-btn" id="authGoogleBtn">
-            <span class="icon">🔑</span> Войти в Google Drive для загрузки фото
-        </button>
 
         <!-- Upload Zone -->
         <div class="upload-zone" id="uploadZone">
@@ -608,7 +557,7 @@
             <div class="subtitle">
                 Поддерживаются: <span class="formats">JPG, PNG, WEBP, GIF</span> до 10 МБ
                 <br>
-                <span class="drive-badge">☁️ Google Drive хранилище (15 ГБ)</span>
+                <span class="drive-badge">☁️ Google Drive • 15 ГБ</span>
             </div>
             <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
         </div>
@@ -712,11 +661,45 @@
     const db = firebase.firestore();
 
     // ========================================
-    // GOOGLE DRIVE API — ВАШИ ДАННЫЕ
+    // GOOGLE DRIVE — СЕРВИСНЫЙ АККАУНТ
     // ========================================
-    const GOOGLE_DRIVE_API_KEY = 'AIzaSyAO1a9mXdd_E4FFIggkqS1QOJxGICXo9do';
-    const CLIENT_ID = '315986487804-g3r6hmnsget3tkmqhoj7pp6rv2p3alk7.apps.googleusercontent.com';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const SERVICE_ACCOUNT = {
+        "type": "service_account",
+        "project_id": "kyki-5e91a",
+        "private_key_id": "8eca504f7cd09ec41bb19404617d8b42870c17aa",
+        "private_key": `-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC84lTfHJC/Y4pM
+6ZLuh9MvjI8caQKdNQAF5wUmH0BLlZMuchdKQlFt+h9Q3gcK2TlW1NZNQ0S/Q2Dy
+znPS6IZZA0Qq0qig0Sl7h65U45T3ghV0PYS83Vfr9R0Jy9wJ5oEXVbrLvEUTC8cu
+WLNb/l/ZPv8ZBtHdqq904DV/3DUZcUfqotpjV4/JzOS0A+aE0m/EfQ2Py/4aoKG1
+sCjvF7B6mFpK8oLF0WwqU8qxpZcx8uw5UlarJ+yidAjLw5HGwDFLUc3jbhD77VKR
+diA9hYwy89GbJiMfpMmdrv+C4tZh3L1EhdPAs61gpOzeXxz7xT0S+ZdqrAvCysW9
+NkezMpqHAgMBAAECggEACgBHWAJa1kQA7XCeE2UOIurjtmdQuHnJcE+2Fkve4iY6
++gXzML8IDOMKuih/atGQEuHZ+ZLkCOcaV4e/o8+3De9eH/6fnrKJDvksGz5rDMAz
+UQmH/Kc1ploaXd3sFcQdWrYp2etY24aGVwKrwIoBI+9EDUpBOS8/YOrMOmKyu6Ie
+l8px6F2EIL0ipTOz5HsWzKea/O9RzNxGZ9CW2cXWL27xx8mSHtunyDOILjhK3p8j
+Tbj/xmLF8/zBxY8NXlvxQQ0knpeqIqIzLFTKFnd2eWmHoDx77v+hF8l+YcmvQ9B3
+th1Jgh+A7vlx9py9h7FfG7D6syhoLTQrJ5Sjg+jAlQKBgQDunSTVJWn7pDOs7K2O
+1KRLoU7fQ/8zieBCjiAP9BnJVw1hsOQB4CDlupZSNNZ/IHPhYVBZ9/2Q25ZHYzE1
+DP1Fe1BOSDSyhFq/mwZ6lNZVrre52AWfyHyyKCOacOCl7sq+ny7gamhEGWq5ffH1
+vl8Agtuyjzn9xJso8mIW1QiRvQKBgQDKpZSeEqZK8HTuBbFJueYN2wgOP73bF+DU
+DDAdx9efaS+qZ9fzCnocqoZvA/Ah/Ji/WhnlLggxLKMqVAnq98WIIQBLgTa2UJhm
+kHvPV99FNOwlSmS8ZSiPJF8KAJZ4coq/9Aeql6F+5pvKxZjlVqiGwOq5YOpUG00X
+GetCWUHHkwKBgQDnpwYgLC+FTzef9TLWDJjol9UjqjbzSTLASozUEC6MqofiRMJH
+E9m8TfYsHwHy74Ww1DIW9kxkutpdue4Gy/KC5yHirfUDLr2PcSjMDv06t+HEefWT
+1ydAKvnNsTJXxcltYMs4sfVBz88uABjMdCJ1M5Wo96XcOWhNS2txMScdnQKBgAGp
+3lB14ruWwb76ePwb9JGEjMphJ5PW3FehSfvUmiaK3INPmuw518rIc5YRuDTvN+nK
+OZAyEoskzKoaSoKNSifV7YSxKNvSSY39/aY0GHce+hlMRQtu4ShbqhQQ8StH9W+h
+9zYlTIQYLIs7mAe58GQ6zTJ8YzARkU5xPgcraGjVAoGAawKwlLtEbsDgqvi90+0s
+UtO20lb7IbC3IQKyRSKmfLBY4NAuzIgKxMnHF4Ab9g8YwMXRLzFu5Fvv8VkrlmML
+3k78qgAYjHVZS4b6O/YeoNiPQRC15XJ+RN03NdiLGcq9r5q5Hq5YfjAeFudm1BOI
+aE5tMxAuNK0Gwl57aSiV0R8=
+-----END PRIVATE KEY-----`,
+        "client_email": "drive-uploader@kyki-5e91a.iam.gserviceaccount.com",
+        "client_id": "116856197033509363774",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token"
+    };
 
     // ========================================
     // STATE
@@ -726,9 +709,8 @@
     let uploadedUrls = [];
     let editingId = null;
     let isUploading = false;
-    let gapiInitialized = false;
-    let isGoogleAuthorized = false;
-    let tokenClient = null;
+    let accessToken = null;
+    let tokenExpiry = 0;
 
     // ========================================
     // DOM REFS
@@ -745,7 +727,6 @@
     const progressPercent = document.getElementById('progressPercent');
     const progressStatus = document.getElementById('progressStatus');
     const submitBtn = document.getElementById('submitBtn');
-    const authGoogleBtn = document.getElementById('authGoogleBtn');
 
     // ========================================
     // CATEGORY SPECS
@@ -811,101 +792,110 @@
     };
 
     // ========================================
-    // INIT GOOGLE DRIVE API
+    // ПОЛУЧЕНИЕ ACCESS TOKEN
     // ========================================
-    function initGoogleDriveAPI() {
-        return new Promise((resolve, reject) => {
-            if (gapiInitialized) {
-                resolve();
-                return;
-            }
-
-            gapi.load('client', async () => {
-                try {
-                    await gapi.client.init({
-                        apiKey: GOOGLE_DRIVE_API_KEY,
-                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-                    });
-                    gapiInitialized = true;
-                    console.log('✅ Google Drive API инициализирован');
-                    resolve();
-                } catch (error) {
-                    console.error('❌ Google Drive API ошибка:', error);
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    // ========================================
-    // ИНИЦИАЛИЗАЦИЯ TOKEN CLIENT (OAuth 2.0)
-    // ========================================
-    function initTokenClient() {
-        if (tokenClient) return tokenClient;
-        
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: (response) => {
-                if (response.error) {
-                    console.error('OAuth error:', response.error);
-                    showNotification('❌ Ошибка авторизации: ' + response.error, 'error');
-                    isGoogleAuthorized = false;
-                    authGoogleBtn.textContent = '🔑 Войти в Google Drive';
-                    authGoogleBtn.classList.remove('authorized');
-                } else {
-                    gapi.client.setToken(response);
-                    isGoogleAuthorized = true;
-                    authGoogleBtn.textContent = '✅ Авторизован';
-                    authGoogleBtn.classList.add('authorized');
-                    showNotification('✅ Авторизация Google Drive успешна!', 'success');
-                }
-            }
-        });
-        return tokenClient;
-    }
-
-    // ========================================
-    // АВТОРИЗАЦИЯ GOOGLE
-    // ========================================
-    function authorizeGoogleDrive() {
-        return new Promise((resolve, reject) => {
-            const client = initTokenClient();
-            client.requestAccessToken();
-            // Ждём ответа через callback
-            const checkAuth = setInterval(() => {
-                if (isGoogleAuthorized) {
-                    clearInterval(checkAuth);
-                    resolve();
-                }
-            }, 500);
-        });
-    }
-
-    // ========================================
-    // UPLOAD TO GOOGLE DRIVE
-    // ========================================
-    async function uploadToGoogleDrive(file) {
-        await initGoogleDriveAPI();
-
-        let token = gapi.client.getToken();
-        if (!token) {
-            await authorizeGoogleDrive();
-            token = gapi.client.getToken();
+    async function getAccessToken() {
+        // Если токен ещё действителен, возвращаем его
+        if (accessToken && Date.now() < tokenExpiry) {
+            return accessToken;
         }
 
+        try {
+            const { private_key, client_email, token_uri } = SERVICE_ACCOUNT;
+            
+            // Создаём JWT
+            const header = {
+                alg: 'RS256',
+                typ: 'JWT'
+            };
+            
+            const now = Math.floor(Date.now() / 1000);
+            const claim = {
+                iss: client_email,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                aud: token_uri,
+                exp: now + 3600,
+                iat: now
+            };
+            
+            // Кодируем header и claim в base64url
+            const encodeBase64Url = (obj) => {
+                return btoa(JSON.stringify(obj))
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
+            };
+            
+            const encodedHeader = encodeBase64Url(header);
+            const encodedClaim = encodeBase64Url(claim);
+            const signatureInput = `${encodedHeader}.${encodedClaim}`;
+            
+            // Подписываем с помощью Web Crypto API
+            const pemHeader = '-----BEGIN PRIVATE KEY-----\n';
+            const pemFooter = '\n-----END PRIVATE KEY-----';
+            const pemContents = private_key.substring(pemHeader.length, private_key.length - pemFooter.length);
+            const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+            
+            const cryptoKey = await crypto.subtle.importKey(
+                'pkcs8',
+                binaryDer.buffer,
+                { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+                false,
+                ['sign']
+            );
+            
+            const signature = await crypto.subtle.sign(
+                { name: 'RSASSA-PKCS1-v1_5' },
+                cryptoKey,
+                new TextEncoder().encode(signatureInput)
+            );
+            
+            const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+            
+            const jwt = `${signatureInput}.${encodedSignature}`;
+            
+            // Отправляем запрос на получение токена
+            const response = await fetch(token_uri, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: jwt
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error_description || 'Ошибка получения токена');
+            }
+            
+            accessToken = data.access_token;
+            tokenExpiry = Date.now() + (data.expires_in * 1000);
+            
+            return accessToken;
+            
+        } catch (error) {
+            console.error('Ошибка получения токена:', error);
+            throw error;
+        }
+    }
+
+    // ========================================
+    // ЗАГРУЗКА ФАЙЛА В GOOGLE DRIVE
+    // ========================================
+    async function uploadToGoogleDrive(file) {
+        const token = await getAccessToken();
+        
         return new Promise((resolve, reject) => {
             const metadata = {
-                name: `${Date.now()}_${file.name}`,
+                name: `listings/${Date.now()}_${file.name}`,
                 mimeType: file.type,
                 parents: ['root']
             };
-
-            const accessToken = token?.access_token;
-            if (!accessToken) {
-                reject(new Error('Нет токена доступа. Авторизуйтесь в Google.'));
-                return;
-            }
 
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -913,7 +903,7 @@
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
             xhr.upload.onprogress = (event) => {
                 if (event.lengthComputable) {
@@ -927,10 +917,11 @@
                     const response = JSON.parse(xhr.responseText);
                     const fileId = response.id;
                     const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    const directUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
                     
                     resolve({
                         url: fileUrl,
-                        thumb: fileUrl,
+                        thumb: directUrl,
                         direct: fileUrl,
                         id: fileId,
                         name: file.name
@@ -974,34 +965,6 @@
             submitBtn.textContent = '💾 Сохранить';
             await loadListing(editId);
         }
-
-        // Инициализация Google Drive
-        try {
-            await initGoogleDriveAPI();
-            const token = gapi.client.getToken();
-            if (token) {
-                isGoogleAuthorized = true;
-                authGoogleBtn.textContent = '✅ Авторизован';
-                authGoogleBtn.classList.add('authorized');
-                authGoogleBtn.style.display = 'flex';
-            } else {
-                authGoogleBtn.textContent = '🔑 Войти в Google Drive для загрузки фото';
-                authGoogleBtn.classList.remove('authorized');
-                authGoogleBtn.style.display = 'flex';
-            }
-        } catch (error) {
-            console.error('Google Drive ошибка:', error);
-            authGoogleBtn.textContent = '🔑 Войти в Google Drive для загрузки фото';
-            authGoogleBtn.style.display = 'flex';
-        }
-
-        authGoogleBtn.onclick = async () => {
-            try {
-                await authorizeGoogleDrive();
-            } catch (error) {
-                showNotification('❌ Ошибка авторизации Google', 'error');
-            }
-        };
     });
 
     // ========================================
@@ -1032,13 +995,6 @@
     // ========================================
     async function uploadFiles(files) {
         if (isUploading) return;
-        
-        if (!isGoogleAuthorized) {
-            showNotification('⚠️ Сначала авторизуйтесь в Google Drive', 'warning');
-            authGoogleBtn.style.display = 'flex';
-            authGoogleBtn.style.animation = 'pulse 1s ease 3';
-            return;
-        }
         
         isUploading = true;
         
@@ -1093,7 +1049,7 @@
         item.className = 'item';
         item.dataset.index = index;
         item.innerHTML = `
-            <img src="${url}" alt="Фото ${index + 1}" loading="lazy" onerror="this.src='https://via.placeholder.com/150/6C3B8E/FFFFFF?text=Error'">
+            <img src="${url}" alt="Фото ${index + 1}" loading="lazy">
             <button class="remove" data-index="${index}">✕</button>
         `;
         filePreview.appendChild(item);
@@ -1295,9 +1251,8 @@
     }
 
     console.log('✅ Все данные настроены!');
-    console.log('📌 API Key:', GOOGLE_DRIVE_API_KEY);
-    console.log('📌 Client ID:', CLIENT_ID);
-    console.log('📌 Project ID: kyki-5e91a');
+    console.log('📌 Сервисный аккаунт:', SERVICE_ACCOUNT.client_email);
+    console.log('📌 Project ID:', SERVICE_ACCOUNT.project_id);
 </script>
 </body>
 </html>
