@@ -17,7 +17,6 @@
             margin: 30px auto;
             padding: 0 24px;
         }
-
         .cart-item {
             display: flex;
             gap: 20px;
@@ -45,14 +44,8 @@
             flex-shrink: 0;
             overflow: hidden;
         }
-        .cart-item .image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .cart-item .info {
-            flex: 1;
-        }
+        .cart-item .image img { width: 100%; height: 100%; object-fit: cover; }
+        .cart-item .info { flex: 1; }
         .cart-item .info .title {
             font-size: 16px;
             font-weight: 600;
@@ -67,6 +60,15 @@
             font-size: 20px;
             font-weight: 700;
             color: var(--secondary);
+        }
+        .cart-item .delivery-type {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-input);
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            display: inline-block;
+            margin-top: 4px;
         }
         .cart-item .controls {
             display: flex;
@@ -87,9 +89,7 @@
             align-items: center;
             justify-content: center;
         }
-        .cart-item .controls .qty-btn:hover {
-            border-color: var(--secondary);
-        }
+        .cart-item .controls .qty-btn:hover { border-color: var(--secondary); }
         .cart-item .controls .qty {
             font-size: 16px;
             font-weight: 600;
@@ -115,9 +115,7 @@
             top: 100px;
             height: fit-content;
         }
-        .cart-summary .card {
-            padding: 24px;
-        }
+        .cart-summary .card { padding: 24px; }
         .cart-summary .summary-row {
             display: flex;
             justify-content: space-between;
@@ -125,19 +123,41 @@
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
         }
-        .cart-summary .summary-row:last-child {
-            border-bottom: none;
-        }
+        .cart-summary .summary-row:last-child { border-bottom: none; }
         .cart-summary .summary-row.total {
             font-size: 20px;
             font-weight: 700;
             padding-top: 16px;
         }
-        .cart-summary .summary-row .value {
-            font-weight: 600;
+        .cart-summary .summary-row .value { font-weight: 600; }
+        .cart-summary .summary-row .value.highlight { color: var(--secondary); }
+
+        .pickup-section {
+            margin: 16px 0;
+            padding: 16px;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
         }
-        .cart-summary .summary-row .value.highlight {
-            color: var(--secondary);
+        .pickup-section label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .pickup-section select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 14px;
+        }
+        .pickup-section select:focus {
+            border-color: var(--secondary);
         }
 
         .promo-input {
@@ -154,12 +174,8 @@
             color: var(--text-primary);
             outline: none;
         }
-        .promo-input input:focus {
-            border-color: var(--secondary);
-        }
-        .promo-input button {
-            padding: 10px 20px;
-        }
+        .promo-input input:focus { border-color: var(--secondary); }
+        .promo-input button { padding: 10px 20px; }
 
         .checkout-btn {
             width: 100%;
@@ -176,387 +192,498 @@
             font-size: 13px;
             color: var(--text-muted);
         }
-        .delivery-info strong {
-            color: var(--text-secondary);
-        }
+        .delivery-info strong { color: var(--text-secondary); }
+
+        .empty-state { text-align: center; padding: 80px 20px; }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 24px; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-muted); margin-bottom: 20px; }
 
         @media (max-width: 1024px) {
-            .cart-layout {
-                grid-template-columns: 1fr;
-            }
-            .cart-summary {
-                position: static;
-            }
+            .cart-layout { grid-template-columns: 1fr; }
+            .cart-summary { position: static; }
         }
         @media (max-width: 600px) {
-            .cart-item {
-                flex-wrap: wrap;
-            }
-            .cart-item .image {
-                width: 70px;
-                height: 70px;
-                font-size: 28px;
-            }
-            .cart-item .controls .qty-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 14px;
-            }
+            .cart-item { flex-wrap: wrap; }
+            .cart-item .image { width: 70px; height: 70px; font-size: 28px; }
+            .cart-item .controls .qty-btn { width: 30px; height: 30px; font-size: 14px; }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header class="header">
-    <div class="header-container">
-        <a href="index.html" class="logo">🍪 Куки</a>
-        <div class="header-actions" id="headerActions"></div>
-    </div>
-</header>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div style="width:24px;height:24px;border:2px solid var(--border-color);border-top-color:var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            </div>
+        </div>
+    </header>
 
-<!-- ===== CART ===== -->
-<div class="cart-layout">
-    <div>
-        <h1 style="margin-bottom: 24px; font-size: 28px;">🛒 Корзина</h1>
-        <div id="cartItems">
-            <div class="loading-spinner"></div>
+    <!-- ===== CART ===== -->
+    <div class="cart-layout">
+        <div>
+            <h1 style="margin-bottom: 24px; font-size: 28px;">🛒 Корзина</h1>
+            <div id="cartItems">
+                <div class="loading-state"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <div class="cart-summary">
+            <div class="card">
+                <h3 style="font-size:18px; margin-bottom:16px;">📊 Итого</h3>
+                
+                <div class="summary-row">
+                    <span>Товары (<span id="itemCount">0</span> шт.)</span>
+                    <span class="value" id="subtotal">0 ₽</span>
+                </div>
+                <div class="summary-row">
+                    <span>🚚 Доставка</span>
+                    <span class="value" id="deliveryFee">Бесплатно</span>
+                </div>
+                <div class="summary-row" id="discountRow" style="display:none;">
+                    <span>🎁 Скидка</span>
+                    <span class="value" id="discountAmount" style="color:#2ECC71;">-0 ₽</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Итого</span>
+                    <span class="value highlight" id="total">0 ₽</span>
+                </div>
+
+                <!-- ===== ВЫБОР ПВЗ ===== -->
+                <div class="pickup-section" id="pickupSection">
+                    <label>📍 Выберите пункт выдачи Ozon</label>
+                    <select id="pickupPoint">
+                        <option value="">Загрузка пунктов...</option>
+                    </select>
+                </div>
+
+                <div class="promo-input">
+                    <input type="text" id="promoCode" placeholder="Промокод">
+                    <button class="btn btn-secondary" id="applyPromoBtn">Применить</button>
+                </div>
+                <div id="promoStatus" style="font-size:13px; color:var(--text-muted);"></div>
+
+                <div class="delivery-info">
+                    <strong>📦 Информация о доставке</strong>
+                    <p style="margin-top:4px;">Срок: 3-7 рабочих дней<br>Бесплатно при заказе от 2000 ₽</p>
+                </div>
+
+                <button class="btn btn-primary checkout-btn" id="checkoutBtn">✅ Оформить заказ</button>
+            </div>
         </div>
     </div>
 
-    <div class="cart-summary">
-        <div class="card">
-            <h3 style="font-size:18px; margin-bottom:16px;">📊 Итого</h3>
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let userData = {};
+        let cart = [];
+        let cartData = [];
+        let appliedPromo = null;
+        let totalPrice = 0;
+
+        // ========================================
+        // OZON ПУНКТЫ ВЫДАЧИ
+        // ========================================
+        const OZON_PICKUP_POINTS = [
+            { id: 'ozon_1', name: 'Ozon ПВЗ №1 — ул. Ленина, д. 15' },
+            { id: 'ozon_2', name: 'Ozon ПВЗ №2 — пр. Мира, д. 78' },
+            { id: 'ozon_3', name: 'Ozon ПВЗ №3 — ул. Советская, д. 22' },
+            { id: 'ozon_4', name: 'Ozon ПВЗ №4 — пр. Победы, д. 5' },
+            { id: 'ozon_5', name: 'Ozon ПВЗ №5 — ул. Центральная, д. 10' },
+        ];
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const cartItems = document.getElementById('cartItems');
+        const itemCount = document.getElementById('itemCount');
+        const subtotal = document.getElementById('subtotal');
+        const deliveryFee = document.getElementById('deliveryFee');
+        const total = document.getElementById('total');
+        const discountRow = document.getElementById('discountRow');
+        const discountAmount = document.getElementById('discountAmount');
+        const promoInput = document.getElementById('promoCode');
+        const applyPromoBtn = document.getElementById('applyPromoBtn');
+        const promoStatus = document.getElementById('promoStatus');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const pickupPoint = document.getElementById('pickupPoint');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = user;
+            const doc = await db.collection("users").doc(user.uid).get();
+            userData = doc.data() || {};
+            setupHeader();
+            await loadCart();
+            loadPickupPoints();
+        });
+
+        // ========================================
+        // HEADER
+        // ========================================
+        function setupHeader() {
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='profile.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // LOAD PICKUP POINTS
+        // ========================================
+        function loadPickupPoints() {
+            pickupPoint.innerHTML = OZON_PICKUP_POINTS.map(p => `
+                <option value="${p.id}">${p.name}</option>
+            `).join('');
+        }
+
+        // ========================================
+        // LOAD CART
+        // ========================================
+        async function loadCart() {
+            const rawCart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart = rawCart;
             
-            <div class="summary-row">
-                <span>Товары (<span id="itemCount">0</span> шт.)</span>
-                <span class="value" id="subtotal">0 ₽</span>
-            </div>
-            <div class="summary-row">
-                <span>🚚 Доставка</span>
-                <span class="value" id="deliveryFee">300 ₽</span>
-            </div>
-            <div class="summary-row" id="discountRow" style="display:none;">
-                <span>🎁 Скидка</span>
-                <span class="value" id="discountAmount" style="color:#2ECC71;">-0 ₽</span>
-            </div>
-            <div class="summary-row total">
-                <span>Итого</span>
-                <span class="value highlight" id="total">0 ₽</span>
-            </div>
-
-            <div class="promo-input">
-                <input type="text" id="promoCode" placeholder="Введите промокод">
-                <button class="btn btn-secondary" id="applyPromoBtn">Применить</button>
-            </div>
-            <div id="promoStatus" style="font-size:13px; color:var(--text-muted);"></div>
-
-            <div class="delivery-info">
-                <strong>📦 Информация о доставке</strong>
-                <p style="margin-top:4px;">Срок: 3-7 рабочих дней<br>Бесплатно при заказе от 2000 ₽</p>
-            </div>
-
-            <button class="btn btn-primary checkout-btn" id="checkoutBtn">✅ Оформить заказ</button>
-        </div>
-    </div>
-</div>
-
-<!-- ===== SCRIPTS ===== -->
-<script type="module">
-    import { auth, db, getCurrentUser, getUserData, updateUserData } from './firebase-config.js';
-
-    // ===== STATE =====
-    let currentUser = null;
-    let cart = [];
-    let cartData = [];
-    let appliedPromo = null;
-    let totalPrice = 0;
-
-    // ===== DOM REFS =====
-    const headerActions = document.getElementById('headerActions');
-    const cartItems = document.getElementById('cartItems');
-    const itemCount = document.getElementById('itemCount');
-    const subtotal = document.getElementById('subtotal');
-    const deliveryFee = document.getElementById('deliveryFee');
-    const total = document.getElementById('total');
-    const discountRow = document.getElementById('discountRow');
-    const discountAmount = document.getElementById('discountAmount');
-    const promoInput = document.getElementById('promoCode');
-    const applyPromoBtn = document.getElementById('applyPromoBtn');
-    const promoStatus = document.getElementById('promoStatus');
-    const checkoutBtn = document.getElementById('checkoutBtn');
-
-    // ===== AUTH =====
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-        currentUser = user;
-        const userData = await getUserData(user.uid);
-        setupHeader(userData);
-        await loadCart();
-    });
-
-    // ===== SETUP HEADER =====
-    function setupHeader(userData) {
-        headerActions.innerHTML = `
-            <div class="balance-badge">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
-            <a href="profile.html" class="header-user">
-                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
-                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
-            </a>
-        `;
-    }
-
-    // ===== LOAD CART =====
-    async function loadCart() {
-        const rawCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        cart = rawCart;
-        
-        if (cart.length === 0) {
-            cartItems.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">🛒</div>
-                    <h3>Корзина пуста</h3>
-                    <p>Добавьте товары и они появятся здесь</p>
-                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
-                </div>
-            `;
-            updateSummary();
-            return;
-        }
-
-        // Загружаем данные товаров
-        cartData = [];
-        for (const item of cart) {
-            const doc = await db.collection("listings").doc(item.id).get();
-            if (doc.exists) {
-                cartData.push({ id: doc.id, ...doc.data(), qty: item.qty || 1 });
-            }
-        }
-
-        renderCart();
-        updateSummary();
-    }
-
-    // ===== RENDER CART =====
-    function renderCart() {
-        cartItems.innerHTML = cartData.map(item => `
-            <div class="cart-item" data-id="${item.id}">
-                <div class="image">${item.image || '📦'}</div>
-                <div class="info">
-                    <div class="title">${escapeHtml(item.title)}</div>
-                    <div class="seller">👤 ${escapeHtml(item.sellerName || 'Продавец')}</div>
-                    <div class="price">${Number(item.price).toLocaleString()} ₽</div>
-                </div>
-                <div class="controls">
-                    <button class="qty-btn" onclick="window.changeQty('${item.id}', -1)">−</button>
-                    <span class="qty" id="qty-${item.id}">${item.qty || 1}</span>
-                    <button class="qty-btn" onclick="window.changeQty('${item.id}', 1)">+</button>
-                    <button class="remove-btn" onclick="window.removeItem('${item.id}')">✕</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // ===== UPDATE SUMMARY =====
-    function updateSummary() {
-        totalPrice = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-        const count = cartData.reduce((sum, item) => sum + (item.qty || 1), 0);
-        const delivery = totalPrice >= 2000 ? 0 : 300;
-        let discount = 0;
-
-        if (appliedPromo) {
-            if (appliedPromo.type === 'percent') {
-                discount = totalPrice * (appliedPromo.value / 100);
-            } else {
-                discount = appliedPromo.value;
-            }
-            if (discount > totalPrice) discount = totalPrice;
-        }
-
-        const finalTotal = totalPrice + delivery - discount;
-
-        itemCount.textContent = count;
-        subtotal.textContent = totalPrice.toLocaleString() + ' ₽';
-        deliveryFee.textContent = delivery === 0 ? 'Бесплатно' : delivery + ' ₽';
-        
-        if (discount > 0) {
-            discountRow.style.display = 'flex';
-            discountAmount.textContent = '-' + discount.toLocaleString() + ' ₽';
-        } else {
-            discountRow.style.display = 'none';
-        }
-        
-        total.textContent = finalTotal.toLocaleString() + ' ₽';
-        
-        // Обновляем localStorage
-        localStorage.setItem('cart', JSON.stringify(cartData.map(item => ({ id: item.id, qty: item.qty || 1 }))));
-    }
-
-    // ===== CART ACTIONS =====
-    window.changeQty = (id, delta) => {
-        const item = cartData.find(i => i.id === id);
-        if (!item) return;
-        const newQty = (item.qty || 1) + delta;
-        if (newQty < 1) return;
-        item.qty = newQty;
-        const cartItem = cart.find(i => i.id === id);
-        if (cartItem) cartItem.qty = newQty;
-        renderCart();
-        updateSummary();
-    };
-
-    window.removeItem = (id) => {
-        cartData = cartData.filter(i => i.id !== id);
-        cart = cart.filter(i => i.id !== id);
-        renderCart();
-        updateSummary();
-        if (cartData.length === 0) {
-            cartItems.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">🛒</div>
-                    <h3>Корзина пуста</h3>
-                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
-                </div>
-            `;
-        }
-    };
-
-    // ===== PROMO CODE =====
-    applyPromoBtn.onclick = async () => {
-        const code = promoInput.value.trim().toUpperCase();
-        if (!code) {
-            promoStatus.textContent = '⚠️ Введите промокод';
-            promoStatus.style.color = '#F1C40F';
-            return;
-        }
-
-        try {
-            const snapshot = await db.collection("promocodes")
-                .where("code", "==", code)
-                .where("active", "==", true)
-                .get();
-
-            if (snapshot.empty) {
-                promoStatus.textContent = '❌ Промокод не найден или неактивен';
-                promoStatus.style.color = '#E74C3C';
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">🛒</span>
+                        <h3>Корзина пуста</h3>
+                        <p>Добавьте товары и они появятся здесь</p>
+                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                updateSummary();
                 return;
             }
 
-            appliedPromo = snapshot.docs[0].data();
-            promoStatus.textContent = `✅ Промокод применён! Скидка ${appliedPromo.type === 'percent' ? appliedPromo.value + '%' : appliedPromo.value + ' ₽'}`;
-            promoStatus.style.color = '#2ECC71';
-            updateSummary();
-        } catch (error) {
-            promoStatus.textContent = '❌ Ошибка проверки промокода';
-            promoStatus.style.color = '#E74C3C';
-        }
-    };
-
-    // ===== CHECKOUT =====
-    checkoutBtn.onclick = async () => {
-        if (!currentUser) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (cartData.length === 0) {
-            showNotification('Корзина пуста', 'error');
-            return;
-        }
-
-        const userData = await getUserData(currentUser.uid);
-        const balance = userData.balance || 0;
-        
-        // Пересчитываем итог
-        let total = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-        const delivery = total >= 2000 ? 0 : 300;
-        let discount = 0;
-        if (appliedPromo) {
-            if (appliedPromo.type === 'percent') {
-                discount = total * (appliedPromo.value / 100);
-            } else {
-                discount = appliedPromo.value;
-            }
-            if (discount > total) discount = total;
-        }
-        const finalTotal = total + delivery - discount;
-
-        if (balance < finalTotal) {
-            showNotification(`❌ Недостаточно средств! Нужно ${finalTotal.toLocaleString()} ₽. Пополните кошелёк.`, 'error');
-            window.location.href = 'wallet.html';
-            return;
-        }
-
-        // Создаём заказ
-        try {
-            const orderData = {
-                buyerId: currentUser.uid,
-                buyerName: userData.name || 'Пользователь',
-                items: cartData.map(item => ({
-                    listingId: item.id,
-                    title: item.title,
-                    price: item.price,
-                    qty: item.qty || 1,
-                    sellerId: item.sellerId
-                })),
-                total: finalTotal,
-                subtotal: total,
-                delivery: delivery,
-                discount: discount,
-                promoCode: appliedPromo?.code || null,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
-
-            await db.collection("orders").add(orderData);
-            
-            // Списываем деньги
-            await updateUserData(currentUser.uid, { balance: balance - finalTotal });
-            
-            // Записываем транзакцию
-            await db.collection("transactions").add({
-                userId: currentUser.uid,
-                amount: -finalTotal,
-                description: `Оплата заказа (${cartData.length} товаров)`,
-                status: 'completed',
-                createdAt: new Date().toISOString()
-            });
-
-            // Очищаем корзину
-            localStorage.removeItem('cart');
             cartData = [];
-            cart = [];
-            
-            showNotification(`✅ Заказ оформлен! Сумма: ${finalTotal.toLocaleString()} ₽`, 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'orders.html';
-            }, 1500);
-        } catch (error) {
-            showNotification('❌ Ошибка оформления заказа', 'error');
+            for (const item of cart) {
+                const doc = await db.collection("listings").doc(item.id).get();
+                if (doc.exists) {
+                    cartData.push({ 
+                        id: doc.id, 
+                        ...doc.data(), 
+                        qty: item.qty || 1,
+                        deliveryType: item.deliveryType || 'delivery'
+                    });
+                }
+            }
+
+            renderCart();
+            updateSummary();
+            checkDeliveryType();
         }
-    };
 
-    // ===== HELPERS =====
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-    }
+        // ========================================
+        // RENDER CART
+        // ========================================
+        function renderCart() {
+            cartItems.innerHTML = cartData.map(item => `
+                <div class="cart-item" data-id="${item.id}">
+                    <div class="image">${item.image || '📦'}</div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(item.title)}</div>
+                        <div class="seller">👤 ${escapeHtml(item.sellerName || 'Продавец')}</div>
+                        <div class="price">${Number(item.price).toLocaleString()} ₽</div>
+                        <span class="delivery-type">${item.deliveryType === 'delivery' ? '🚚 Доставка Ozon' : '🤝 Без доставки'}</span>
+                    </div>
+                    <div class="controls">
+                        <button class="qty-btn" onclick="window.changeQty('${item.id}', -1)">−</button>
+                        <span class="qty" id="qty-${item.id}">${item.qty || 1}</span>
+                        <button class="qty-btn" onclick="window.changeQty('${item.id}', 1)">+</button>
+                        <button class="remove-btn" onclick="window.removeItem('${item.id}')">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
-    }
-</script>
+        // ========================================
+        // UPDATE SUMMARY
+        // ========================================
+        function updateSummary() {
+            totalPrice = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+            const count = cartData.reduce((sum, item) => sum + (item.qty || 1), 0);
+            
+            // Доставка только для товаров с доставкой
+            const hasDelivery = cartData.some(item => item.deliveryType === 'delivery');
+            const delivery = hasDelivery && totalPrice < 2000 ? 300 : 0;
+            
+            let discount = 0;
+            if (appliedPromo) {
+                if (appliedPromo.type === 'percent') {
+                    discount = totalPrice * (appliedPromo.value / 100);
+                } else {
+                    discount = appliedPromo.value;
+                }
+                if (discount > totalPrice) discount = totalPrice;
+            }
+
+            const finalTotal = totalPrice + delivery - discount;
+
+            itemCount.textContent = count;
+            subtotal.textContent = totalPrice.toLocaleString() + ' ₽';
+            deliveryFee.textContent = delivery === 0 ? 'Бесплатно' : delivery + ' ₽';
+            
+            if (discount > 0) {
+                discountRow.style.display = 'flex';
+                discountAmount.textContent = '-' + discount.toLocaleString() + ' ₽';
+            } else {
+                discountRow.style.display = 'none';
+            }
+            
+            total.textContent = finalTotal.toLocaleString() + ' ₽';
+            
+            localStorage.setItem('cart', JSON.stringify(cartData.map(item => ({ 
+                id: item.id, 
+                qty: item.qty || 1,
+                deliveryType: item.deliveryType || 'delivery'
+            }))));
+        }
+
+        // ========================================
+        // CHECK DELIVERY TYPE
+        // ========================================
+        function checkDeliveryType() {
+            const hasDelivery = cartData.some(item => item.deliveryType === 'delivery');
+            const pickupSection = document.getElementById('pickupSection');
+            if (hasDelivery) {
+                pickupSection.style.display = 'block';
+            } else {
+                pickupSection.style.display = 'none';
+            }
+        }
+
+        // ========================================
+        // CART ACTIONS
+        // ========================================
+        window.changeQty = (id, delta) => {
+            const item = cartData.find(i => i.id === id);
+            if (!item) return;
+            const newQty = (item.qty || 1) + delta;
+            if (newQty < 1) return;
+            item.qty = newQty;
+            const cartItem = cart.find(i => i.id === id);
+            if (cartItem) cartItem.qty = newQty;
+            renderCart();
+            updateSummary();
+        };
+
+        window.removeItem = (id) => {
+            cartData = cartData.filter(i => i.id !== id);
+            cart = cart.filter(i => i.id !== id);
+            renderCart();
+            updateSummary();
+            checkDeliveryType();
+            if (cartData.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">🛒</span>
+                        <h3>Корзина пуста</h3>
+                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+            }
+        };
+
+        // ========================================
+        // PROMO CODE
+        // ========================================
+        applyPromoBtn.onclick = async () => {
+            const code = promoInput.value.trim().toUpperCase();
+            if (!code) {
+                promoStatus.textContent = '⚠️ Введите промокод';
+                promoStatus.style.color = '#F39C12';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection("promocodes")
+                    .where("code", "==", code)
+                    .where("active", "==", true)
+                    .get();
+
+                if (snapshot.empty) {
+                    promoStatus.textContent = '❌ Промокод не найден или неактивен';
+                    promoStatus.style.color = '#E74C3C';
+                    return;
+                }
+
+                appliedPromo = snapshot.docs[0].data();
+                promoStatus.textContent = `✅ Промокод применён! Скидка ${appliedPromo.type === 'percent' ? appliedPromo.value + '%' : appliedPromo.value + ' ₽'}`;
+                promoStatus.style.color = '#2ECC71';
+                updateSummary();
+            } catch (error) {
+                promoStatus.textContent = '❌ Ошибка проверки промокода';
+                promoStatus.style.color = '#E74C3C';
+            }
+        };
+
+        // ========================================
+        // CHECKOUT
+        // ========================================
+        checkoutBtn.onclick = async () => {
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (cartData.length === 0) {
+                showNotification('Корзина пуста', 'error');
+                return;
+            }
+
+            const balance = userData.balance || 0;
+            
+            // Пересчитываем итог
+            let total = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+            const hasDelivery = cartData.some(item => item.deliveryType === 'delivery');
+            const delivery = hasDelivery && total < 2000 ? 300 : 0;
+            
+            let discount = 0;
+            if (appliedPromo) {
+                if (appliedPromo.type === 'percent') {
+                    discount = total * (appliedPromo.value / 100);
+                } else {
+                    discount = appliedPromo.value;
+                }
+                if (discount > total) discount = total;
+            }
+            const finalTotal = total + delivery - discount;
+
+            // Проверяем выбран ли ПВЗ для доставки
+            const hasDeliveryItems = cartData.some(item => item.deliveryType === 'delivery');
+            if (hasDeliveryItems && !pickupPoint.value) {
+                showNotification('Выберите пункт выдачи Ozon', 'warning');
+                return;
+            }
+
+            if (balance < finalTotal) {
+                showNotification(`❌ Недостаточно средств! Нужно ${finalTotal.toLocaleString()} ₽`, 'error');
+                window.location.href = 'wallet.html';
+                return;
+            }
+
+            // Создаём заказ
+            try {
+                const orderData = {
+                    buyerId: currentUser.uid,
+                    buyerName: userData.name || 'Пользователь',
+                    buyerPhone: userData.phone || '',
+                    items: cartData.map(item => ({
+                        listingId: item.id,
+                        title: item.title,
+                        price: item.price,
+                        qty: item.qty || 1,
+                        sellerId: item.sellerId,
+                        sellerName: item.sellerName,
+                        deliveryType: item.deliveryType || 'delivery'
+                    })),
+                    total: finalTotal,
+                    subtotal: total,
+                    delivery: delivery,
+                    discount: discount,
+                    promoCode: appliedPromo?.code || null,
+                    deliveryType: hasDelivery ? 'delivery' : 'meeting',
+                    pickupPoint: pickupPoint.value || null,
+                    status: 'paid',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Добавляем sellerId для всех товаров
+                const sellers = [...new Set(cartData.map(item => item.sellerId))];
+                orderData.sellerId = sellers[0]; // Основной продавец
+                orderData.sellerName = cartData[0]?.sellerName || 'Продавец';
+
+                await db.collection("orders").add(orderData);
+                
+                // Списываем деньги
+                await db.collection("users").doc(currentUser.uid).update({
+                    balance: balance - finalTotal
+                });
+                
+                // Записываем транзакцию
+                await db.collection("transactions").add({
+                    userId: currentUser.uid,
+                    amount: -finalTotal,
+                    description: `Оплата заказа (${cartData.length} товаров)`,
+                    status: 'completed',
+                    createdAt: new Date().toISOString()
+                });
+
+                // Очищаем корзину
+                localStorage.removeItem('cart');
+                cartData = [];
+                cart = [];
+                
+                showNotification(`✅ Заказ оформлен! Сумма: ${finalTotal.toLocaleString()} ₽`, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'orders.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Checkout error:', error);
+                showNotification('❌ Ошибка оформления заказа', 'error');
+            }
+        };
+
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+    </script>
 </body>
 </html>

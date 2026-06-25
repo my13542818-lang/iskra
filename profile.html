@@ -10,10 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
-        /* ===== PROFILE LAYOUT ===== */
         .profile-layout {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 300px 1fr;
             gap: 30px;
             max-width: 1400px;
             margin: 30px auto;
@@ -41,7 +40,6 @@
             box-shadow: var(--shadow-glow);
         }
 
-        /* ===== AVATAR ===== */
         .profile-avatar-wrap {
             position: relative;
             width: 130px;
@@ -52,12 +50,10 @@
             overflow: hidden;
             cursor: pointer;
             transition: var(--transition);
-            flex-shrink: 0;
         }
         .profile-avatar-wrap:hover {
-            transform: scale(1.03);
+            transform: scale(1.02);
             border-color: var(--secondary-light);
-            box-shadow: 0 0 30px rgba(232, 67, 147, 0.3);
         }
         .profile-avatar-wrap img {
             width: 100%;
@@ -67,7 +63,7 @@
         .profile-avatar-wrap .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(4px);
             display: flex;
             flex-direction: column;
@@ -86,7 +82,6 @@
             font-size: 28px;
         }
 
-        /* ===== PROFILE INFO ===== */
         .profile-name {
             font-size: 22px;
             font-weight: 700;
@@ -109,7 +104,6 @@
             font-size: 14px;
         }
 
-        /* ===== STATS ===== */
         .profile-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -118,7 +112,6 @@
             padding: 16px;
             background: var(--bg-input);
             border-radius: var(--radius);
-            border: 1px solid var(--border-color);
         }
         .profile-stats .stat {
             text-align: center;
@@ -200,9 +193,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .settings-group .card {
-            padding: 24px;
         }
 
         /* ===== MINI LISTING ===== */
@@ -317,9 +307,44 @@
         .danger-zone h3 {
             color: #E74C3C !important;
         }
-        .danger-zone .btn {
-            margin-top: 4px;
+
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
         }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success { border-left: 4px solid #2ECC71; }
+        .notification-error { border-left: 4px solid #E74C3C; }
+        .notification-warning { border-left: 4px solid #F39C12; }
+        .notification-info { border-left: 4px solid #3498DB; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .badge-danger { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
+        .badge-warning { background: rgba(243, 156, 18, 0.2); color: #F39C12; }
+        .badge-info { background: rgba(52, 152, 219, 0.2); color: #3498DB; }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
@@ -338,7 +363,6 @@
             .profile-stats {
                 grid-template-columns: 1fr 1fr 1fr;
                 gap: 4px;
-                padding: 12px;
             }
             .profile-stats .stat .value {
                 font-size: 18px;
@@ -350,742 +374,954 @@
                 width: 100%;
                 justify-content: flex-end;
             }
-            .profile-avatar-wrap {
-                width: 100px;
-                height: 100px;
-            }
-            .profile-name {
-                font-size: 18px;
-            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header class="header">
-    <div class="header-container">
-        <a href="index.html" class="logo">🍪 Куки</a>
-        <div class="header-search" style="flex:1; max-width:400px; display:none;">
-            <input type="text" placeholder="Поиск..." id="profileSearch">
-            <button>🔍</button>
-        </div>
-        <div class="header-actions" id="headerActions">
-            <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
-        </div>
-    </div>
-</header>
-
-<!-- ===== PROFILE LAYOUT ===== -->
-<div class="profile-layout">
-
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="profile-sidebar">
-        <div class="profile-card">
-            <!-- Avatar -->
-            <div class="profile-avatar-wrap" id="avatarWrap">
-                <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=6C3B8E&color=fff" alt="Аватар">
-                <div class="overlay">
-                    <span class="icon">📷</span>
-                    <span>Сменить фото</span>
-                </div>
-                <input type="file" id="avatarInput" accept="image/*" style="display:none">
-            </div>
-
-            <!-- Name -->
-            <div class="profile-name" id="profileName">Пользователь</div>
-            <div class="profile-email" id="profileEmail">user@email.com</div>
-            <div class="profile-rating">⭐ <span id="profileRating">0</span>% рейтинг</div>
-
-            <!-- Stats -->
-            <div class="profile-stats">
-                <div class="stat">
-                    <div class="value" id="statListings">0</div>
-                    <div class="label">📋 Объявлений</div>
-                </div>
-                <div class="stat">
-                    <div class="value" id="statOrders">0</div>
-                    <div class="label">📦 Заказов</div>
-                </div>
-                <div class="stat">
-                    <div class="value" id="statBalance">0 ₽</div>
-                    <div class="label">💰 Баланс</div>
-                </div>
-            </div>
-
-            <!-- Menu -->
-            <div class="profile-menu" id="profileMenu">
-                <button class="active" data-tab="profile"><span class="icon">👤</span> Основное</button>
-                <button data-tab="listings"><span class="icon">📋</span> Мои объявления</button>
-                <button data-tab="orders"><span class="icon">📦</span> Заказы</button>
-                <button data-tab="favorites"><span class="icon">❤️</span> Избранное</button>
-                <button data-tab="security"><span class="icon">🔐</span> Безопасность</button>
-                <button data-tab="settings"><span class="icon">⚙️</span> Настройки</button>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div style="width:24px;height:24px;border:2px solid var(--border-color);border-top-color:var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
             </div>
         </div>
-    </aside>
+    </header>
 
-    <!-- ===== CONTENT ===== -->
-    <main class="profile-content">
+    <!-- ===== PROFILE LAYOUT ===== -->
+    <div class="profile-layout">
 
-        <!-- ===== TAB: PROFILE ===== -->
-        <div class="tab-panel active" id="tab-profile">
-            <div class="card card-glow">
-                <h2 style="margin-bottom:20px; font-size:22px;">👤 Личные данные</h2>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label>Полное имя <span class="required">*</span></label>
-                        <input type="text" class="form-control" id="editName" placeholder="Иванов Иван">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="profile-sidebar">
+            <div class="profile-card">
+
+                <!-- Avatar -->
+                <div class="profile-avatar-wrap" id="avatarWrap">
+                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=6C3B8E&color=fff" alt="Аватар">
+                    <div class="overlay">
+                        <span class="icon">📷</span>
+                        <span>Сменить фото</span>
                     </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" class="form-control" id="editEmail" disabled>
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                </div>
+
+                <!-- Name -->
+                <div class="profile-name" id="profileName">Пользователь</div>
+                <div class="profile-email" id="profileEmail">user@email.com</div>
+                <div class="profile-rating">⭐ <span id="profileRating">0</span>% рейтинг</div>
+
+                <!-- Stats -->
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="value" id="statListings">0</div>
+                        <div class="label">📋 Объявлений</div>
                     </div>
-                    <div class="form-group">
-                        <label>Телефон <span class="required">*</span></label>
-                        <input type="tel" class="form-control" id="editPhone" placeholder="+7 999 123-45-67">
+                    <div class="stat">
+                        <div class="value" id="statOrders">0</div>
+                        <div class="label">📦 Заказов</div>
                     </div>
-                    <div class="form-group">
-                        <label>Город</label>
-                        <input type="text" class="form-control" id="editCity" placeholder="Москва">
-                    </div>
-                    <div class="form-group" style="grid-column:1/-1;">
-                        <label>О себе</label>
-                        <textarea class="form-control" id="editBio" rows="3" placeholder="Расскажите о себе..."></textarea>
+                    <div class="stat">
+                        <div class="value" id="statBalance">0 ₽</div>
+                        <div class="label">💰 Баланс</div>
                     </div>
                 </div>
-                <button class="btn btn-primary" id="saveProfileBtn">💾 Сохранить изменения</button>
-            </div>
-        </div>
 
-        <!-- ===== TAB: LISTINGS ===== -->
-        <div class="tab-panel" id="tab-listings">
-            <div class="card card-glow">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-                    <h2 style="font-size:20px;">📋 Мои объявления</h2>
-                    <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
+                <!-- Menu -->
+                <div class="profile-menu" id="profileMenu">
+                    <button class="active" data-tab="profile"><span class="icon">👤</span> Основное</button>
+                    <button data-tab="listings"><span class="icon">📋</span> Мои объявления</button>
+                    <button data-tab="orders"><span class="icon">📦</span> Мои заказы</button>
+                    <button data-tab="seller-orders"><span class="icon">📦</span> Заказы продавца</button>
+                    <button data-tab="favorites"><span class="icon">❤️</span> Избранное</button>
+                    <button data-tab="security"><span class="icon">🔐</span> Безопасность</button>
+                    <button data-tab="settings"><span class="icon">⚙️</span> Настройки</button>
                 </div>
-                <div id="myListingsContainer">
-                    <div class="loading-spinner"></div>
-                </div>
+
             </div>
-        </div>
+        </aside>
 
-        <!-- ===== TAB: ORDERS ===== -->
-        <div class="tab-panel" id="tab-orders">
-            <div class="card card-glow">
-                <h2 style="font-size:20px; margin-bottom:20px;">📦 Мои заказы</h2>
-                <div id="myOrdersContainer">
-                    <div class="loading-spinner"></div>
-                </div>
-            </div>
-        </div>
+        <!-- ===== CONTENT ===== -->
+        <main class="profile-content">
 
-        <!-- ===== TAB: FAVORITES ===== -->
-        <div class="tab-panel" id="tab-favorites">
-            <div class="card card-glow">
-                <h2 style="font-size:20px; margin-bottom:20px;">❤️ Избранное</h2>
-                <div id="favoritesContainer">
-                    <div class="loading-spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== TAB: SECURITY ===== -->
-        <div class="tab-panel" id="tab-security">
-            <div class="card card-glow">
-                <h2 style="font-size:22px; margin-bottom:20px;">🔐 Безопасность</h2>
-
-                <div class="settings-group">
-                    <h3>🔑 Смена пароля</h3>
+            <!-- ===== TAB: PROFILE ===== -->
+            <div class="tab-panel active" id="tab-profile">
+                <div class="card card-glow">
+                    <h2 style="margin-bottom:20px; font-size:22px;">👤 Личные данные</h2>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Текущий пароль</label>
-                            <input type="password" class="form-control" id="currentPassword" placeholder="Введите текущий пароль">
+                            <label>Полное имя <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="editName" placeholder="Иванов Иван">
                         </div>
                         <div class="form-group">
-                            <label>Новый пароль</label>
-                            <input type="password" class="form-control" id="newPassword" placeholder="Минимум 6 символов">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="editEmail" disabled>
                         </div>
                         <div class="form-group">
-                            <label>Подтверждение</label>
-                            <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите пароль">
+                            <label>Телефон <span class="required">*</span></label>
+                            <input type="tel" class="form-control" id="editPhone" placeholder="+7 999 123-45-67">
+                        </div>
+                        <div class="form-group">
+                            <label>Город</label>
+                            <input type="text" class="form-control" id="editCity" placeholder="Москва">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1;">
+                            <label>О себе</label>
+                            <textarea class="form-control" id="editBio" rows="3" placeholder="Расскажите о себе..."></textarea>
                         </div>
                     </div>
-                    <button class="btn btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
-                </div>
-
-                <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
-                    <h3>🔐 Двухфакторная аутентификация</h3>
-                    <p style="color:var(--text-muted); margin-bottom:12px;">Повысьте безопасность вашего аккаунта</p>
-                    <button class="btn btn-secondary" id="enable2faBtn">🔐 Включить 2FA</button>
-                </div>
-
-                <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
-                    <div class="danger-zone">
-                        <h3 style="color:#E74C3C;">⚠️ Опасная зона</h3>
-                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
-                            <button class="btn btn-danger" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
-                            <button class="btn btn-danger" id="deleteAccountBtn">🗑️ Удалить аккаунт</button>
-                        </div>
-                    </div>
+                    <button class="btn btn-primary" id="saveProfileBtn">💾 Сохранить изменения</button>
                 </div>
             </div>
-        </div>
 
-        <!-- ===== TAB: SETTINGS ===== -->
-        <div class="tab-panel" id="tab-settings">
-            <div class="card card-glow">
-                <h2 style="font-size:22px; margin-bottom:20px;">⚙️ Настройки</h2>
-
-                <div class="settings-group">
-                    <h3>🔔 Уведомления</h3>
-                    <div class="toggle-wrap" data-setting="notifyEmail">
-                        <div class="toggle active" id="toggleNotifyEmail"></div>
-                        <span class="toggle-label">📧 Уведомления на email</span>
-                    </div>
-                    <div class="toggle-wrap" data-setting="notifyPush">
-                        <div class="toggle active" id="toggleNotifyPush"></div>
-                        <span class="toggle-label">📱 Push-уведомления</span>
-                    </div>
-                    <div class="toggle-wrap" data-setting="notifySMS">
-                        <div class="toggle" id="toggleNotifySMS"></div>
-                        <span class="toggle-label">📲 SMS-уведомления</span>
-                    </div>
-                </div>
-
-                <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
-                    <h3>👁️ Приватность</h3>
-                    <div class="toggle-wrap" data-setting="privacyPhone">
-                        <div class="toggle" id="togglePrivacyPhone"></div>
-                        <span class="toggle-label">📱 Скрыть номер телефона</span>
-                    </div>
-                    <div class="toggle-wrap" data-setting="privacyEmail">
-                        <div class="toggle" id="togglePrivacyEmail"></div>
-                        <span class="toggle-label">📧 Скрыть email</span>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" id="saveSettingsBtn">💾 Сохранить настройки</button>
-            </div>
-        </div>
-
-    </main>
-</div>
-
-<!-- ===== SCRIPTS ===== -->
-<script type="module">
-    // ========================================
-    // ИМПОРТЫ ИЗ firebase-config.js
-    // ========================================
-    import { 
-        auth, 
-        db, 
-        storage,
-        getCurrentUser,
-        getUserData,
-        updateUserData,
-        signOutUser,
-        getStatusText,
-        getFavorites,
-        toggleFavorite
-    } from './firebase-config.js';
-
-    // ========================================
-    // STATE
-    // ========================================
-    let currentUser = null;
-    let userData = {};
-
-    // ========================================
-    // DOM REFS
-    // ========================================
-    const headerActions = document.getElementById('headerActions');
-    const avatarWrap = document.getElementById('avatarWrap');
-    const profileAvatar = document.getElementById('profileAvatar');
-    const avatarInput = document.getElementById('avatarInput');
-    const profileName = document.getElementById('profileName');
-    const profileEmail = document.getElementById('profileEmail');
-    const profileRating = document.getElementById('profileRating');
-
-    // ========================================
-    // AUTH
-    // ========================================
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-        currentUser = user;
-        await loadUserData();
-        await loadStats();
-        await loadMyListings();
-        await loadMyOrders();
-        await loadFavorites();
-        setupHeader();
-        setupTabs();
-        setupEvents();
-    });
-
-    // ========================================
-    // LOAD USER DATA
-    // ========================================
-    async function loadUserData() {
-        const data = await getUserData(currentUser.uid);
-        userData = data || {};
-        
-        profileName.textContent = userData.name || 'Пользователь';
-        profileEmail.textContent = currentUser.email || 'email@example.com';
-        profileRating.textContent = userData.rating || 0;
-        
-        if (userData.photoURL) {
-            profileAvatar.src = userData.photoURL;
-        }
-        
-        // Заполняем формы
-        document.getElementById('editName').value = userData.name || '';
-        document.getElementById('editEmail').value = currentUser.email || '';
-        document.getElementById('editPhone').value = userData.phone || '';
-        document.getElementById('editCity').value = userData.city || '';
-        document.getElementById('editBio').value = userData.bio || '';
-        
-        // Настройки
-        setToggle('notifyEmail', userData.notifyEmail !== false);
-        setToggle('notifyPush', userData.notifyPush !== false);
-        setToggle('notifySMS', userData.notifySMS === true);
-        setToggle('privacyPhone', userData.privacyPhone === true);
-        setToggle('privacyEmail', userData.privacyEmail === true);
-    }
-
-    // ========================================
-    // TOGGLE HELPERS
-    // ========================================
-    function getToggleEl(setting) {
-        const map = {
-            'notifyEmail': 'toggleNotifyEmail',
-            'notifyPush': 'toggleNotifyPush',
-            'notifySMS': 'toggleNotifySMS',
-            'privacyPhone': 'togglePrivacyPhone',
-            'privacyEmail': 'togglePrivacyEmail'
-        };
-        return document.getElementById(map[setting]);
-    }
-
-    function setToggle(setting, value) {
-        const el = getToggleEl(setting);
-        if (el) {
-            if (value) {
-                el.classList.add('active');
-            } else {
-                el.classList.remove('active');
-            }
-        }
-    }
-
-    function getToggleValue(setting) {
-        const el = getToggleEl(setting);
-        return el ? el.classList.contains('active') : false;
-    }
-
-    // ========================================
-    // LOAD STATS
-    // ========================================
-    async function loadStats() {
-        try {
-            const listings = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
-            document.getElementById('statListings').textContent = listings.size;
-            
-            const orders = await db.collection("orders").where("buyerId", "==", currentUser.uid).get();
-            document.getElementById('statOrders').textContent = orders.size;
-            
-            document.getElementById('statBalance').textContent = (userData.balance || 0).toLocaleString() + ' ₽';
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
-    }
-
-    // ========================================
-    // LOAD MY LISTINGS
-    // ========================================
-    async function loadMyListings() {
-        const container = document.getElementById('myListingsContainer');
-        try {
-            const snapshot = await db.collection("listings")
-                .where("sellerId", "==", currentUser.uid)
-                .orderBy("createdAt", "desc")
-                .get();
-            
-            const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            if (listings.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📋</div>
-                        <h3>Нет объявлений</h3>
-                        <p>Создайте своё первое объявление</p>
+            <!-- ===== TAB: LISTINGS ===== -->
+            <div class="tab-panel" id="tab-listings">
+                <div class="card card-glow">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                        <h2 style="font-size:20px;">📋 Мои объявления</h2>
                         <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
                     </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = listings.map(ad => `
-                <div class="mini-listing">
-                    <div class="thumb">${ad.image || '📦'}</div>
-                    <div class="info">
-                        <div class="title">${escapeHtml(ad.title)}</div>
-                        <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
-                        <div class="meta">${ad.status === 'active' ? '✅ Активно' : '⛔ Снято'} • 👁️ ${ad.views || 0}</div>
-                    </div>
-                    <div class="actions">
-                        <a href="post-ad.html?edit=${ad.id}" class="btn btn-secondary btn-sm">✏️</a>
-                        <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
-                        <button class="btn btn-danger btn-sm delete-listing" data-id="${ad.id}">🗑️</button>
+                    <div id="myListingsContainer">
+                        <div class="loading-spinner"></div>
                     </div>
                 </div>
-            `).join('');
-            
-            container.querySelectorAll('.delete-listing').forEach(btn => {
-                btn.onclick = async () => {
-                    if (confirm('Удалить объявление навсегда?')) {
-                        try {
-                            await db.collection("listings").doc(btn.dataset.id).delete();
-                            await loadMyListings();
-                            await loadStats();
-                            showNotification('Объявление удалено', 'success');
-                        } catch (error) {
-                            showNotification('Ошибка удаления', 'error');
-                        }
-                    }
-                };
-            });
-        } catch (error) {
-            console.error('Error loading listings:', error);
-            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
-        }
-    }
+            </div>
 
-    // ========================================
-    // LOAD MY ORDERS
-    // ========================================
-    async function loadMyOrders() {
-        const container = document.getElementById('myOrdersContainer');
-        try {
-            const snapshot = await db.collection("orders")
-                .where("buyerId", "==", currentUser.uid)
-                .orderBy("createdAt", "desc")
-                .get();
-            
-            const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            if (orders.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📦</div>
-                        <h3>Нет заказов</h3>
-                        <p>Вы ещё не совершали покупок</p>
-                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+            <!-- ===== TAB: ORDERS (ПОКУПАТЕЛЯ) ===== -->
+            <div class="tab-panel" id="tab-orders">
+                <div class="card card-glow">
+                    <h2 style="font-size:20px; margin-bottom:20px;">📦 Мои заказы</h2>
+                    <div id="myOrdersContainer">
+                        <div class="loading-spinner"></div>
                     </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = orders.map(order => `
-                <div class="mini-listing">
-                    <div class="thumb">📦</div>
-                    <div class="info">
-                        <div class="title">${escapeHtml(order.listingTitle || 'Товар')}</div>
-                        <div class="price">${Number(order.total || order.price || 0).toLocaleString()} ₽</div>
-                        <div class="meta">
-                            <span class="badge ${order.status === 'completed' ? 'badge-success' : order.status === 'cancelled' ? 'badge-danger' : 'badge-warning'}">
-                                ${getStatusText(order.status)}
-                            </span>
-                            ${order.trackingNumber ? `📮 ${order.trackingNumber}` : ''}
+                </div>
+            </div>
+
+            <!-- ===== TAB: SELLER ORDERS ===== -->
+            <div class="tab-panel" id="tab-seller-orders">
+                <div class="card card-glow">
+                    <h2 style="font-size:20px; margin-bottom:20px;">📦 Заказы продавца</h2>
+                    <div id="sellerOrdersContainer">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: FAVORITES ===== -->
+            <div class="tab-panel" id="tab-favorites">
+                <div class="card card-glow">
+                    <h2 style="font-size:20px; margin-bottom:20px;">❤️ Избранное</h2>
+                    <div id="favoritesContainer">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: SECURITY ===== -->
+            <div class="tab-panel" id="tab-security">
+                <div class="card card-glow">
+                    <h2 style="font-size:22px; margin-bottom:20px;">🔐 Безопасность</h2>
+
+                    <div class="settings-group">
+                        <h3>🔑 Смена пароля</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Текущий пароль</label>
+                                <input type="password" class="form-control" id="currentPassword" placeholder="Введите текущий пароль">
+                            </div>
+                            <div class="form-group">
+                                <label>Новый пароль</label>
+                                <input type="password" class="form-control" id="newPassword" placeholder="Минимум 6 символов">
+                            </div>
+                            <div class="form-group">
+                                <label>Подтверждение</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите пароль">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
+                    </div>
+
+                    <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
+                        <h3>🔐 Двухфакторная аутентификация</h3>
+                        <p style="color:var(--text-muted); margin-bottom:12px;">Повысьте безопасность вашего аккаунта</p>
+                        <button class="btn btn-secondary" id="enable2faBtn">🔐 Включить 2FA</button>
+                    </div>
+
+                    <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
+                        <div class="danger-zone">
+                            <h3 style="color:#E74C3C;">⚠️ Опасная зона</h3>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
+                                <button class="btn btn-danger" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
+                                <button class="btn btn-danger" id="deleteAccountBtn">🗑️ Удалить аккаунт</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="actions">
-                        <a href="product.html?id=${order.listingId}" class="btn btn-secondary btn-sm">👁️</a>
-                    </div>
                 </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error loading orders:', error);
-            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
-        }
-    }
+            </div>
 
-    // ========================================
-    // LOAD FAVORITES
-    // ========================================
-    async function loadFavorites() {
-        const container = document.getElementById('favoritesContainer');
-        try {
-            const favoriteIds = await getFavorites(currentUser.uid);
-            
-            if (favoriteIds.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">❤️</div>
-                        <h3>Нет избранных</h3>
-                        <p>Добавляйте товары в избранное</p>
-                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+            <!-- ===== TAB: SETTINGS ===== -->
+            <div class="tab-panel" id="tab-settings">
+                <div class="card card-glow">
+                    <h2 style="font-size:22px; margin-bottom:20px;">⚙️ Настройки</h2>
+
+                    <div class="settings-group">
+                        <h3>🔔 Уведомления</h3>
+                        <div class="toggle-wrap" data-setting="notifyEmail">
+                            <div class="toggle active" id="toggleNotifyEmail"></div>
+                            <span class="toggle-label">📧 Уведомления на email</span>
+                        </div>
+                        <div class="toggle-wrap" data-setting="notifyPush">
+                            <div class="toggle active" id="toggleNotifyPush"></div>
+                            <span class="toggle-label">📱 Push-уведомления</span>
+                        </div>
+                        <div class="toggle-wrap" data-setting="notifySMS">
+                            <div class="toggle" id="toggleNotifySMS"></div>
+                            <span class="toggle-label">📲 SMS-уведомления</span>
+                        </div>
                     </div>
-                `;
-                return;
-            }
-            
-            const listings = [];
-            for (const id of favoriteIds) {
-                const doc = await db.collection("listings").doc(id).get();
-                if (doc.exists) {
-                    listings.push({ id: doc.id, ...doc.data() });
-                }
-            }
-            
-            if (listings.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">❤️</div>
-                        <h3>Нет избранных</h3>
-                        <p>Добавляйте товары в избранное</p>
-                        <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+
+                    <div class="settings-group" style="border-top:1px solid var(--border-color); padding-top:24px;">
+                        <h3>👁️ Приватность</h3>
+                        <div class="toggle-wrap" data-setting="privacyPhone">
+                            <div class="toggle" id="togglePrivacyPhone"></div>
+                            <span class="toggle-label">📱 Скрыть номер телефона</span>
+                        </div>
+                        <div class="toggle-wrap" data-setting="privacyEmail">
+                            <div class="toggle" id="togglePrivacyEmail"></div>
+                            <span class="toggle-label">📧 Скрыть email</span>
+                        </div>
                     </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = listings.map(ad => `
-                <div class="mini-listing">
-                    <div class="thumb">${ad.image || '📦'}</div>
-                    <div class="info">
-                        <div class="title">${escapeHtml(ad.title)}</div>
-                        <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
-                    </div>
-                    <div class="actions">
-                        <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
-                        <button class="btn btn-danger btn-sm remove-favorite" data-id="${ad.id}">❤️</button>
-                    </div>
+
+                    <button class="btn btn-primary" id="saveSettingsBtn">💾 Сохранить настройки</button>
                 </div>
-            `).join('');
-            
-            container.querySelectorAll('.remove-favorite').forEach(btn => {
-                btn.onclick = async () => {
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ======================================== -->
+    <!-- SCRIPTS -->
+    <!-- ======================================== -->
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let userData = {};
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const avatarWrap = document.getElementById('avatarWrap');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const avatarInput = document.getElementById('avatarInput');
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const profileRating = document.getElementById('profileRating');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = user;
+            await loadUserData();
+            await loadStats();
+            await loadMyListings();
+            await loadMyOrders();
+            await loadSellerOrders();
+            await loadFavorites();
+            setupHeader();
+            setupTabs();
+            setupEvents();
+        });
+
+        // ========================================
+        // LOAD USER DATA
+        // ========================================
+        async function loadUserData() {
+            try {
+                const doc = await db.collection("users").doc(currentUser.uid).get();
+                userData = doc.data() || {};
+
+                profileName.textContent = userData.name || 'Пользователь';
+                profileEmail.textContent = currentUser.email || 'email@example.com';
+                profileRating.textContent = userData.rating || 0;
+
+                if (userData.photoURL) {
+                    profileAvatar.src = userData.photoURL;
+                }
+
+                document.getElementById('editName').value = userData.name || '';
+                document.getElementById('editEmail').value = currentUser.email || '';
+                document.getElementById('editPhone').value = userData.phone || '';
+                document.getElementById('editCity').value = userData.city || '';
+                document.getElementById('editBio').value = userData.bio || '';
+
+                setToggle('notifyEmail', userData.notifyEmail !== false);
+                setToggle('notifyPush', userData.notifyPush !== false);
+                setToggle('notifySMS', userData.notifySMS === true);
+                setToggle('privacyPhone', userData.privacyPhone === true);
+                setToggle('privacyEmail', userData.privacyEmail === true);
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showNotification('Ошибка загрузки профиля', 'error');
+            }
+        }
+
+        // ========================================
+        // TOGGLE HELPERS
+        // ========================================
+        function getToggleEl(setting) {
+            const map = {
+                'notifyEmail': 'toggleNotifyEmail',
+                'notifyPush': 'toggleNotifyPush',
+                'notifySMS': 'toggleNotifySMS',
+                'privacyPhone': 'togglePrivacyPhone',
+                'privacyEmail': 'togglePrivacyEmail'
+            };
+            return document.getElementById(map[setting]);
+        }
+
+        function setToggle(setting, value) {
+            const el = getToggleEl(setting);
+            if (el) {
+                if (value) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        }
+
+        function getToggleValue(setting) {
+            const el = getToggleEl(setting);
+            return el ? el.classList.contains('active') : false;
+        }
+
+        // ========================================
+        // LOAD STATS
+        // ========================================
+        async function loadStats() {
+            try {
+                const listings = await db.collection("listings").where("sellerId", "==", currentUser.uid).get();
+                document.getElementById('statListings').textContent = listings.size;
+
+                const orders = await db.collection("orders").where("buyerId", "==", currentUser.uid).get();
+                document.getElementById('statOrders').textContent = orders.size;
+
+                document.getElementById('statBalance').textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // ========================================
+        // LOAD MY LISTINGS
+        // ========================================
+        async function loadMyListings() {
+            const container = document.getElementById('myListingsContainer');
+            try {
+                const snapshot = await db.collection("listings")
+                    .where("sellerId", "==", currentUser.uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (listings.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📋</div>
+                            <h3>Нет объявлений</h3>
+                            <p>Создайте своё первое объявление</p>
+                            <a href="post-ad.html" class="btn btn-primary">➕ Создать</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = listings.map(ad => `
+                    <div class="mini-listing">
+                        <div class="thumb">${ad.image || '📦'}</div>
+                        <div class="info">
+                            <div class="title">${escapeHtml(ad.title)}</div>
+                            <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
+                            <div class="meta">${ad.status === 'active' ? '✅ Активно' : '⛔ Снято'} • 👁️ ${ad.views || 0}</div>
+                        </div>
+                        <div class="actions">
+                            <a href="post-ad.html?edit=${ad.id}" class="btn btn-secondary btn-sm">✏️</a>
+                            <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
+                            <button class="btn btn-danger btn-sm delete-listing" data-id="${ad.id}">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('.delete-listing').forEach(btn => {
+                    btn.onclick = async () => {
+                        if (confirm('Удалить объявление навсегда?')) {
+                            try {
+                                await db.collection("listings").doc(btn.dataset.id).delete();
+                                await loadMyListings();
+                                await loadStats();
+                                showNotification('Объявление удалено', 'success');
+                            } catch (error) {
+                                showNotification('Ошибка удаления', 'error');
+                            }
+                        }
+                    };
+                });
+
+            } catch (error) {
+                console.error('Error loading listings:', error);
+                container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        // ========================================
+        // LOAD MY ORDERS (ПОКУПАТЕЛЬ)
+        // ========================================
+        async function loadMyOrders() {
+            const container = document.getElementById('myOrdersContainer');
+            try {
+                const snapshot = await db.collection("orders")
+                    .where("buyerId", "==", currentUser.uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📦</div>
+                            <h3>Нет заказов</h3>
+                            <p>Вы ещё не совершали покупок</p>
+                            <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => `
+                    <div class="mini-listing">
+                        <div class="thumb">📦</div>
+                        <div class="info">
+                            <div class="title">${escapeHtml(order.listingTitle || 'Товар')}</div>
+                            <div class="price">${Number(order.total || order.price || 0).toLocaleString()} ₽</div>
+                            <div class="meta">
+                                <span class="badge ${order.status === 'completed' ? 'badge-success' : order.status === 'cancelled' ? 'badge-danger' : order.status === 'shipped' ? 'badge-info' : 'badge-warning'}">
+                                    ${getStatusText(order.status)}
+                                </span>
+                                ${order.deliveryType === 'delivery' ? '🚚 Доставка Ozon' : '🤝 Без доставки'}
+                            </div>
+                            ${order.trackingNumber ? `<div class="meta">📮 Трек: ${order.trackingNumber}</div>` : ''}
+                        </div>
+                        <div class="actions">
+                            <a href="product.html?id=${order.listingId}" class="btn btn-secondary btn-sm">👁️</a>
+                            ${order.status === 'completed' && !order.reviewGiven ? `
+                                <button class="btn btn-primary btn-sm" onclick="openReview('${order.id}')">⭐ Оставить отзыв</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        // ========================================
+        // LOAD SELLER ORDERS
+        // ========================================
+        async function loadSellerOrders() {
+            const container = document.getElementById('sellerOrdersContainer');
+            try {
+                const snapshot = await db.collection("orders")
+                    .where("sellerId", "==", currentUser.uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <h3>Нет заказов</h3>
+                            <p>У вас пока нет заказов от покупателей</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => `
+                    <div class="mini-listing">
+                        <div class="thumb">📦</div>
+                        <div class="info">
+                            <div class="title">Заказ #${order.id.substring(0,8)}</div>
+                            <div class="price">${Number(order.total).toLocaleString()} ₽</div>
+                            <div class="meta">
+                                <span>👤 ${escapeHtml(order.buyerName || 'Покупатель')}</span>
+                                <span class="badge ${order.status === 'completed' ? 'badge-success' : order.status === 'cancelled' ? 'badge-danger' : order.status === 'shipped' ? 'badge-info' : 'badge-warning'}">
+                                    ${getStatusText(order.status)}
+                                </span>
+                            </div>
+                            <div class="meta">${order.deliveryType === 'delivery' ? '🚚 Доставка Ozon' : '🤝 Без доставки'}</div>
+                            ${order.trackingNumber ? `<div class="meta">📮 Трек: ${order.trackingNumber}</div>` : ''}
+                            ${order.pickupPoint ? `<div class="meta">📍 ПВЗ: ${escapeHtml(order.pickupPoint)}</div>` : ''}
+                        </div>
+                        <div class="actions">
+                            ${order.status === 'paid' ? `
+                                <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order.id}', 'shipped')">🚚 Отправить</button>
+                            ` : ''}
+                            ${order.status === 'shipped' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'delivered')">📦 Доставлен</button>
+                            ` : ''}
+                            ${order.status === 'delivered' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'completed')">✅ Завершить</button>
+                            ` : ''}
+                            ${order.status === 'pending' || order.status === 'paid' ? `
+                                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${order.id}', 'cancelled')">❌ Отменить</button>
+                            ` : ''}
+                            ${order.status === 'shipped' || order.status === 'delivered' ? `
+                                <button class="btn btn-secondary btn-sm" onclick="addTracking('${order.id}')">📮 Трек</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Делаем функции глобальными
+                window.updateOrderStatus = async (orderId, status) => {
+                    if (!confirm(`Изменить статус заказа на "${getStatusText(status)}"?`)) return;
+
                     try {
-                        await toggleFavorite(currentUser.uid, btn.dataset.id);
-                        await loadFavorites();
-                        showNotification('Удалено из избранного', 'info');
+                        await db.collection("orders").doc(orderId).update({
+                            status: status,
+                            updatedAt: new Date().toISOString()
+                        });
+
+                        // Если заказ завершён — обновляем сделки продавца
+                        if (status === 'completed') {
+                            const orderDoc = await db.collection("orders").doc(orderId).get();
+                            const order = orderDoc.data();
+                            const userRef = db.collection("users").doc(order.sellerId);
+                            const userDoc = await userRef.get();
+                            const currentDeals = userDoc.data()?.completedDeals || 0;
+                            await userRef.update({ completedDeals: currentDeals + 1 });
+                        }
+
+                        showNotification('Статус обновлён!', 'success');
+                        await loadSellerOrders();
+                        await loadStats();
+
                     } catch (error) {
+                        console.error('Error updating order:', error);
+                        showNotification('Ошибка обновления статуса', 'error');
+                    }
+                };
+
+                window.addTracking = async (orderId) => {
+                    const tracking = prompt('Введите трек-номер для отслеживания:');
+                    if (!tracking) return;
+
+                    try {
+                        await db.collection("orders").doc(orderId).update({
+                            trackingNumber: tracking,
+                            updatedAt: new Date().toISOString()
+                        });
+                        showNotification('Трек-номер добавлен!', 'success');
+                        await loadSellerOrders();
+                    } catch (error) {
+                        console.error('Error adding tracking:', error);
                         showNotification('Ошибка', 'error');
                     }
                 };
-            });
-        } catch (error) {
-            console.error('Error loading favorites:', error);
-            container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+
+            } catch (error) {
+                console.error('Error loading seller orders:', error);
+                container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
         }
-    }
 
-    // ========================================
-    // SETUP HEADER
-    // ========================================
-    function setupHeader() {
-        headerActions.innerHTML = `
-            <div class="balance-badge" id="headerBalance">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
-            <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
-            <a href="wallet.html" class="btn btn-secondary btn-sm">💳</a>
-            <div class="header-user" onclick="window.location.href='profile.html'">
-                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
-                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
-            </div>
-        `;
-        document.getElementById('headerBalance').onclick = () => window.location.href = 'wallet.html';
-    }
-
-    // ========================================
-    // SETUP TABS
-    // ========================================
-    function setupTabs() {
-        const menuBtns = document.querySelectorAll('.profile-menu button');
-        const panels = {
-            profile: document.getElementById('tab-profile'),
-            listings: document.getElementById('tab-listings'),
-            orders: document.getElementById('tab-orders'),
-            favorites: document.getElementById('tab-favorites'),
-            security: document.getElementById('tab-security'),
-            settings: document.getElementById('tab-settings')
-        };
-
-        menuBtns.forEach(btn => {
-            btn.onclick = () => {
-                const tab = btn.dataset.tab;
-                
-                menuBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                Object.values(panels).forEach(p => p.classList.remove('active'));
-                if (panels[tab]) panels[tab].classList.add('active');
-            };
-        });
-    }
-
-    // ========================================
-    // SETUP EVENTS
-    // ========================================
-    function setupEvents() {
-        // Avatar upload
-        avatarWrap.onclick = () => avatarInput.click();
-        avatarInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
+        // ========================================
+        // LOAD FAVORITES
+        // ========================================
+        async function loadFavorites() {
+            const container = document.getElementById('favoritesContainer');
             try {
-                const storageRef = storage.ref(`avatars/${currentUser.uid}`);
-                await storageRef.put(file);
-                const url = await storageRef.getDownloadURL();
-                await updateUserData(currentUser.uid, { photoURL: url });
-                profileAvatar.src = url;
-                showNotification('Аватар обновлён', 'success');
-                setupHeader();
-            } catch (error) {
-                showNotification('Ошибка загрузки аватара', 'error');
-            }
-        };
+                const snapshot = await db.collection("favorites")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
 
-        // Save profile
-        document.getElementById('saveProfileBtn').onclick = async () => {
-            const name = document.getElementById('editName').value.trim();
-            const phone = document.getElementById('editPhone').value.trim();
-            
-            if (!name || !phone) {
-                showNotification('Заполните имя и телефон', 'error');
-                return;
-            }
-            
-            try {
-                const data = {
-                    name: name,
-                    phone: phone,
-                    city: document.getElementById('editCity').value.trim(),
-                    bio: document.getElementById('editBio').value.trim()
-                };
-                await updateUserData(currentUser.uid, data);
-                userData = { ...userData, ...data };
-                profileName.textContent = data.name || 'Пользователь';
-                showNotification('Профиль обновлён', 'success');
-                setupHeader();
-            } catch (error) {
-                showNotification('Ошибка сохранения', 'error');
-            }
-        };
+                const favoriteIds = snapshot.docs.map(doc => doc.data().listingId);
 
-        // Change password
-        document.getElementById('changePasswordBtn').onclick = async () => {
-            const current = document.getElementById('currentPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
-            
-            if (!current || !newPass) {
-                showNotification('Заполните все поля', 'error');
-                return;
-            }
-            if (newPass !== confirm) {
-                showNotification('Пароли не совпадают', 'error');
-                return;
-            }
-            if (newPass.length < 6) {
-                showNotification('Пароль должен быть минимум 6 символов', 'error');
-                return;
-            }
-            
-            try {
-                const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, current);
-                await currentUser.reauthenticateWithCredential(credential);
-                await currentUser.updatePassword(newPass);
-                showNotification('Пароль изменён', 'success');
-                document.getElementById('currentPassword').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('confirmPassword').value = '';
-            } catch (e) {
-                showNotification('Неверный текущий пароль', 'error');
-            }
-        };
+                if (favoriteIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">❤️</div>
+                            <h3>Нет избранных</h3>
+                            <p>Добавляйте товары в избранное</p>
+                            <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                        </div>
+                    `;
+                    return;
+                }
 
-        // Toggle clicks
-        document.querySelectorAll('.toggle-wrap').forEach(wrap => {
-            wrap.onclick = () => {
-                const toggle = wrap.querySelector('.toggle');
-                toggle.classList.toggle('active');
-            };
-        });
-
-        // Logout all
-        document.getElementById('logoutAllBtn').onclick = () => {
-            if (confirm('Выйти из всех устройств?')) {
-                signOutUser();
-            }
-        };
-
-        // Delete account
-        document.getElementById('deleteAccountBtn').onclick = async () => {
-            if (confirm('⚠️ Вы уверены? Это действие необратимо!')) {
-                if (confirm('Все ваши данные будут удалены навсегда. Продолжить?')) {
-                    try {
-                        await currentUser.delete();
-                        window.location.href = 'index.html';
-                    } catch (e) {
-                        showNotification('Ошибка удаления аккаунта. Попробуйте войти заново.', 'error');
+                const listings = [];
+                for (const id of favoriteIds) {
+                    const doc = await db.collection("listings").doc(id).get();
+                    if (doc.exists) {
+                        listings.push({ id: doc.id, ...doc.data() });
                     }
                 }
-            }
-        };
 
-        // 2FA
-        document.getElementById('enable2faBtn').onclick = () => {
-            showNotification('🔐 Функция будет доступна в ближайшее время', 'info');
-        };
+                if (listings.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">❤️</div>
+                            <h3>Нет избранных</h3>
+                            <p>Добавляйте товары в избранное</p>
+                            <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                        </div>
+                    `;
+                    return;
+                }
 
-        // Save settings
-        document.getElementById('saveSettingsBtn').onclick = async () => {
-            try {
-                const settings = {
-                    notifyEmail: getToggleValue('notifyEmail'),
-                    notifyPush: getToggleValue('notifyPush'),
-                    notifySMS: getToggleValue('notifySMS'),
-                    privacyPhone: getToggleValue('privacyPhone'),
-                    privacyEmail: getToggleValue('privacyEmail')
-                };
-                await updateUserData(currentUser.uid, settings);
-                userData = { ...userData, ...settings };
-                showNotification('Настройки сохранены', 'success');
+                container.innerHTML = listings.map(ad => `
+                    <div class="mini-listing">
+                        <div class="thumb">${ad.image || '📦'}</div>
+                        <div class="info">
+                            <div class="title">${escapeHtml(ad.title)}</div>
+                            <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
+                        </div>
+                        <div class="actions">
+                            <a href="product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
+                            <button class="btn btn-danger btn-sm remove-favorite" data-id="${ad.id}">❤️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('.remove-favorite').forEach(btn => {
+                    btn.onclick = async () => {
+                        try {
+                            const snap = await db.collection("favorites")
+                                .where("userId", "==", currentUser.uid)
+                                .where("listingId", "==", btn.dataset.id)
+                                .get();
+                            snap.forEach(doc => doc.ref.delete());
+                            await loadFavorites();
+                            showNotification('Удалено из избранного', 'info');
+                        } catch (error) {
+                            showNotification('Ошибка', 'error');
+                        }
+                    };
+                });
+
             } catch (error) {
-                showNotification('Ошибка сохранения настроек', 'error');
+                console.error('Error loading favorites:', error);
+                container.innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        // ========================================
+        // SETUP HEADER
+        // ========================================
+        function setupHeader() {
+            headerActions.innerHTML = `
+                <div class="balance-badge" id="headerBalance">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                <a href="wallet.html" class="btn btn-secondary btn-sm">💳</a>
+                <div class="header-user" onclick="window.location.href='profile.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+            document.getElementById('headerBalance').onclick = () => window.location.href = 'wallet.html';
+        }
+
+        // ========================================
+        // SETUP TABS
+        // ========================================
+        function setupTabs() {
+            const menuBtns = document.querySelectorAll('.profile-menu button');
+            const panels = {
+                profile: document.getElementById('tab-profile'),
+                listings: document.getElementById('tab-listings'),
+                orders: document.getElementById('tab-orders'),
+                'seller-orders': document.getElementById('tab-seller-orders'),
+                favorites: document.getElementById('tab-favorites'),
+                security: document.getElementById('tab-security'),
+                settings: document.getElementById('tab-settings')
+            };
+
+            menuBtns.forEach(btn => {
+                btn.onclick = () => {
+                    const tab = btn.dataset.tab;
+                    menuBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    Object.values(panels).forEach(p => p.classList.remove('active'));
+                    if (panels[tab]) panels[tab].classList.add('active');
+                };
+            });
+        }
+
+        // ========================================
+        // SETUP EVENTS
+        // ========================================
+        function setupEvents() {
+            // Avatar upload
+            avatarWrap.onclick = () => avatarInput.click();
+            avatarInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    const storageRef = storage.ref(`avatars/${currentUser.uid}`);
+                    await storageRef.put(file);
+                    const url = await storageRef.getDownloadURL();
+                    await db.collection("users").doc(currentUser.uid).update({ photoURL: url });
+                    profileAvatar.src = url;
+                    showNotification('Аватар обновлён', 'success');
+                    setupHeader();
+                } catch (error) {
+                    showNotification('Ошибка загрузки аватара', 'error');
+                }
+            };
+
+            // Save profile
+            document.getElementById('saveProfileBtn').onclick = async () => {
+                const name = document.getElementById('editName').value.trim();
+                const phone = document.getElementById('editPhone').value.trim();
+
+                if (!name || !phone) {
+                    showNotification('Заполните имя и телефон', 'error');
+                    return;
+                }
+
+                try {
+                    const data = {
+                        name: name,
+                        phone: phone,
+                        city: document.getElementById('editCity').value.trim(),
+                        bio: document.getElementById('editBio').value.trim()
+                    };
+                    await db.collection("users").doc(currentUser.uid).update(data);
+                    userData = { ...userData, ...data };
+                    profileName.textContent = data.name || 'Пользователь';
+                    showNotification('Профиль обновлён', 'success');
+                    setupHeader();
+                } catch (error) {
+                    showNotification('Ошибка сохранения', 'error');
+                }
+            };
+
+            // Change password
+            document.getElementById('changePasswordBtn').onclick = async () => {
+                const current = document.getElementById('currentPassword').value;
+                const newPass = document.getElementById('newPassword').value;
+                const confirm = document.getElementById('confirmPassword').value;
+
+                if (!current || !newPass) {
+                    showNotification('Заполните все поля', 'error');
+                    return;
+                }
+                if (newPass !== confirm) {
+                    showNotification('Пароли не совпадают', 'error');
+                    return;
+                }
+                if (newPass.length < 6) {
+                    showNotification('Пароль должен быть минимум 6 символов', 'error');
+                    return;
+                }
+
+                try {
+                    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, current);
+                    await currentUser.reauthenticateWithCredential(credential);
+                    await currentUser.updatePassword(newPass);
+                    showNotification('Пароль изменён', 'success');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } catch (e) {
+                    showNotification('Неверный текущий пароль', 'error');
+                }
+            };
+
+            // Toggle clicks
+            document.querySelectorAll('.toggle-wrap').forEach(wrap => {
+                wrap.onclick = () => {
+                    const toggle = wrap.querySelector('.toggle');
+                    toggle.classList.toggle('active');
+                };
+            });
+
+            // Logout all
+            document.getElementById('logoutAllBtn').onclick = () => {
+                if (confirm('Выйти из всех устройств?')) {
+                    auth.signOut();
+                    window.location.href = 'index.html';
+                }
+            };
+
+            // Delete account
+            document.getElementById('deleteAccountBtn').onclick = async () => {
+                if (confirm('⚠️ Вы уверены? Это действие необратимо!')) {
+                    if (confirm('Все ваши данные будут удалены навсегда. Продолжить?')) {
+                        try {
+                            await currentUser.delete();
+                            window.location.href = 'index.html';
+                        } catch (e) {
+                            showNotification('Ошибка удаления аккаунта. Попробуйте войти заново.', 'error');
+                        }
+                    }
+                }
+            };
+
+            // 2FA
+            document.getElementById('enable2faBtn').onclick = () => {
+                showNotification('🔐 Функция будет доступна в ближайшее время', 'info');
+            };
+
+            // Save settings
+            document.getElementById('saveSettingsBtn').onclick = async () => {
+                try {
+                    const settings = {
+                        notifyEmail: getToggleValue('notifyEmail'),
+                        notifyPush: getToggleValue('notifyPush'),
+                        notifySMS: getToggleValue('notifySMS'),
+                        privacyPhone: getToggleValue('privacyPhone'),
+                        privacyEmail: getToggleValue('privacyEmail')
+                    };
+                    await db.collection("users").doc(currentUser.uid).update(settings);
+                    userData = { ...userData, ...settings };
+                    showNotification('Настройки сохранены', 'success');
+                } catch (error) {
+                    showNotification('Ошибка сохранения настроек', 'error');
+                }
+            };
+        }
+
+        // ========================================
+        // HELPER FUNCTIONS
+        // ========================================
+
+        function getStatusText(status) {
+            const map = {
+                'pending': '⏳ Ожидает',
+                'paid': '✅ Оплачен',
+                'shipped': '🚚 Отправлен',
+                'delivered': '📦 Доставлен',
+                'completed': '🎉 Завершён',
+                'cancelled': '❌ Отменён'
+            };
+            return map[status] || status;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ========================================
+        // ОТЗЫВЫ
+        // ========================================
+        window.openReview = async (orderId) => {
+            const rating = prompt('Оцените продавца от 1 до 5:');
+            if (!rating || rating < 1 || rating > 5) {
+                showNotification('Введите число от 1 до 5', 'error');
+                return;
+            }
+
+            const text = prompt('Напишите отзыв:');
+            if (!text) {
+                showNotification('Напишите текст отзыва', 'error');
+                return;
+            }
+
+            try {
+                const orderDoc = await db.collection("orders").doc(orderId).get();
+                const order = orderDoc.data();
+
+                // Добавляем отзыв продавцу
+                const sellerRef = db.collection("users").doc(order.sellerId);
+                const sellerDoc = await sellerRef.get();
+                const sellerData = sellerDoc.data() || {};
+
+                const reviews = sellerData.reviews || [];
+                reviews.push({
+                    userId: currentUser.uid,
+                    userName: userData.name || 'Пользователь',
+                    rating: parseInt(rating),
+                    text: text,
+                    createdAt: new Date().toISOString()
+                });
+
+                // Обновляем рейтинг
+                const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+                const avgRating = Math.round((totalRating / reviews.length) * 100);
+
+                await sellerRef.update({
+                    reviews: reviews,
+                    rating: avgRating
+                });
+
+                // Отмечаем что отзыв оставлен
+                await db.collection("orders").doc(orderId).update({
+                    reviewGiven: true
+                });
+
+                showNotification('⭐ Спасибо за отзыв!', 'success');
+                await loadMyOrders();
+
+            } catch (error) {
+                console.error('Error saving review:', error);
+                showNotification('Ошибка сохранения отзыва', 'error');
             }
         };
-    }
-
-    // ========================================
-    // HELPERS
-    // ========================================
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-    }
-
-    function showNotification(message, type = 'info') {
-        // Удаляем старые уведомления
-        document.querySelectorAll('.notification').forEach(el => el.remove());
-        
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100px)';
-            setTimeout(() => notification.remove(), 400);
-        }, 3500);
-    }
-</script>
+    </script>
 </body>
 </html>

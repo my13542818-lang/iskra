@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказы продавца — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .orders-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        .order-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px;
+            transition: var(--transition);
+        }
+        .order-card:hover { border-color: var(--secondary); }
+        .order-header {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .order-header .id { font-size: 13px; color: var(--text-muted); }
+        .order-status {
+            padding: 4px 14px; border-radius: var(--radius-full);
+            font-size: 12px; font-weight: 600;
+        }
+        .order-status.pending { background: rgba(243, 156, 18, 0.2); color: #F39C12; }
+        .order-status.paid { background: rgba(52, 152, 219, 0.2); color: #3498DB; }
+        .order-status.shipped { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .order-status.delivered { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .order-status.completed { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .order-status.cancelled { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
+
+        .order-products { margin: 12px 0; padding: 12px; background: var(--bg-input); border-radius: var(--radius); }
+        .order-product { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border-color); }
+        .order-product:last-child { border-bottom: none; }
+
+        .order-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .order-actions .btn { padding: 8px 20px; font-size: 13px; }
+
+        .delivery-info {
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 12px 16px; font-size: 13px; color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .delivery-info strong { color: var(--text-secondary); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <div class="orders-container">
+        <h1 style="margin-bottom:24px;font-size:28px;">📦 Мои заказы (продавцу)</h1>
+        <div id="ordersList">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p style="color:var(--text-muted);">Загрузка...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== FIREBASE =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ===== DOM =====
+        const headerActions = document.getElementById('headerActions');
+        const ordersList = document.getElementById('ordersList');
+
+        // ===== HEADER =====
+        function setupHeader(userData) {
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                <div class="header-user" onclick="window.location.href='profile.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        }
+
+        // ===== ЗАГРУЗКА ЗАКАЗОВ =====
+        async function loadOrders(userId) {
+            try {
+                const snapshot = await db.collection("orders")
+                    .where("sellerId", "==", userId)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (orders.length === 0) {
+                    ordersList.innerHTML = `
+                        <div class="empty-state">
+                            <span class="icon">📭</span>
+                            <h3>Нет заказов</h3>
+                            <p>У вас пока нет заказов от покупателей</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                ordersList.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <strong>Заказ #${order.id.substring(0,8)}</strong>
+                                <span class="order-id" style="font-size:12px;color:var(--text-muted);">от ${new Date(order.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <span class="order-status ${order.status}">${getStatusText(order.status)}</span>
+                        </div>
+
+                        <div class="order-products">
+                            ${order.items ? order.items.map(item => `
+                                <div class="order-product">
+                                    <span>${escapeHtml(item.title)} × ${item.qty || 1}</span>
+                                    <span>${Number(item.price).toLocaleString()} ₽</span>
+                                </div>
+                            `).join('') : `
+                                <div class="order-product">
+                                    <span>${escapeHtml(order.listingTitle || 'Товар')}</span>
+                                    <span>${Number(order.total || order.price).toLocaleString()} ₽</span>
+                                </div>
+                            `}
+                            <div style="text-align:right;font-weight:600;padding-top:8px;border-top:1px solid var(--border-color);margin-top:8px;">
+                                Итого: ${Number(order.total).toLocaleString()} ₽
+                            </div>
+                        </div>
+
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--text-muted);">
+                            <span>👤 ${escapeHtml(order.buyerName || 'Покупатель')}</span>
+                            ${order.deliveryType === 'delivery' ? `
+                                <span>🚚 Доставка через Ozon</span>
+                                ${order.pickupPoint ? `<span>📍 ПВЗ: ${escapeHtml(order.pickupPoint)}</span>` : ''}
+                            ` : `
+                                <span>🤝 Без доставки (встреча)</span>
+                            `}
+                            ${order.trackingNumber ? `<span>📮 Трек: ${order.trackingNumber}</span>` : ''}
+                        </div>
+
+                        ${order.status === 'paid' && order.deliveryType === 'delivery' ? `
+                            <div class="delivery-info">
+                                <strong>📦 Товар оплачен</strong>
+                                <p style="margin-top:4px;">Соберите товар и отправьте его в пункт выдачи Ozon. После отправки обновите статус.</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="order-actions">
+                            ${order.status === 'paid' ? `
+                                <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order.id}', 'shipped')">🚚 Отправлен</button>
+                            ` : ''}
+                            ${order.status === 'shipped' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'delivered')">📦 Доставлен</button>
+                            ` : ''}
+                            ${order.status === 'delivered' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'completed')">✅ Завершить</button>
+                            ` : ''}
+                            ${order.status === 'pending' ? `
+                                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${order.id}', 'cancelled')">❌ Отменить</button>
+                            ` : ''}
+                            ${order.status === 'shipped' || order.status === 'delivered' ? `
+                                <button class="btn btn-secondary btn-sm" onclick="addTracking('${order.id}')">📮 Добавить трек</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                ordersList.innerHTML = `<div class="empty-state"><p>Ошибка загрузки заказов</p></div>`;
+            }
+        }
+
+        // ===== ОБНОВЛЕНИЕ СТАТУСА =====
+        window.updateOrderStatus = async (orderId, status) => {
+            if (!confirm(`Изменить статус заказа на "${getStatusText(status)}"?`)) return;
+
+            try {
+                await db.collection("orders").doc(orderId).update({
+                    status: status,
+                    updatedAt: new Date().toISOString()
+                });
+
+                // Если заказ завершён — добавляем сделку продавцу
+                if (status === 'completed') {
+                    const orderDoc = await db.collection("orders").doc(orderId).get();
+                    const order = orderDoc.data();
+                    
+                    // Обновляем количество сделок продавца
+                    const userRef = db.collection("users").doc(order.sellerId);
+                    const userDoc = await userRef.get();
+                    const currentDeals = userDoc.data()?.completedDeals || 0;
+                    await userRef.update({
+                        completedDeals: currentDeals + 1
+                    });
+
+                    // Добавляем в архив продавца
+                    await db.collection("seller_archive").add({
+                        sellerId: order.sellerId,
+                        orderId: orderId,
+                        buyerId: order.buyerId,
+                        listingTitle: order.listingTitle || 'Товар',
+                        total: order.total,
+                        status: 'completed',
+                        completedAt: new Date().toISOString()
+                    });
+                }
+
+                showNotification('Статус обновлён!', 'success');
+                // Перезагружаем
+                const user = auth.currentUser;
+                if (user) await loadOrders(user.uid);
+
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showNotification('Ошибка обновления статуса', 'error');
+            }
+        };
+
+        // ===== ДОБАВЛЕНИЕ ТРЕК-НОМЕРА =====
+        window.addTracking = async (orderId) => {
+            const tracking = prompt('Введите трек-номер для отслеживания:');
+            if (!tracking) return;
+
+            try {
+                await db.collection("orders").doc(orderId).update({
+                    trackingNumber: tracking,
+                    updatedAt: new Date().toISOString()
+                });
+                showNotification('Трек-номер добавлен!', 'success');
+                const user = auth.currentUser;
+                if (user) await loadOrders(user.uid);
+            } catch (error) {
+                console.error('Error adding tracking:', error);
+                showNotification('Ошибка', 'error');
+            }
+        };
+
+        // ===== ПОЛУЧЕНИЕ СТАТУСА =====
+        function getStatusText(status) {
+            const map = {
+                'pending': '⏳ Ожидает оплаты',
+                'paid': '✅ Оплачен',
+                'shipped': '🚚 Отправлен',
+                'delivered': '📦 Доставлен',
+                'completed': '🎉 Завершён',
+                'cancelled': '❌ Отменён'
+            };
+            return map[status] || status;
+        }
+
+        // ===== УВЕДОМЛЕНИЯ =====
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ===== ESCAPE =====
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        // ===== AUTH =====
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userDoc = await db.collection("users").doc(user.uid).get();
+            const userData = userDoc.data() || {};
+            setupHeader(userData);
+
+            await loadOrders(user.uid);
+        });
+    </script>
+</body>
+</html>
