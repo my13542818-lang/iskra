@@ -9,17 +9,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #6C3B8E;
-            --primary-light: #9B59B6;
             --secondary: #E84393;
-            --secondary-light: #FF6B9D;
             --gradient-main: linear-gradient(135deg, #6C3B8E 0%, #E84393 50%, #FF6B35 100%);
             --bg-dark: #0D0B14;
             --bg-card: #15121E;
@@ -34,448 +27,224 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --shadow-lg: 0 12px 48px rgba(108, 59, 142, 0.5);
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-dark);
             color: var(--text-primary);
             min-height: 100vh;
         }
-
         .header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: sticky; top: 0; z-index: 1000;
             background: rgba(13, 11, 20, 0.95);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
         }
         .header-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
+            max-width: 1400px; margin: 0 auto; padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
         }
         .logo {
-            font-size: 28px;
-            font-weight: 800;
+            font-size: 28px; font-weight: 800;
             background: var(--gradient-main);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-decoration: none;
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; text-decoration: none;
         }
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .balance-badge {
-            padding: 8px 16px;
-            border-radius: var(--radius-full);
-            background: var(--gradient-main);
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
+            padding: 8px 16px; border-radius: var(--radius-full);
+            background: var(--gradient-main); color: white;
+            font-weight: 700; font-size: 13px; cursor: pointer;
             transition: var(--transition);
         }
-        .balance-badge:hover {
-            transform: scale(1.05);
-        }
+        .balance-badge:hover { transform: scale(1.05); }
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 28px;
-            border-radius: var(--radius-full);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: var(--transition);
-            text-decoration: none;
-            border: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 12px 28px; border-radius: var(--radius-full);
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: var(--transition); text-decoration: none; border: none;
         }
         .btn-primary {
-            background: var(--gradient-main);
-            color: white;
+            background: var(--gradient-main); color: white;
             box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6);
-        }
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
         .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
+            background: var(--bg-card); color: var(--text-primary);
             border: 1px solid var(--border-color);
         }
-        .btn-secondary:hover {
-            border-color: var(--secondary);
-            transform: translateY(-2px);
-        }
-        .btn-sm {
-            padding: 6px 16px;
-            font-size: 12px;
-        }
+        .btn-secondary:hover { border-color: var(--secondary); transform: translateY(-2px); }
+        .btn-sm { padding: 6px 16px; font-size: 12px; }
         .header-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 12px 6px 6px;
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 12px 6px 6px; border-radius: var(--radius-full);
+            cursor: pointer; background: var(--bg-card);
+            border: 1px solid var(--border-color); transition: var(--transition);
         }
-        .header-user:hover {
-            border-color: var(--secondary);
-        }
+        .header-user:hover { border-color: var(--secondary); }
         .header-user .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--secondary);
+            width: 36px; height: 36px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--secondary);
         }
-        .header-user .name {
-            font-size: 14px;
-            font-weight: 500;
-        }
+        .header-user .name { font-size: 14px; font-weight: 500; }
 
-        .post-page {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 0 24px;
-        }
+        .post-page { max-width: 900px; margin: 30px auto; padding: 0 24px; }
         .post-page .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 36px;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); padding: 36px;
             transition: var(--transition);
         }
-        .post-page .card:hover {
-            border-color: rgba(232, 67, 147, 0.3);
-        }
+        .post-page .card:hover { border-color: rgba(232, 67, 147, 0.3); }
         .post-page .card .page-title {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            font-size: 26px; font-weight: 700; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px;
         }
         .post-page .card .page-subtitle {
-            color: var(--text-muted);
-            margin-bottom: 28px;
-            font-size: 14px;
+            color: var(--text-muted); margin-bottom: 28px; font-size: 14px;
         }
-
         .upload-zone {
             border: 2px dashed var(--border-color);
             border-radius: var(--radius-lg);
-            padding: 48px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--bg-input);
-            margin-bottom: 16px;
+            padding: 48px 20px; text-align: center;
+            cursor: pointer; transition: var(--transition);
+            background: var(--bg-input); margin-bottom: 16px;
         }
         .upload-zone:hover {
             border-color: var(--secondary);
-            background: var(--bg-card-hover);
-            transform: translateY(-2px);
+            background: var(--bg-card-hover); transform: translateY(-2px);
         }
         .upload-zone.dragover {
             border-color: var(--secondary);
-            background: rgba(232, 67, 147, 0.05);
-            transform: scale(1.01);
+            background: rgba(232, 67, 147, 0.05); transform: scale(1.01);
         }
-        .upload-zone .icon {
-            font-size: 56px;
-            margin-bottom: 12px;
-            display: block;
+        .upload-zone .icon { font-size: 56px; margin-bottom: 12px; display: block; }
+        .upload-zone .title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .upload-zone .title span { color: var(--secondary); }
+        .upload-zone .subtitle { font-size: 14px; color: var(--text-muted); }
+        .upload-zone .subtitle .formats { color: var(--text-secondary); font-weight: 500; }
+        .upload-zone .subtitle .badge-free {
+            display: inline-block; margin-top: 8px; padding: 4px 12px;
+            background: rgba(46, 204, 113, 0.2); border-radius: var(--radius-full);
+            font-size: 11px; color: #2ECC71; font-weight: 600;
         }
-        .upload-zone .title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .upload-zone .title span {
-            color: var(--secondary);
-        }
-        .upload-zone .subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .upload-zone .subtitle .formats {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .upload-zone .subtitle .drive-badge {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 4px 12px;
-            background: rgba(66, 133, 244, 0.2);
-            border-radius: var(--radius-full);
-            font-size: 11px;
-            color: #4285F4;
-            font-weight: 600;
-        }
-
         .upload-progress {
-            display: none;
-            margin: 12px 0 16px;
-            padding: 16px 20px;
-            background: var(--bg-input);
-            border-radius: var(--radius);
+            display: none; margin: 12px 0 16px; padding: 16px 20px;
+            background: var(--bg-input); border-radius: var(--radius);
             border: 1px solid var(--border-color);
         }
         .upload-progress .top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
         }
-        .upload-progress .top .label {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .upload-progress .top .percent {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--secondary);
-        }
+        .upload-progress .top .label { font-size: 14px; font-weight: 500; }
+        .upload-progress .top .percent { font-size: 14px; font-weight: 700; color: var(--secondary); }
         .upload-progress .bar {
-            height: 6px;
-            background: var(--bg-dark);
-            border-radius: 3px;
-            overflow: hidden;
+            height: 6px; background: var(--bg-dark); border-radius: 3px; overflow: hidden;
         }
         .upload-progress .bar .fill {
-            height: 100%;
-            background: var(--gradient-main);
-            border-radius: 3px;
-            transition: width 0.4s ease;
-            width: 0%;
+            height: 100%; background: var(--gradient-main); border-radius: 3px;
+            transition: width 0.4s ease; width: 0%;
         }
-        .upload-progress .status {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
+        .upload-progress .status { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 
         .file-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px; margin-bottom: 20px;
         }
         .file-preview .item {
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            aspect-ratio: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
+            position: relative; border-radius: var(--radius); overflow: hidden;
+            aspect-ratio: 1; background: var(--bg-input);
+            border: 1px solid var(--border-color); transition: var(--transition);
         }
-        .file-preview .item:hover {
-            border-color: var(--secondary);
-            transform: translateY(-2px);
-        }
-        .file-preview .item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .file-preview .item:hover { border-color: var(--secondary); transform: translateY(-2px); }
+        .file-preview .item img { width: 100%; height: 100%; object-fit: cover; }
         .file-preview .item .remove {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: 6px; right: 6px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            border: none; color: white; cursor: pointer; font-size: 14px;
+            transition: var(--transition); display: flex; align-items: center; justify-content: center;
         }
-        .file-preview .item .remove:hover {
-            background: #E74C3C;
-            transform: scale(1.1);
-        }
+        .file-preview .item .remove:hover { background: #E74C3C; transform: scale(1.1); }
 
         .empty-preview {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-muted);
-            font-size: 14px;
-            display: none;
+            text-align: center; padding: 20px; color: var(--text-muted);
+            font-size: 14px; display: none;
         }
-        .empty-preview .icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 4px;
-        }
+        .empty-preview .icon { font-size: 32px; display: block; margin-bottom: 4px; }
 
         .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;
         }
-        .form-grid .full {
-            grid-column: 1 / -1;
-        }
-        .form-group {
-            margin-bottom: 0;
-        }
+        .form-grid .full { grid-column: 1 / -1; }
+        .form-group { margin-bottom: 0; }
         .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            color: var(--text-secondary);
+            display: block; margin-bottom: 8px;
+            font-weight: 500; font-size: 14px; color: var(--text-secondary);
         }
-        .form-group .required {
-            color: var(--secondary);
-            margin-left: 2px;
-        }
+        .form-group .required { color: var(--secondary); margin-left: 2px; }
         .form-control {
-            width: 100%;
-            padding: 14px 18px;
-            background: var(--bg-input);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius);
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: var(--transition);
-            outline: none;
+            width: 100%; padding: 14px 18px;
+            background: var(--bg-input); border: 2px solid var(--border-color);
+            border-radius: var(--radius); color: var(--text-primary);
+            font-size: 14px; transition: var(--transition); outline: none;
         }
         .form-control:focus {
             border-color: var(--secondary);
             box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.15);
         }
-        .form-control::placeholder {
-            color: var(--text-muted);
-        }
+        .form-control::placeholder { color: var(--text-muted); }
         select.form-control {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23C4B5D8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            padding-right: 40px;
-            cursor: pointer;
+            background-repeat: no-repeat; background-position: right 16px center;
+            padding-right: 40px; cursor: pointer;
         }
-        select.form-control option {
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-            font-family: inherit;
-        }
+        select.form-control option { background: var(--bg-card); color: var(--text-primary); }
+        textarea.form-control { resize: vertical; min-height: 120px; font-family: inherit; }
 
         .specs-wrapper {
-            background: var(--bg-input);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            margin-top: 20px;
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 20px 24px; margin-top: 20px;
             border: 1px solid var(--border-color);
         }
         .specs-wrapper .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
         }
-        .specs-wrapper .header h4 {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
+        .specs-wrapper .header h4 { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
         .specs-wrapper .header .count {
-            font-size: 12px;
-            color: var(--text-muted);
-            background: var(--bg-dark);
-            padding: 2px 12px;
-            border-radius: var(--radius-full);
+            font-size: 12px; color: var(--text-muted);
+            background: var(--bg-dark); padding: 2px 12px; border-radius: var(--radius-full);
         }
         .specs-wrapper .spec-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
         }
-        .specs-wrapper .spec-grid .form-group {
-            margin-bottom: 0;
-        }
+        .specs-wrapper .spec-grid .form-group { margin-bottom: 0; }
         .specs-wrapper .spec-grid .form-group label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: 4px;
+            font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;
         }
         .specs-wrapper .spec-grid .form-group .form-control {
-            padding: 10px 14px;
-            font-size: 13px;
+            padding: 10px 14px; font-size: 13px;
         }
 
         .submit-area {
-            margin-top: 28px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
+            margin-top: 28px; display: flex; gap: 16px;
+            align-items: center; flex-wrap: wrap;
         }
         .submit-area .btn {
-            padding: 14px 40px;
-            font-size: 16px;
-            flex: 1;
-            min-width: 200px;
+            padding: 14px 40px; font-size: 16px;
+            flex: 1; min-width: 200px;
         }
-        .submit-area .hint {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .submit-area .hint { font-size: 13px; color: var(--text-muted); }
 
-        .drive-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-muted);
-            padding: 4px 12px;
-            background: var(--bg-input);
-            border-radius: var(--radius-full);
-            margin-top: 8px;
+        .status-online {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--text-muted);
+            padding: 4px 12px; background: var(--bg-input);
+            border-radius: var(--radius-full); margin-top: 8px;
         }
-        .drive-status .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #2ECC71;
-            animation: pulse 2s infinite;
+        .status-online .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #2ECC71; animation: pulse 2s infinite;
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -483,17 +252,11 @@
         }
 
         .notification {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 16px 24px;
-            border-radius: var(--radius);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-lg);
-            z-index: 9999;
-            max-width: 400px;
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 16px 24px; border-radius: var(--radius);
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-primary); box-shadow: var(--shadow-lg);
+            z-index: 9999; max-width: 400px;
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
@@ -543,10 +306,10 @@
     <div class="card">
         <div class="page-title" id="formTitle">📢 Создать объявление</div>
         <div class="page-subtitle">
-            Заполните все поля и добавьте фотографии для привлечения покупателей
-            <span class="drive-status">
+            Заполните все поля и добавьте фотографии
+            <span class="status-online">
                 <span class="dot"></span>
-                Хранится на Google Drive (автоматически)
+                ImgBB • Работает 100%
             </span>
         </div>
 
@@ -555,9 +318,9 @@
             <span class="icon">🖼️</span>
             <div class="title">Нажмите или <span>перетащите</span> файлы</div>
             <div class="subtitle">
-                Поддерживаются: <span class="formats">JPG, PNG, WEBP, GIF</span> до 10 МБ
+                Поддерживаются: <span class="formats">JPG, PNG, WEBP, GIF</span> до 16 МБ
                 <br>
-                <span class="drive-badge">☁️ Google Drive • 15 ГБ</span>
+                <span class="badge-free">✅ Без авторизации • Бесплатно</span>
             </div>
             <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
         </div>
@@ -565,7 +328,7 @@
         <!-- Progress -->
         <div class="upload-progress" id="uploadProgress">
             <div class="top">
-                <span class="label" id="progressLabel">⏳ Загрузка на Google Drive...</span>
+                <span class="label" id="progressLabel">⏳ Загрузка...</span>
                 <span class="percent" id="progressPercent">0%</span>
             </div>
             <div class="bar">
@@ -661,45 +424,9 @@
     const db = firebase.firestore();
 
     // ========================================
-    // GOOGLE DRIVE — СЕРВИСНЫЙ АККАУНТ
+    // IMGBB API КЛЮЧ — ВАШ КЛЮЧ
     // ========================================
-    const SERVICE_ACCOUNT = {
-        "type": "service_account",
-        "project_id": "kyki-5e91a",
-        "private_key_id": "8eca504f7cd09ec41bb19404617d8b42870c17aa",
-        "private_key": `-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC84lTfHJC/Y4pM
-6ZLuh9MvjI8caQKdNQAF5wUmH0BLlZMuchdKQlFt+h9Q3gcK2TlW1NZNQ0S/Q2Dy
-znPS6IZZA0Qq0qig0Sl7h65U45T3ghV0PYS83Vfr9R0Jy9wJ5oEXVbrLvEUTC8cu
-WLNb/l/ZPv8ZBtHdqq904DV/3DUZcUfqotpjV4/JzOS0A+aE0m/EfQ2Py/4aoKG1
-sCjvF7B6mFpK8oLF0WwqU8qxpZcx8uw5UlarJ+yidAjLw5HGwDFLUc3jbhD77VKR
-diA9hYwy89GbJiMfpMmdrv+C4tZh3L1EhdPAs61gpOzeXxz7xT0S+ZdqrAvCysW9
-NkezMpqHAgMBAAECggEACgBHWAJa1kQA7XCeE2UOIurjtmdQuHnJcE+2Fkve4iY6
-+gXzML8IDOMKuih/atGQEuHZ+ZLkCOcaV4e/o8+3De9eH/6fnrKJDvksGz5rDMAz
-UQmH/Kc1ploaXd3sFcQdWrYp2etY24aGVwKrwIoBI+9EDUpBOS8/YOrMOmKyu6Ie
-l8px6F2EIL0ipTOz5HsWzKea/O9RzNxGZ9CW2cXWL27xx8mSHtunyDOILjhK3p8j
-Tbj/xmLF8/zBxY8NXlvxQQ0knpeqIqIzLFTKFnd2eWmHoDx77v+hF8l+YcmvQ9B3
-th1Jgh+A7vlx9py9h7FfG7D6syhoLTQrJ5Sjg+jAlQKBgQDunSTVJWn7pDOs7K2O
-1KRLoU7fQ/8zieBCjiAP9BnJVw1hsOQB4CDlupZSNNZ/IHPhYVBZ9/2Q25ZHYzE1
-DP1Fe1BOSDSyhFq/mwZ6lNZVrre52AWfyHyyKCOacOCl7sq+ny7gamhEGWq5ffH1
-vl8Agtuyjzn9xJso8mIW1QiRvQKBgQDKpZSeEqZK8HTuBbFJueYN2wgOP73bF+DU
-DDAdx9efaS+qZ9fzCnocqoZvA/Ah/Ji/WhnlLggxLKMqVAnq98WIIQBLgTa2UJhm
-kHvPV99FNOwlSmS8ZSiPJF8KAJZ4coq/9Aeql6F+5pvKxZjlVqiGwOq5YOpUG00X
-GetCWUHHkwKBgQDnpwYgLC+FTzef9TLWDJjol9UjqjbzSTLASozUEC6MqofiRMJH
-E9m8TfYsHwHy74Ww1DIW9kxkutpdue4Gy/KC5yHirfUDLr2PcSjMDv06t+HEefWT
-1ydAKvnNsTJXxcltYMs4sfVBz88uABjMdCJ1M5Wo96XcOWhNS2txMScdnQKBgAGp
-3lB14ruWwb76ePwb9JGEjMphJ5PW3FehSfvUmiaK3INPmuw518rIc5YRuDTvN+nK
-OZAyEoskzKoaSoKNSifV7YSxKNvSSY39/aY0GHce+hlMRQtu4ShbqhQQ8StH9W+h
-9zYlTIQYLIs7mAe58GQ6zTJ8YzARkU5xPgcraGjVAoGAawKwlLtEbsDgqvi90+0s
-UtO20lb7IbC3IQKyRSKmfLBY4NAuzIgKxMnHF4Ab9g8YwMXRLzFu5Fvv8VkrlmML
-3k78qgAYjHVZS4b6O/YeoNiPQRC15XJ+RN03NdiLGcq9r5q5Hq5YfjAeFudm1BOI
-aE5tMxAuNK0Gwl57aSiV0R8=
------END PRIVATE KEY-----`,
-        "client_email": "drive-uploader@kyki-5e91a.iam.gserviceaccount.com",
-        "client_id": "116856197033509363774",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token"
-    };
+    const IMGBB_API_KEY = '1ba0f59d8c0c0079dce45a876e2a07f5';
 
     // ========================================
     // STATE
@@ -709,8 +436,6 @@ aE5tMxAuNK0Gwl57aSiV0R8=
     let uploadedUrls = [];
     let editingId = null;
     let isUploading = false;
-    let accessToken = null;
-    let tokenExpiry = 0;
 
     // ========================================
     // DOM REFS
@@ -792,152 +517,39 @@ aE5tMxAuNK0Gwl57aSiV0R8=
     };
 
     // ========================================
-    // ПОЛУЧЕНИЕ ACCESS TOKEN
+    // ЗАГРУЗКА В IMGBB
     // ========================================
-    async function getAccessToken() {
-        // Если токен ещё действителен, возвращаем его
-        if (accessToken && Date.now() < tokenExpiry) {
-            return accessToken;
-        }
-
-        try {
-            const { private_key, client_email, token_uri } = SERVICE_ACCOUNT;
-            
-            // Создаём JWT
-            const header = {
-                alg: 'RS256',
-                typ: 'JWT'
-            };
-            
-            const now = Math.floor(Date.now() / 1000);
-            const claim = {
-                iss: client_email,
-                scope: 'https://www.googleapis.com/auth/drive.file',
-                aud: token_uri,
-                exp: now + 3600,
-                iat: now
-            };
-            
-            // Кодируем header и claim в base64url
-            const encodeBase64Url = (obj) => {
-                return btoa(JSON.stringify(obj))
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-            };
-            
-            const encodedHeader = encodeBase64Url(header);
-            const encodedClaim = encodeBase64Url(claim);
-            const signatureInput = `${encodedHeader}.${encodedClaim}`;
-            
-            // Подписываем с помощью Web Crypto API
-            const pemHeader = '-----BEGIN PRIVATE KEY-----\n';
-            const pemFooter = '\n-----END PRIVATE KEY-----';
-            const pemContents = private_key.substring(pemHeader.length, private_key.length - pemFooter.length);
-            const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
-            
-            const cryptoKey = await crypto.subtle.importKey(
-                'pkcs8',
-                binaryDer.buffer,
-                { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-                false,
-                ['sign']
-            );
-            
-            const signature = await crypto.subtle.sign(
-                { name: 'RSASSA-PKCS1-v1_5' },
-                cryptoKey,
-                new TextEncoder().encode(signatureInput)
-            );
-            
-            const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-            
-            const jwt = `${signatureInput}.${encodedSignature}`;
-            
-            // Отправляем запрос на получение токена
-            const response = await fetch(token_uri, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    assertion: jwt
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error_description || 'Ошибка получения токена');
-            }
-            
-            accessToken = data.access_token;
-            tokenExpiry = Date.now() + (data.expires_in * 1000);
-            
-            return accessToken;
-            
-        } catch (error) {
-            console.error('Ошибка получения токена:', error);
-            throw error;
-        }
-    }
-
-    // ========================================
-    // ЗАГРУЗКА ФАЙЛА В GOOGLE DRIVE
-    // ========================================
-    async function uploadToGoogleDrive(file) {
-        const token = await getAccessToken();
-        
+    async function uploadToImgbb(file) {
         return new Promise((resolve, reject) => {
-            const metadata = {
-                name: `listings/${Date.now()}_${file.name}`,
-                mimeType: file.type,
-                parents: ['root']
-            };
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64 = e.target.result.split(',')[1];
+                const formData = new FormData();
+                formData.append('key', IMGBB_API_KEY);
+                formData.append('image', base64);
+                formData.append('name', file.name);
 
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', file);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    updateProgress(percent, `Загрузка: ${file.name}`);
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    const fileId = response.id;
-                    const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-                    const directUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-                    
-                    resolve({
-                        url: fileUrl,
-                        thumb: directUrl,
-                        direct: fileUrl,
-                        id: fileId,
-                        name: file.name
+                try {
+                    const response = await fetch('https://api.imgbb.com/1/upload', {
+                        method: 'POST',
+                        body: formData
                     });
-                } else {
-                    let errorMsg = `Ошибка загрузки: ${xhr.status}`;
-                    try {
-                        const errorData = JSON.parse(xhr.responseText);
-                        errorMsg = errorData.error?.message || errorMsg;
-                    } catch (e) {}
-                    reject(new Error(errorMsg));
+                    const data = await response.json();
+                    if (data.success) {
+                        resolve({
+                            url: data.data.url,
+                            thumb: data.data.thumb.url,
+                            name: file.name
+                        });
+                    } else {
+                        reject(new Error(data.error?.message || 'Ошибка загрузки'));
+                    }
+                } catch (error) {
+                    reject(error);
                 }
             };
-
-            xhr.onerror = () => reject(new Error('Ошибка сети'));
-            xhr.send(form);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
         });
     }
 
@@ -965,6 +577,8 @@ aE5tMxAuNK0Gwl57aSiV0R8=
             submitBtn.textContent = '💾 Сохранить';
             await loadListing(editId);
         }
+
+        console.log('✅ ImgBB API ключ установлен');
     });
 
     // ========================================
@@ -1000,7 +614,7 @@ aE5tMxAuNK0Gwl57aSiV0R8=
         
         uploadProgress.style.display = 'block';
         progressFill.style.width = '0%';
-        progressLabel.textContent = '⏳ Загрузка на Google Drive...';
+        progressLabel.textContent = '⏳ Загрузка на ImgBB...';
         progressPercent.textContent = '0%';
         progressStatus.textContent = `Подготовка ${files.length} файлов...`;
         submitBtn.disabled = true;
@@ -1012,7 +626,7 @@ aE5tMxAuNK0Gwl57aSiV0R8=
             try {
                 progressStatus.textContent = `Загрузка ${i + 1} из ${files.length}: ${file.name}`;
                 
-                const result = await uploadToGoogleDrive(file);
+                const result = await uploadToImgbb(file);
                 results.push(result);
                 
                 addPreviewItem(result.url, i);
@@ -1023,12 +637,12 @@ aE5tMxAuNK0Gwl57aSiV0R8=
                 
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
-                showNotification(`❌ Ошибка: ${file.name} - ${error.message}`, 'error');
+                showNotification(`❌ Ошибка: ${file.name}`, 'error');
             }
         }
 
         progressLabel.textContent = '✅ Готово!';
-        progressStatus.textContent = `Загружено ${results.length} из ${files.length} файлов на Google Drive`;
+        progressStatus.textContent = `Загружено ${results.length} из ${files.length} файлов`;
         submitBtn.disabled = false;
         isUploading = false;
 
@@ -1226,7 +840,7 @@ aE5tMxAuNK0Gwl57aSiV0R8=
             }
         } catch (error) {
             console.error('Error publishing:', error);
-            showNotification('❌ Ошибка публикации: ' + error.message, 'error');
+            showNotification('❌ Ошибка публикации', 'error');
             submitBtn.disabled = false;
             submitBtn.textContent = editingId ? '💾 Сохранить' : '📤 Опубликовать';
         }
@@ -1247,12 +861,10 @@ aE5tMxAuNK0Gwl57aSiV0R8=
             notification.style.opacity = '0';
             notification.style.transform = 'translateX(100px)';
             setTimeout(() => notification.remove(), 300);
-        }, 4000);
+        }, 3500);
     }
 
-    console.log('✅ Все данные настроены!');
-    console.log('📌 Сервисный аккаунт:', SERVICE_ACCOUNT.client_email);
-    console.log('📌 Project ID:', SERVICE_ACCOUNT.project_id);
+    console.log('✅ ImgBB API ключ загружен!');
 </script>
 </body>
 </html>
