@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .settings-container { max-width: 700px; margin: 30px auto; padding: 0 24px; }
+        .settings-container .card { padding: 32px; }
+        .settings-container .card h2 { font-size: 24px; margin-bottom: 24px; }
+        .settings-container .section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
+            margin-top: 24px;
+        }
+        .settings-container .section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+        .settings-container .section h3 { font-size: 17px; margin-bottom: 16px; color: var(--text-secondary); }
+        .settings-container .toggle-wrap {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 0; cursor: pointer; user-select: none;
+        }
+        .settings-container .toggle {
+            width: 48px; height: 28px;
+            background: var(--bg-input); border: 2px solid var(--border-color);
+            border-radius: 14px; position: relative;
+            transition: var(--transition); flex-shrink: 0;
+        }
+        .settings-container .toggle.active {
+            background: var(--secondary); border-color: var(--secondary);
+        }
+        .settings-container .toggle::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 20px; height: 20px; background: white;
+            border-radius: 50%; transition: var(--transition);
+        }
+        .settings-container .toggle.active::after { transform: translateX(20px); }
+        .settings-container .toggle-label { font-size: 14px; color: var(--text-secondary); }
+        .back-link { display: inline-block; margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <div class="settings-container">
+        <div class="card card-glow">
+            <h2>⚙️ Настройки</h2>
+
+            <!-- ===== УВЕДОМЛЕНИЯ ===== -->
+            <div class="section">
+                <h3>🔔 Уведомления</h3>
+                <div class="toggle-wrap" data-setting="notifyEmail">
+                    <div class="toggle active" id="toggleNotifyEmail"></div>
+                    <span class="toggle-label">📧 Уведомления на email</span>
+                </div>
+                <div class="toggle-wrap" data-setting="notifyPush">
+                    <div class="toggle active" id="toggleNotifyPush"></div>
+                    <span class="toggle-label">📱 Push-уведомления</span>
+                </div>
+                <div class="toggle-wrap" data-setting="notifySMS">
+                    <div class="toggle" id="toggleNotifySMS"></div>
+                    <span class="toggle-label">📲 SMS-уведомления</span>
+                </div>
+            </div>
+
+            <!-- ===== ПРИВАТНОСТЬ ===== -->
+            <div class="section">
+                <h3>👁️ Приватность</h3>
+                <div class="toggle-wrap" data-setting="privacyPhone">
+                    <div class="toggle" id="togglePrivacyPhone"></div>
+                    <span class="toggle-label">📱 Скрыть номер телефона</span>
+                </div>
+                <div class="toggle-wrap" data-setting="privacyEmail">
+                    <div class="toggle" id="togglePrivacyEmail"></div>
+                    <span class="toggle-label">📧 Скрыть email</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="saveSettingsBtn">💾 Сохранить настройки</button>
+            <a href="index.html" class="back-link btn btn-secondary">← Вернуться в профиль</a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function getToggleEl(setting) {
+            const map = {
+                'notifyEmail': 'toggleNotifyEmail',
+                'notifyPush': 'toggleNotifyPush',
+                'notifySMS': 'toggleNotifySMS',
+                'privacyPhone': 'togglePrivacyPhone',
+                'privacyEmail': 'togglePrivacyEmail'
+            };
+            return document.getElementById(map[setting]);
+        }
+
+        function setToggle(setting, value) {
+            const el = getToggleEl(setting);
+            if (el) {
+                if (value) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        }
+
+        function getToggleValue(setting) {
+            const el = getToggleEl(setting);
+            return el ? el.classList.contains('active') : false;
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = '../login.html'; return; }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            document.getElementById('headerActions').innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+
+            setToggle('notifyEmail', data.notifyEmail !== false);
+            setToggle('notifyPush', data.notifyPush !== false);
+            setToggle('notifySMS', data.notifySMS === true);
+            setToggle('privacyPhone', data.privacyPhone === true);
+            setToggle('privacyEmail', data.privacyEmail === true);
+
+            document.querySelectorAll('.toggle-wrap').forEach(wrap => {
+                wrap.onclick = () => {
+                    const toggle = wrap.querySelector('.toggle');
+                    toggle.classList.toggle('active');
+                };
+            });
+
+            document.getElementById('saveSettingsBtn').onclick = async () => {
+                try {
+                    await db.collection("users").doc(user.uid).update({
+                        notifyEmail: getToggleValue('notifyEmail'),
+                        notifyPush: getToggleValue('notifyPush'),
+                        notifySMS: getToggleValue('notifySMS'),
+                        privacyPhone: getToggleValue('privacyPhone'),
+                        privacyEmail: getToggleValue('privacyEmail')
+                    });
+                    alert('✅ Настройки сохранены!');
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    alert('❌ Ошибка сохранения');
+                }
+            };
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Избранное — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .favorites-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        .favorites-container h2 { font-size: 24px; margin-bottom: 24px; }
+        .mini-listing {
+            display: flex; align-items: center; gap: 16px;
+            padding: 12px 16px; background: var(--bg-input);
+            border-radius: var(--radius); margin-bottom: 10px;
+            transition: var(--transition); border: 1px solid transparent;
+        }
+        .mini-listing:hover { border-color: var(--border-light); background: var(--bg-card-hover); }
+        .mini-listing .thumb {
+            width: 64px; height: 64px; border-radius: var(--radius);
+            background: var(--bg-dark); display: flex; align-items: center;
+            justify-content: center; font-size: 30px; flex-shrink: 0; overflow: hidden;
+        }
+        .mini-listing .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .mini-listing .info { flex: 1; min-width: 0; }
+        .mini-listing .info .title { font-weight: 500; font-size: 14px; }
+        .mini-listing .info .price { color: var(--secondary); font-weight: 600; font-size: 16px; }
+        .mini-listing .actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .back-link { display: inline-block; margin-top: 16px; }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 22px; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-muted); max-width: 400px; margin: 0 auto 20px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <div class="favorites-container">
+        <h2>❤️ Избранное</h2>
+        <div id="favoritesList"><div class="loading-spinner"></div></div>
+        <a href="index.html" class="back-link btn btn-secondary">← Вернуться в профиль</a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = '../login.html'; return; }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            document.getElementById('headerActions').innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+
+            const snapshot = await db.collection("favorites").where("userId", "==", user.uid).get();
+            const favoriteIds = snapshot.docs.map(d => d.data().listingId);
+
+            const container = document.getElementById('favoritesList');
+
+            if (favoriteIds.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">❤️</span>
+                        <h3>Нет избранных</h3>
+                        <p>Добавляйте товары в избранное</p>
+                        <a href="../index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const listings = [];
+            for (const id of favoriteIds) {
+                const doc = await db.collection("listings").doc(id).get();
+                if (doc.exists) {
+                    listings.push({ id: doc.id, ...doc.data() });
+                }
+            }
+
+            if (listings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">❤️</span>
+                        <h3>Нет избранных</h3>
+                        <p>Добавляйте товары в избранное</p>
+                        <a href="../index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = listings.map(ad => `
+                <div class="mini-listing">
+                    <div class="thumb">${ad.image || '📦'}</div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(ad.title)}</div>
+                        <div class="price">${Number(ad.price).toLocaleString()} ₽</div>
+                    </div>
+                    <div class="actions">
+                        <a href="../product.html?id=${ad.id}" class="btn btn-secondary btn-sm">👁️</a>
+                        <button class="btn btn-danger btn-sm remove-btn" data-id="${ad.id}">❤️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const snap = await db.collection("favorites")
+                        .where("userId", "==", user.uid)
+                        .where("listingId", "==", btn.dataset.id)
+                        .get();
+                    snap.forEach(d => d.ref.delete());
+                    location.reload();
+                };
+            });
+        });
+    </script>
+</body>
+</html>

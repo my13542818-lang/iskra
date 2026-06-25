@@ -206,7 +206,6 @@
         .action-buttons .btn { flex: 1; min-width: 140px; justify-content: center; padding: 14px 24px; font-size: 15px; }
         .action-buttons .btn-secondary { flex: 0.5; min-width: 60px; }
 
-        /* ===== БЕЙДЖИ ===== */
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 4px 12px; border-radius: var(--radius-full);
@@ -216,8 +215,8 @@
         .badge-danger { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
         .badge-warning { background: rgba(243, 156, 18, 0.2); color: #F39C12; }
         .badge-info { background: rgba(52, 152, 219, 0.2); color: #3498DB; }
+        .badge-purple { background: rgba(155, 89, 182, 0.2); color: #9B59B6; }
 
-        /* ===== УВЕДОМЛЕНИЯ ===== */
         .notification {
             position: fixed; bottom: 24px; right: 24px;
             padding: 16px 24px; border-radius: var(--radius);
@@ -235,29 +234,6 @@
         .notification-warning { border-left: 4px solid #F39C12; }
         .notification-info { border-left: 4px solid #3498DB; }
 
-        /* ===== ОТЗЫВЫ ===== */
-        .review-section {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border-color);
-        }
-        .review-section h4 {
-            font-size: 15px; color: var(--text-secondary); margin-bottom: 12px;
-        }
-        .review-item {
-            background: var(--bg-input); border-radius: var(--radius);
-            padding: 12px 16px; margin-bottom: 8px;
-        }
-        .review-item .header {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 13px;
-        }
-        .review-item .header .name { font-weight: 600; }
-        .review-item .header .date { color: var(--text-muted); font-size: 11px; }
-        .review-item .text { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-        .review-item .stars { color: #F1C40F; font-size: 14px; }
-
-        /* ===== ЗАГРУЗКА ===== */
         .loading-state {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 80px 20px; gap: 16px;
@@ -268,10 +244,6 @@
             border-radius: 50%; animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .badge-sold {
-            background: rgba(231, 76, 60, 0.2); color: #E74C3C;
-        }
 
         @media (max-width: 992px) {
             .product-grid { grid-template-columns: 1fr; }
@@ -333,10 +305,11 @@
         // STATE
         // ========================================
         let currentUser = null;
+        let userData = {};
         let listing = null;
         let listingId = null;
         let isFavorite = false;
-        let selectedDelivery = 'delivery'; // 'delivery' или 'meeting'
+        let selectedDelivery = 'delivery';
 
         // ========================================
         // DOM
@@ -348,18 +321,26 @@
         // AUTH
         // ========================================
         auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
             currentUser = user;
+            
+            // Загружаем данные пользователя (баланс)
+            const doc = await db.collection("users").doc(user.uid).get();
+            userData = doc.data() || {};
+            
             setupHeader();
             await loadProduct();
             if (user && listingId) await checkFavorite();
         });
 
         // ========================================
-        // HEADER
+        // HEADER — ПОКАЗЫВАЕТ БАЛАНС
         // ========================================
         function setupHeader() {
             if (currentUser) {
-                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
                 headerActions.innerHTML = `
                     <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
                     <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
@@ -409,7 +390,6 @@
 
                 listing = { id: doc.id, ...doc.data() };
                 
-                // Проверяем статус (если продано/архив)
                 if (listing.status === 'sold' || listing.status === 'archived') {
                     productContent.innerHTML = `
                         <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
@@ -464,6 +444,7 @@
             const mainImage = mediaFiles.length > 0 ? mediaFiles[0].url : (listing.image || null);
             const hasMultiple = mediaFiles.length > 1;
             const isOwner = currentUser && listing.sellerId === currentUser.uid;
+            const deliveryType = listing.deliveryType || 'both';
 
             const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
                 <div class="spec-item">
@@ -473,24 +454,6 @@
             `).join('') : '';
 
             const conditionLabel = listing.condition === 'new' ? 'Новое' : 'Б/У';
-            const deliveryType = listing.deliveryType || 'both'; // 'delivery', 'meeting', 'both'
-
-            // Отзывы
-            const reviewsHtml = listing.reviews && listing.reviews.length > 0 ? `
-                <div class="review-section">
-                    <h4>⭐ Отзывы (${listing.reviews.length})</h4>
-                    ${listing.reviews.map(r => `
-                        <div class="review-item">
-                            <div class="header">
-                                <span class="name">${escapeHtml(r.userName || 'Пользователь')}</span>
-                                <span class="date">${new Date(r.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <div class="stars">${'⭐'.repeat(r.rating)}</div>
-                            <div class="text">${escapeHtml(r.text)}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            ` : '';
 
             productContent.innerHTML = `
                 <div class="product-grid">
@@ -501,6 +464,7 @@
                             <div class="badge-top">
                                 ${listing.status === 'active' ? '<span class="badge badge-success">Активно</span>' : '<span class="badge badge-danger">Снято</span>'}
                                 ${listing.condition === 'new' ? '<span class="badge badge-success">Новое</span>' : ''}
+                                ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
                             </div>
                         </div>
                         ${hasMultiple ? `
@@ -557,14 +521,14 @@
                         ${!isOwner && listing.status === 'active' && deliveryType === 'delivery' ? `
                             <div class="delivery-info-box" id="deliveryInfo">
                                 <strong>🚚 Доставка через Ozon</strong>
-                                <p style="margin-top:4px;">Выберите пункт выдачи Ozon при оформлении заказа. Продавец отправит товар после оплаты.</p>
+                                <p style="margin-top:4px;">Выберите пункт выдачи Ozon при оформлении заказа.</p>
                             </div>
                         ` : ''}
 
                         ${!isOwner && listing.status === 'active' && deliveryType === 'meeting' ? `
                             <div class="delivery-info-box" id="deliveryInfo">
                                 <strong>🤝 Встреча/договор</strong>
-                                <p style="margin-top:4px;">Свяжитесь с продавцом через чат и договоритесь о встрече или способе передачи товара.</p>
+                                <p style="margin-top:4px;">Свяжитесь с продавцом через чат и договоритесь о встрече.</p>
                             </div>
                         ` : ''}
 
@@ -589,7 +553,8 @@
                         <!-- ===== ДЕЙСТВИЯ ===== -->
                         ${isOwner ? `
                             <div class="action-buttons">
-                                <button class="btn btn-warning" onclick="markAsSold()">✅ Продано</button>
+                                <button class="btn btn-warning" onclick="promoteListing()">🚀 Продвинуть</button>
+                                <button class="btn btn-success" onclick="markAsSold()">✅ Продано</button>
                                 <button class="btn btn-secondary" onclick="editListing()">✏️ Редактировать</button>
                             </div>
                         ` : listing.status === 'active' ? `
@@ -597,14 +562,12 @@
                                 ${selectedDelivery === 'delivery' ? `
                                     <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
                                 ` : `
-                                    <button class="btn btn-success" id="chatBtn">💬 Перейти в чат с продавцом</button>
+                                    <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
                                 `}
                                 <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
                                 <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
                             </div>
                         ` : ''}
-
-                        ${reviewsHtml}
                     </div>
                 </div>
             `;
@@ -622,7 +585,6 @@
                     el.classList.add('active');
                     selectedDelivery = el.dataset.type;
                     
-                    // Обновляем кнопку
                     const actionButtons = document.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (selectedDelivery === 'delivery') {
@@ -636,7 +598,7 @@
                             document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
                         } else {
                             actionButtons.innerHTML = `
-                                <button class="btn btn-success" id="chatBtn">💬 Перейти в чат с продавцом</button>
+                                <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
                                 <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
                                 <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
                             `;
@@ -690,7 +652,7 @@
                 deliveryType: selectedDelivery || 'delivery'
             });
             localStorage.setItem('cart', JSON.stringify(cart));
-            showNotification('Добавлено в корзину! Оформите заказ', 'success');
+            showNotification('Добавлено в корзину!', 'success');
         }
 
         async function toggleFavorite() {
@@ -771,7 +733,63 @@
         }
 
         // ========================================
-        // MARK AS SOLD (для продавца)
+        // PROMOTE LISTING — СПИСЫВАЕТ ДЕНЬГИ
+        // ========================================
+        async function promoteListing() {
+            if (!currentUser || currentUser.uid !== listing.sellerId) {
+                showNotification('Доступ запрещён', 'error');
+                return;
+            }
+
+            const price = 199;
+            const balance = userData.balance || 0;
+
+            if (balance < price) {
+                showNotification(`❌ Недостаточно средств! Нужно ${price} ₽. Пополните баланс.`, 'error');
+                window.location.href = 'wallet.html';
+                return;
+            }
+
+            if (!confirm(`Поднять объявление "${listing.title}" в ТОП за ${price} ₽?`)) return;
+
+            try {
+                // Списываем деньги
+                const newBalance = balance - price;
+                await db.collection("users").doc(currentUser.uid).update({
+                    balance: newBalance
+                });
+                userData.balance = newBalance;
+
+                // Записываем транзакцию
+                await db.collection("transactions").add({
+                    userId: currentUser.uid,
+                    amount: -price,
+                    description: `Продвижение "${listing.title}"`,
+                    status: 'completed',
+                    createdAt: new Date().toISOString()
+                });
+
+                // Обновляем время объявления (поднимаем в ТОП)
+                await db.collection("listings").doc(listingId).update({
+                    promotedAt: new Date().toISOString()
+                });
+
+                // Обновляем баланс в шапке
+                setupHeader();
+
+                showNotification(`✅ Объявление поднято в ТОП! Списано ${price} ₽`, 'success');
+                
+                // Перезагружаем страницу
+                setTimeout(() => location.reload(), 1000);
+
+            } catch (error) {
+                console.error('Error promoting:', error);
+                showNotification('❌ Ошибка продвижения', 'error');
+            }
+        }
+
+        // ========================================
+        // MARK AS SOLD
         // ========================================
         async function markAsSold() {
             if (!currentUser || currentUser.uid !== listing.sellerId) {
@@ -779,27 +797,14 @@
                 return;
             }
 
-            if (!confirm('Отметить товар как проданный? Он перейдёт в архив.')) return;
+            if (!confirm('Отметить товар как проданный?')) return;
 
             try {
-                // Создаём запись о сделке в архиве продавца
-                await db.collection("seller_archive").add({
-                    sellerId: currentUser.uid,
-                    listingId: listingId,
-                    listingTitle: listing.title,
-                    listingPrice: listing.price,
-                    buyerId: null, // Будет заполнено при заказе
-                    status: 'archived',
-                    createdAt: new Date().toISOString()
-                });
-
-                // Обновляем статус объявления
                 await db.collection("listings").doc(listingId).update({
                     status: 'archived',
                     archivedAt: new Date().toISOString()
                 });
 
-                // Обновляем количество сделок продавца
                 const userRef = db.collection("users").doc(currentUser.uid);
                 const userDoc = await userRef.get();
                 const currentDeals = userDoc.data()?.completedDeals || 0;
@@ -808,9 +813,7 @@
                 });
 
                 showNotification('✅ Товар отмечен как проданный!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'profile.html';
-                }, 1500);
+                setTimeout(() => window.location.href = 'profile.html', 1500);
 
             } catch (error) {
                 console.error('Error marking as sold:', error);

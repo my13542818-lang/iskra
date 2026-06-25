@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать профиль — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <style>
+        .edit-container { max-width: 700px; margin: 30px auto; padding: 0 24px; }
+        .edit-container .card { padding: 32px; }
+        .edit-container .card h2 { font-size: 24px; margin-bottom: 24px; }
+        .edit-container .avatar-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .edit-container .avatar-section .avatar {
+            width: 120px; height: 120px; border-radius: 50%;
+            object-fit: cover; border: 4px solid var(--secondary);
+            cursor: pointer; transition: var(--transition);
+        }
+        .edit-container .avatar-section .avatar:hover { transform: scale(1.05); }
+        .edit-container .avatar-section .hint {
+            font-size: 12px; color: var(--text-muted);
+            margin-top: 8px; cursor: pointer;
+        }
+        .edit-container .form-group { margin-bottom: 20px; }
+        .edit-container .form-group label { display: block; margin-bottom: 6px; color: var(--text-secondary); font-weight: 500; }
+        .edit-container .form-group .required { color: var(--secondary); }
+
+        .back-link { display: inline-block; margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <div class="edit-container">
+        <div class="card card-glow">
+            <h2>✏️ Редактировать профиль</h2>
+
+            <!-- ===== AVATAR ===== -->
+            <div class="avatar-section">
+                <img class="avatar" id="avatarPreview" src="https://ui-avatars.com/api/?name=User&background=6C3B8E&color=fff" alt="Аватар">
+                <div class="hint" id="changeAvatarHint">📷 Нажмите чтобы сменить фото</div>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none">
+            </div>
+
+            <!-- ===== FORM ===== -->
+            <div class="form-group">
+                <label>Полное имя <span class="required">*</span></label>
+                <input type="text" class="form-control" id="editName" placeholder="Иванов Иван">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" id="editEmail" disabled>
+            </div>
+            <div class="form-group">
+                <label>Телефон <span class="required">*</span></label>
+                <input type="tel" class="form-control" id="editPhone" placeholder="+7 999 123-45-67">
+            </div>
+            <div class="form-group">
+                <label>Город</label>
+                <input type="text" class="form-control" id="editCity" placeholder="Москва">
+            </div>
+            <div class="form-group">
+                <label>О себе</label>
+                <textarea class="form-control" id="editBio" rows="4" placeholder="Расскажите о себе..."></textarea>
+            </div>
+
+            <button class="btn btn-primary" id="saveBtn">💾 Сохранить изменения</button>
+            <a href="index.html" class="back-link btn btn-secondary">← Вернуться в профиль</a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = '../login.html'; return; }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            document.getElementById('avatarPreview').src = data.photoURL || `https://ui-avatars.com/api/?name=${data.name || 'User'}&background=6C3B8E&color=fff`;
+            document.getElementById('editName').value = data.name || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editPhone').value = data.phone || '';
+            document.getElementById('editCity').value = data.city || '';
+            document.getElementById('editBio').value = data.bio || '';
+
+            // Header
+            document.getElementById('headerActions').innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+
+            // Avatar upload
+            document.getElementById('changeAvatarHint').onclick = () => document.getElementById('avatarInput').click();
+            document.getElementById('avatarInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const ref = storage.ref(`avatars/${user.uid}`);
+                    await ref.put(file);
+                    const url = await ref.getDownloadURL();
+                    await db.collection("users").doc(user.uid).update({ photoURL: url });
+                    document.getElementById('avatarPreview').src = url;
+                } catch (error) {
+                    alert('Ошибка загрузки аватара');
+                }
+            };
+
+            // Save
+            document.getElementById('saveBtn').onclick = async () => {
+                const name = document.getElementById('editName').value.trim();
+                const phone = document.getElementById('editPhone').value.trim();
+                if (!name || !phone) {
+                    alert('Заполните имя и телефон');
+                    return;
+                }
+                await db.collection("users").doc(user.uid).update({
+                    name, phone,
+                    city: document.getElementById('editCity').value.trim(),
+                    bio: document.getElementById('editBio').value.trim()
+                });
+                alert('✅ Профиль обновлён!');
+                window.location.href = 'index.html';
+            };
+        });
+    </script>
+</body>
+</html>

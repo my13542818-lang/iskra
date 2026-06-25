@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .profile-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--secondary);
+            flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-info .name { font-size: 28px; font-weight: 700; }
+        .profile-info .email { color: var(--text-muted); font-size: 14px; }
+        .profile-info .rating { color: #F1C40F; font-size: 16px; margin-top: 4px; }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .profile-stats .stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .profile-stats .stat:hover { border-color: var(--secondary); transform: translateY(-2px); }
+        .profile-stats .stat .value { font-size: 28px; font-weight: 800; color: var(--secondary); }
+        .profile-stats .stat .label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        .profile-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .profile-menu-grid .menu-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .profile-menu-grid .menu-item:hover {
+            border-color: var(--secondary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        .profile-menu-grid .menu-item .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .profile-menu-grid .menu-item .title { font-size: 15px; font-weight: 600; }
+        .profile-menu-grid .menu-item .desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-stats { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .profile-stats { grid-template-columns: 1fr; }
+            .profile-menu-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        <!-- ===== HEADER ===== -->
+        <div class="profile-header" id="profileHeader">
+            <img class="profile-avatar" id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=6C3B8E&color=fff" alt="Аватар">
+            <div class="profile-info">
+                <div class="name" id="profileName">Пользователь</div>
+                <div class="email" id="profileEmail">user@email.com</div>
+                <div class="rating">⭐ <span id="profileRating">0</span>% рейтинг</div>
+            </div>
+            <a href="edit.html" class="btn btn-secondary">✏️ Редактировать</a>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="profile-stats">
+            <div class="stat">
+                <div class="value" id="statListings">0</div>
+                <div class="label">📋 Объявлений</div>
+            </div>
+            <div class="stat">
+                <div class="value" id="statOrders">0</div>
+                <div class="label">📦 Заказов</div>
+            </div>
+            <div class="stat">
+                <div class="value" id="statBalance">0 ₽</div>
+                <div class="label">💰 Баланс</div>
+            </div>
+            <div class="stat">
+                <div class="value" id="statDeals">0</div>
+                <div class="label">🤝 Сделок</div>
+            </div>
+        </div>
+
+        <!-- ===== MENU ===== -->
+        <div class="profile-menu-grid">
+            <a href="listings.html" class="menu-item">
+                <span class="icon">📋</span>
+                <div class="title">Мои объявления</div>
+                <div class="desc">Управление и создание</div>
+            </a>
+            <a href="orders.html" class="menu-item">
+                <span class="icon">📦</span>
+                <div class="title">Мои заказы</div>
+                <div class="desc">История покупок</div>
+            </a>
+            <a href="seller-orders.html" class="menu-item">
+                <span class="icon">📦</span>
+                <div class="title">Заказы продавца</div>
+                <div class="desc">Управление продажами</div>
+            </a>
+            <a href="favorites.html" class="menu-item">
+                <span class="icon">❤️</span>
+                <div class="title">Избранное</div>
+                <div class="desc">Сохранённые товары</div>
+            </a>
+            <a href="security.html" class="menu-item">
+                <span class="icon">🔐</span>
+                <div class="title">Безопасность</div>
+                <div class="desc">Пароль и 2FA</div>
+            </a>
+            <a href="settings.html" class="menu-item">
+                <span class="icon">⚙️</span>
+                <div class="title">Настройки</div>
+                <div class="desc">Уведомления и приватность</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // DOM
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            // Заполняем профиль
+            document.getElementById('profileAvatar').src = data.photoURL || `https://ui-avatars.com/api/?name=${data.name || 'User'}&background=6C3B8E&color=fff`;
+            document.getElementById('profileName').textContent = data.name || 'Пользователь';
+            document.getElementById('profileEmail').textContent = user.email || 'email@example.com';
+            document.getElementById('profileRating').textContent = data.rating || 0;
+
+            // Статистика
+            const listings = await db.collection("listings").where("sellerId", "==", user.uid).get();
+            document.getElementById('statListings').textContent = listings.size;
+
+            const orders = await db.collection("orders").where("buyerId", "==", user.uid).get();
+            document.getElementById('statOrders').textContent = orders.size;
+
+            document.getElementById('statBalance').textContent = (data.balance || 0).toLocaleString() + ' ₽';
+            document.getElementById('statDeals').textContent = data.completedDeals || 0;
+
+            // Header
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <a href="../cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

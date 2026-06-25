@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои объявления — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .listings-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+
+        .listings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .listings-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .listings-header .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== FILTERS ===== */
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+        .filters-bar select,
+        .filters-bar input {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .filters-bar select:focus,
+        .filters-bar input:focus {
+            border-color: var(--secondary);
+        }
+
+        /* ===== LISTING CARD ===== */
+        .listing-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            transition: var(--transition);
+        }
+        .listing-card:hover {
+            border-color: var(--secondary);
+            transform: translateX(4px);
+        }
+
+        .listing-card .thumb {
+            width: 72px;
+            height: 72px;
+            border-radius: var(--radius);
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .listing-card .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .listing-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .listing-card .info .title {
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .listing-card .info .price {
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 17px;
+        }
+        .listing-card .info .meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .listing-card .info .meta .badge-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-active {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ECC71;
+        }
+        .badge-inactive {
+            background: rgba(231, 76, 60, 0.2);
+            color: #E74C3C;
+        }
+        .badge-sold {
+            background: rgba(243, 156, 18, 0.2);
+            color: #F39C12;
+        }
+        .badge-archived {
+            background: rgba(155, 89, 182, 0.2);
+            color: #9B59B6;
+        }
+
+        .listing-card .actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .listing-card .actions .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* ===== STATUS ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+        .empty-state .icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 40px auto;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .listing-card {
+                flex-wrap: wrap;
+            }
+            .listing-card .actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .filters-bar {
+                flex-direction: column;
+            }
+            .filters-bar select,
+            .filters-bar input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== LISTINGS ===== -->
+    <div class="listings-container">
+        <div class="listings-header">
+            <h2>📋 Мои объявления</h2>
+            <div class="actions">
+                <a href="../post-ad.html" class="btn btn-primary">➕ Создать</a>
+            </div>
+        </div>
+
+        <!-- ===== FILTERS ===== -->
+        <div class="filters-bar">
+            <select id="filterStatus">
+                <option value="all">Все статусы</option>
+                <option value="active">✅ Активные</option>
+                <option value="inactive">⛔ Неактивные</option>
+                <option value="archived">📦 Архив</option>
+                <option value="sold">💰 Проданные</option>
+            </select>
+            <input type="text" id="filterSearch" placeholder="🔍 Поиск по названию...">
+            <select id="filterCategory">
+                <option value="all">Все категории</option>
+                <option value="электроника">📱 Электроника</option>
+                <option value="одежда">👕 Одежда</option>
+                <option value="обувь">👟 Обувь</option>
+                <option value="авто">🚗 Авто</option>
+                <option value="недвижимость">🏠 Недвижимость</option>
+                <option value="для дома">🛋️ Для дома</option>
+                <option value="спорт">⚽ Спорт</option>
+                <option value="игрушки">🧸 Игрушки</option>
+                <option value="услуги">🔧 Услуги</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="resetFilters">🔄 Сбросить</button>
+        </div>
+
+        <!-- ===== LIST ===== -->
+        <div id="listingsList">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <a href="index.html" class="back-link btn btn-secondary">← Вернуться в профиль</a>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let userData = {};
+        let allListings = [];
+        let filteredListings = [];
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const listingsList = document.getElementById('listingsList');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterSearch = document.getElementById('filterSearch');
+        const filterCategory = document.getElementById('filterCategory');
+        const resetFilters = document.getElementById('resetFilters');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '../login.html';
+                return;
+            }
+            currentUser = user;
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            userData = doc.data() || {};
+
+            setupHeader();
+            await loadListings();
+
+            // ===== FILTER EVENTS =====
+            filterStatus.addEventListener('change', applyFilters);
+            filterSearch.addEventListener('input', applyFilters);
+            filterCategory.addEventListener('change', applyFilters);
+            resetFilters.addEventListener('click', () => {
+                filterStatus.value = 'all';
+                filterSearch.value = '';
+                filterCategory.value = 'all';
+                applyFilters();
+            });
+        });
+
+        // ========================================
+        // HEADER
+        // ========================================
+        function setupHeader() {
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <a href="../cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // LOAD LISTINGS
+        // ========================================
+        async function loadListings() {
+            try {
+                const snapshot = await db.collection("listings")
+                    .where("sellerId", "==", currentUser.uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                allListings = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                applyFilters();
+
+            } catch (error) {
+                console.error('Error loading listings:', error);
+                listingsList.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">❌</span>
+                        <h3>Ошибка загрузки</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()">🔄 Обновить</button>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // APPLY FILTERS
+        // ========================================
+        function applyFilters() {
+            const status = filterStatus.value;
+            const search = filterSearch.value.toLowerCase().trim();
+            const category = filterCategory.value;
+
+            filteredListings = allListings.filter(item => {
+                // Статус
+                if (status !== 'all') {
+                    const itemStatus = item.status || 'active';
+                    if (itemStatus !== status) return false;
+                }
+
+                // Поиск
+                if (search) {
+                    const title = (item.title || '').toLowerCase();
+                    if (!title.includes(search)) return false;
+                }
+
+                // Категория
+                if (category !== 'all') {
+                    if ((item.category || '') !== category) return false;
+                }
+
+                return true;
+            });
+
+            renderListings();
+        }
+
+        // ========================================
+        // RENDER LISTINGS
+        // ========================================
+        function renderListings() {
+            if (filteredListings.length === 0) {
+                listingsList.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📋</span>
+                        <h3>Нет объявлений</h3>
+                        <p>${allListings.length === 0 ? 'Создайте своё первое объявление' : 'По вашему запросу ничего не найдено'}</p>
+                        ${allListings.length === 0 ? '<a href="../post-ad.html" class="btn btn-primary">➕ Создать</a>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            listingsList.innerHTML = filteredListings.map(item => {
+                const statusMap = {
+                    'active': { class: 'badge-active', label: '✅ Активно' },
+                    'inactive': { class: 'badge-inactive', label: '⛔ Снято' },
+                    'archived': { class: 'badge-archived', label: '📦 В архиве' },
+                    'sold': { class: 'badge-sold', label: '💰 Продано' }
+                };
+                const statusInfo = statusMap[item.status] || statusMap.active;
+
+                return `
+                    <div class="listing-card">
+                        <div class="thumb">
+                            ${item.mediaFiles && item.mediaFiles.length > 0
+                                ? `<img src="${item.mediaFiles[0].url}" alt="${escapeHtml(item.title)}" loading="lazy">`
+                                : item.image && item.image.startsWith('http')
+                                    ? `<img src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy">`
+                                    : '📦'
+                            }
+                        </div>
+                        <div class="info">
+                            <div class="title">${escapeHtml(item.title)}</div>
+                            <div class="price">${Number(item.price).toLocaleString()} ₽</div>
+                            <div class="meta">
+                                <span>📅 ${item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</span>
+                                <span>👁️ ${item.views || 0} просмотров</span>
+                                <span>📍 ${escapeHtml(item.location || 'Не указан')}</span>
+                                <span class="badge-status ${statusInfo.class}">${statusInfo.label}</span>
+                                ${item.promotedAt ? '<span class="badge-status" style="background:rgba(155,89,182,0.2);color:#9B59B6;">⭐ В ТОПе</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <a href="../post-ad.html?edit=${item.id}" class="btn btn-secondary btn-sm" title="Редактировать">✏️</a>
+                            <a href="../product.html?id=${item.id}" class="btn btn-secondary btn-sm" title="Просмотр">👁️</a>
+                            ${item.status === 'active' ? `
+                                <button class="btn btn-warning btn-sm" onclick="toggleStatus('${item.id}', 'inactive')" title="Снять с публикации">⛔</button>
+                            ` : item.status === 'inactive' ? `
+                                <button class="btn btn-success btn-sm" onclick="toggleStatus('${item.id}', 'active')" title="Опубликовать">✅</button>
+                            ` : ''}
+                            <button class="btn btn-danger btn-sm" onclick="deleteListing('${item.id}')" title="Удалить">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========================================
+        // TOGGLE STATUS
+        // ========================================
+        window.toggleStatus = async (id, newStatus) => {
+            const label = newStatus === 'active' ? 'опубликовать' : 'снять с публикации';
+            if (!confirm(`Вы уверены, что хотите ${label} это объявление?`)) return;
+
+            try {
+                await db.collection("listings").doc(id).update({
+                    status: newStatus,
+                    updatedAt: new Date().toISOString()
+                });
+                await loadListings();
+            } catch (error) {
+                console.error('Error toggling status:', error);
+                alert('❌ Ошибка изменения статуса');
+            }
+        };
+
+        // ========================================
+        // DELETE LISTING
+        // ========================================
+        window.deleteListing = async (id) => {
+            if (!confirm('Удалить это объявление навсегда? Это действие необратимо!')) return;
+
+            try {
+                await db.collection("listings").doc(id).delete();
+                await loadListings();
+            } catch (error) {
+                console.error('Error deleting listing:', error);
+                alert('❌ Ошибка удаления');
+            }
+        };
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+    </script>
+</body>
+</html>

@@ -4,159 +4,257 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Продвижение — Куки</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: #0a0a0c; color: white; }
-        .header { background: #0b0b0e; border-bottom: 1px solid #2a1a2c; padding: 12px 20px; }
-        .header-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ff3b2f, #b02ce6); -webkit-background-clip: text; background-clip: text; color: transparent; text-decoration: none; }
-        .btn { padding: 8px 16px; border-radius: 40px; border: 1px solid #441d46; background: #111014; color: white; cursor: pointer; text-decoration: none; }
-        .btn-primary { background: #ac2f3a; border-color: #d44545; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .promo-card { background: #0f0e13; border-radius: 24px; padding: 24px; margin-bottom: 20px; border: 1px solid #2d1e32; transition: all 0.3s ease; }
-        .promo-card:hover { transform: translateY(-3px); border-color: #ff6b4a; }
-        .promo-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-        .promo-price { font-size: 28px; font-weight: 800; color: #ff6b4a; margin: 12px 0; }
-        .promo-desc { color: #a492b0; margin-bottom: 16px; }
-        .balance-info { background: #1a1620; border-radius: 20px; padding: 16px; margin-bottom: 24px; text-align: center; }
-        .balance-amount { font-size: 32px; font-weight: 800; color: #ff6b4a; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
+        .promo-container { max-width: 1000px; margin: 30px auto; padding: 0 24px; }
+        .promo-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .promo-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        .promo-card .info { flex: 1; }
+        .promo-card .info .title { font-size: 18px; font-weight: 700; }
+        .promo-card .info .desc { font-size: 14px; color: var(--text-muted); }
+        .promo-card .price { font-size: 22px; font-weight: 800; color: var(--secondary); }
+        .promo-card .btn { min-width: 140px; }
+
+        .balance-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .balance-box .label { font-size: 14px; color: var(--text-muted); }
+        .balance-box .amount { font-size: 32px; font-weight: 800; color: var(--secondary); }
+
+        @media (max-width: 600px) {
+            .promo-card { flex-direction: column; text-align: center; }
+            .promo-card .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="header-container">
-        <a href="index.html" class="logo">🍪 КУКИ</a>
-        <a href="index.html" class="btn">🏠 На главную</a>
-        <div id="userActions"></div>
-    </div>
-</div>
-
-<div class="container">
-    <h1 style="margin-bottom: 24px;">🚀 Платное продвижение</h1>
-    
-    <div class="balance-info">
-        <p>💰 Ваш баланс</p>
-        <div class="balance-amount" id="balanceAmount">0 ₽</div>
-        <button class="btn" id="topUpBtn" style="margin-top: 12px;">Пополнить</button>
-    </div>
-    
-    <div class="promo-card">
-        <div class="promo-title">⭐ XL-объявление</div>
-        <div class="promo-price">299 ₽ / день</div>
-        <div class="promo-desc">Выделение в 3 раза больше в выдаче, цветной фон</div>
-        <button class="btn-primary" data-price="299" data-service="XL">Активировать</button>
-    </div>
-    
-    <div class="promo-card">
-        <div class="promo-title">📌 Поднятие в ТОП</div>
-        <div class="promo-price">199 ₽ / поднятие</div>
-        <div class="promo-desc">Временный вывод на первые позиции</div>
-        <button class="btn-primary" data-price="199" data-service="TOP">Активировать</button>
-    </div>
-    
-    <div class="promo-card">
-        <div class="promo-title">🚀 Автопродвижение</div>
-        <div class="promo-price">5 ₽ / просмотр</div>
-        <div class="promo-desc">Оплата за реальные просмотры</div>
-        <button class="btn-primary" data-price="5" data-service="AUTO">Активировать</button>
-    </div>
-    
-    <div class="promo-card">
-        <div class="promo-title">🎨 Выделение цветом</div>
-        <div class="promo-price">99 ₽ / день</div>
-        <div class="promo-desc">Яркий фон вашего объявления</div>
-        <button class="btn-primary" data-price="99" data-service="COLOR">Активировать</button>
-    </div>
-    
-    <div class="promo-card">
-        <div class="promo-title">💎 VIP-статус</div>
-        <div class="promo-price">999 ₽ / месяц</div>
-        <div class="promo-desc">Специальная отметка, приоритет в поиске</div>
-        <button class="btn-primary" data-price="999" data-service="VIP">Активировать</button>
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
-        authDomain: "kyki-5e91a.firebaseapp.com",
-        projectId: "kyki-5e91a",
-        storageBucket: "kyki-5e91a.firebasestorage.app",
-        messagingSenderId: "315986487804",
-        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
-        measurementId: "G-ETWXCGL9HK"
-    };
-    
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = "login.html";
-            return;
-        }
-        
-        document.getElementById('userActions').innerHTML = `
-            <div class="user-info">
-                <img src="${user.photoURL || ''}" class="user-avatar">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
             </div>
-            <button class="btn" id="logoutBtn">Выйти</button>
-        `;
-        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        
-        await loadBalance();
-    });
-    
-    async function loadBalance() {
-        const userDoc = await db.collection("users").doc(auth.currentUser.uid).get();
-        const balance = userDoc.data()?.balance || 0;
-        document.getElementById('balanceAmount').innerHTML = balance.toLocaleString() + ' ₽';
-    }
-    
-    document.getElementById('topUpBtn').onclick = () => {
-        window.location.href = "wallet.html";
-    };
-    
-    document.querySelectorAll('.btn-primary[data-price]').forEach(btn => {
-        btn.onclick = async () => {
-            const price = parseInt(btn.dataset.price);
-            const service = btn.dataset.service;
-            
-            const userDoc = await db.collection("users").doc(auth.currentUser.uid).get();
-            const balance = userDoc.data()?.balance || 0;
-            
-            if (balance < price) {
-                alert(`❌ Недостаточно средств! Ваш баланс: ${balance} ₽. Пополните кошелёк.`);
-                window.location.href = "wallet.html";
+        </div>
+    </header>
+
+    <!-- ===== PROMO PAGE ===== -->
+    <div class="promo-container">
+        <h1 style="font-size:28px; margin-bottom:8px;">🚀 Платное продвижение</h1>
+        <p style="color:var(--text-muted); margin-bottom:24px;">Поднимите свои объявления в ТОП и получите больше просмотров</p>
+
+        <!-- ===== BALANCE ===== -->
+        <div class="balance-box">
+            <div>
+                <div class="label">💰 Ваш баланс</div>
+                <div class="amount" id="balanceAmount">0 ₽</div>
+            </div>
+            <a href="wallet.html" class="btn btn-primary">Пополнить</a>
+        </div>
+
+        <!-- ===== PROMO SERVICES ===== -->
+        <div class="promo-card">
+            <div class="info">
+                <div class="title">⭐ Поднятие в ТОП</div>
+                <div class="desc">Временный вывод объявления на первые позиции в поиске</div>
+            </div>
+            <div class="price">199 ₽</div>
+            <button class="btn btn-primary promo-btn" data-price="199" data-service="ТОП">Активировать</button>
+        </div>
+
+        <div class="promo-card">
+            <div class="info">
+                <div class="title">🎨 Выделение цветом</div>
+                <div class="desc">Яркий фон для вашего объявления, чтобы привлечь внимание</div>
+            </div>
+            <div class="price">99 ₽</div>
+            <button class="btn btn-primary promo-btn" data-price="99" data-service="Цвет">Активировать</button>
+        </div>
+
+        <div class="promo-card">
+            <div class="info">
+                <div class="title">⭐ XL-объявление</div>
+                <div class="desc">Увеличенный размер карточки в выдаче + цветной фон</div>
+            </div>
+            <div class="price">299 ₽</div>
+            <button class="btn btn-primary promo-btn" data-price="299" data-service="XL">Активировать</button>
+        </div>
+
+        <div class="promo-card">
+            <div class="info">
+                <div class="title">💎 VIP-статус</div>
+                <div class="desc">Специальная отметка, приоритет в поиске на 30 дней</div>
+            </div>
+            <div class="price">999 ₽</div>
+            <button class="btn btn-primary promo-btn" data-price="999" data-service="VIP">Активировать</button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let userData = {};
+
+        // ========================================
+        // DOM
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const balanceAmount = document.getElementById('balanceAmount');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
                 return;
             }
-            
-            // Списываем средства
-            await db.collection("users").doc(auth.currentUser.uid).update({
-                balance: balance - price
-            });
-            
-            // Записываем транзакцию
-            await db.collection("transactions").add({
-                userId: auth.currentUser.uid,
-                amount: -price,
-                description: `Оплата "${service}" продвижения`,
-                createdAt: new Date().toISOString()
-            });
-            
-            alert(`✅ Оплачено ${price} ₽ за "${service}"! Услуга активирована.`);
+            currentUser = user;
             await loadBalance();
-        };
-    });
-</script>
+            setupHeader();
+            setupEvents();
+        });
+
+        // ========================================
+        // LOAD BALANCE
+        // ========================================
+        async function loadBalance() {
+            try {
+                const doc = await db.collection("users").doc(currentUser.uid).get();
+                userData = doc.data() || {};
+                balanceAmount.textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+            } catch (error) {
+                console.error('Error loading balance:', error);
+            }
+        }
+
+        // ========================================
+        // HEADER
+        // ========================================
+        function setupHeader() {
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='profile.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // EVENTS
+        // ========================================
+        function setupEvents() {
+            document.querySelectorAll('.promo-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const price = parseInt(btn.dataset.price);
+                    const service = btn.dataset.service;
+
+                    // Проверяем баланс
+                    const balance = userData.balance || 0;
+                    if (balance < price) {
+                        showNotification(`❌ Недостаточно средств! Нужно ${price} ₽`, 'error');
+                        return;
+                    }
+
+                    // Спрашиваем подтверждение
+                    if (!confirm(`Активировать "${service}" за ${price} ₽?`)) return;
+
+                    try {
+                        // Списываем деньги
+                        const newBalance = balance - price;
+                        await db.collection("users").doc(currentUser.uid).update({
+                            balance: newBalance
+                        });
+
+                        // Записываем транзакцию
+                        await db.collection("transactions").add({
+                            userId: currentUser.uid,
+                            amount: -price,
+                            description: `Продвижение "${service}"`,
+                            status: 'completed',
+                            createdAt: new Date().toISOString()
+                        });
+
+                        // Обновляем баланс на странице
+                        userData.balance = newBalance;
+                        balanceAmount.textContent = newBalance.toLocaleString() + ' ₽';
+                        setupHeader();
+
+                        showNotification(`✅ "${service}" активирован! Списано ${price} ₽`, 'success');
+
+                    } catch (error) {
+                        console.error('Error activating promo:', error);
+                        showNotification('❌ Ошибка активации', 'error');
+                    }
+                };
+            });
+        }
+
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+    </script>
 </body>
 </html>

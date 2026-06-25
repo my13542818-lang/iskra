@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Безопасность — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .security-container { max-width: 700px; margin: 30px auto; padding: 0 24px; }
+        .security-container .card { padding: 32px; }
+        .security-container .card h2 { font-size: 24px; margin-bottom: 24px; }
+        .security-container .section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
+            margin-top: 24px;
+        }
+        .security-container .section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+        .security-container .section h3 { font-size: 17px; margin-bottom: 16px; color: var(--text-secondary); }
+        .security-container .danger-zone {
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            background: rgba(231, 76, 60, 0.05);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 12px;
+        }
+        .security-container .danger-zone h4 { color: #E74C3C; }
+        .security-container .btn-danger { background: linear-gradient(135deg, #E74C3C, #C0392B); color: white; }
+        .back-link { display: inline-block; margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <div class="security-container">
+        <div class="card card-glow">
+            <h2>🔐 Безопасность</h2>
+
+            <!-- ===== СМЕНА ПАРОЛЯ ===== -->
+            <div class="section">
+                <h3>🔑 Смена пароля</h3>
+                <div class="form-group">
+                    <label>Текущий пароль</label>
+                    <input type="password" class="form-control" id="currentPassword" placeholder="Введите текущий пароль">
+                </div>
+                <div class="form-group">
+                    <label>Новый пароль</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Минимум 6 символов">
+                </div>
+                <div class="form-group">
+                    <label>Подтверждение</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите пароль">
+                </div>
+                <button class="btn btn-primary" id="changePasswordBtn">🔄 Изменить пароль</button>
+            </div>
+
+            <!-- ===== 2FA ===== -->
+            <div class="section">
+                <h3>🔐 Двухфакторная аутентификация</h3>
+                <p style="color:var(--text-muted); margin-bottom:12px;">Повысьте безопасность вашего аккаунта</p>
+                <button class="btn btn-secondary" id="enable2faBtn">🔐 Включить 2FA</button>
+            </div>
+
+            <!-- ===== DANGER ZONE ===== -->
+            <div class="section">
+                <div class="danger-zone">
+                    <h4>⚠️ Опасная зона</h4>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
+                        <button class="btn btn-danger" id="logoutAllBtn">🚪 Выйти из всех устройств</button>
+                        <button class="btn btn-danger" id="deleteAccountBtn">🗑️ Удалить аккаунт</button>
+                    </div>
+                </div>
+            </div>
+
+            <a href="index.html" class="back-link btn btn-secondary">← Вернуться в профиль</a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = '../login.html'; return; }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            document.getElementById('headerActions').innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='../wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+
+            // Смена пароля
+            document.getElementById('changePasswordBtn').onclick = async () => {
+                const current = document.getElementById('currentPassword').value;
+                const newPass = document.getElementById('newPassword').value;
+                const confirm = document.getElementById('confirmPassword').value;
+
+                if (!current || !newPass) { alert('Заполните все поля'); return; }
+                if (newPass !== confirm) { alert('Пароли не совпадают'); return; }
+                if (newPass.length < 6) { alert('Пароль должен быть минимум 6 символов'); return; }
+
+                try {
+                    const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+                    await user.reauthenticateWithCredential(credential);
+                    await user.updatePassword(newPass);
+                    alert('✅ Пароль изменён');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } catch (e) {
+                    alert('❌ Неверный текущий пароль');
+                }
+            };
+
+            // 2FA
+            document.getElementById('enable2faBtn').onclick = () => alert('🔐 Функция будет доступна в ближайшее время');
+
+            // Logout all
+            document.getElementById('logoutAllBtn').onclick = () => {
+                if (confirm('Выйти из всех устройств?')) {
+                    auth.signOut();
+                    window.location.href = '../index.html';
+                }
+            };
+
+            // Delete account
+            document.getElementById('deleteAccountBtn').onclick = async () => {
+                if (confirm('⚠️ Вы уверены? Это действие необратимо!')) {
+                    if (confirm('Все ваши данные будут удалены навсегда. Продолжить?')) {
+                        try {
+                            await user.delete();
+                            window.location.href = '../index.html';
+                        } catch (e) {
+                            alert('❌ Ошибка удаления аккаунта. Попробуйте войти заново.');
+                        }
+                    }
+                }
+            };
+        });
+    </script>
+</body>
+</html>
