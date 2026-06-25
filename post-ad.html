@@ -8,71 +8,695 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <!-- Google API Client -->
+    <script src="https://apis.google.com/js/api.js"></script>
     <style>
-        .post-container { max-width: 800px; margin: 30px auto; padding: 0 24px; }
-        .specs-section { background: #f8f4ff; border-radius: 20px; padding: 20px; margin-top: 20px; }
-        .specs-title { font-size: 18px; font-weight: 600; color: #9b59b6; margin-bottom: 16px; }
-        .file-upload-area { border: 2px dashed #e8d5f5; border-radius: 20px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        .file-preview { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-        .preview-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; }
-        .preview-item img, .preview-item video { width: 100%; height: 100%; object-fit: cover; }
-        .remove-file { position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #6C3B8E;
+            --primary-light: #9B59B6;
+            --secondary: #E84393;
+            --secondary-light: #FF6B9D;
+            --gradient-main: linear-gradient(135deg, #6C3B8E 0%, #E84393 50%, #FF6B35 100%);
+            --bg-dark: #0D0B14;
+            --bg-card: #15121E;
+            --bg-input: #1A1625;
+            --border-color: #2D1F3D;
+            --text-primary: #FFFFFF;
+            --text-secondary: #C4B5D8;
+            --text-muted: #7A6B8A;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-lg: 0 12px 48px rgba(108, 59, 142, 0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(13, 11, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .balance-badge {
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            background: var(--gradient-main);
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .balance-badge:hover {
+            transform: scale(1.05);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--gradient-main);
+            color: white;
+            box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 6px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .header-user:hover {
+            border-color: var(--secondary);
+        }
+        .header-user .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary);
+        }
+        .header-user .name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* POST PAGE */
+        .post-page {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        .post-page .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            transition: var(--transition);
+        }
+        .post-page .card:hover {
+            border-color: rgba(232, 67, 147, 0.3);
+        }
+        .post-page .card .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .post-page .card .page-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+
+        /* UPLOAD ZONE */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 48px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg-input);
+            margin-bottom: 16px;
+        }
+        .upload-zone:hover {
+            border-color: var(--secondary);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+        .upload-zone.dragover {
+            border-color: var(--secondary);
+            background: rgba(232, 67, 147, 0.05);
+            transform: scale(1.01);
+        }
+        .upload-zone .icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .upload-zone .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .upload-zone .title span {
+            color: var(--secondary);
+        }
+        .upload-zone .subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .upload-zone .subtitle .formats {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .upload-zone .subtitle .drive-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: rgba(66, 133, 244, 0.2);
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            color: #4285F4;
+            font-weight: 600;
+        }
+
+        /* PROGRESS */
+        .upload-progress {
+            display: none;
+            margin: 12px 0 16px;
+            padding: 16px 20px;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+        .upload-progress .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .upload-progress .top .label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .upload-progress .top .percent {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .upload-progress .bar {
+            height: 6px;
+            background: var(--bg-dark);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .upload-progress .bar .fill {
+            height: 100%;
+            background: var(--gradient-main);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+        .upload-progress .status {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* PREVIEW */
+        .file-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .file-preview .item {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .file-preview .item:hover {
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        .file-preview .item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .file-preview .item .remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-preview .item .remove:hover {
+            background: #E74C3C;
+            transform: scale(1.1);
+        }
+
+        .empty-preview {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: none;
+        }
+        .empty-preview .icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* FORM */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+        .form-group {
+            margin-bottom: 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .form-group .required {
+            color: var(--secondary);
+            margin-left: 2px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition);
+            outline: none;
+        }
+        .form-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.15);
+        }
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23C4B5D8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select.form-control option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        /* SPECS */
+        .specs-wrapper {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .specs-wrapper .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .specs-wrapper .header h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .specs-wrapper .header .count {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-dark);
+            padding: 2px 12px;
+            border-radius: var(--radius-full);
+        }
+        .specs-wrapper .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .specs-wrapper .spec-grid .form-group {
+            margin-bottom: 0;
+        }
+        .specs-wrapper .spec-grid .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .specs-wrapper .spec-grid .form-group .form-control {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        /* SUBMIT */
+        .submit-area {
+            margin-top: 28px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .submit-area .btn {
+            padding: 14px 40px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .submit-area .hint {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* STATUS */
+        .drive-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 4px 12px;
+            background: var(--bg-input);
+            border-radius: var(--radius-full);
+            margin-top: 8px;
+        }
+        .drive-status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4285F4;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* AUTH BUTTON */
+        .auth-google-btn {
+            display: none;
+            background: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: var(--transition);
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .auth-google-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
+        }
+        .auth-google-btn .icon {
+            font-size: 20px;
+        }
+        .auth-google-btn.authorized {
+            background: #2ECC71;
+        }
+        .auth-google-btn.authorized:hover {
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success { border-left: 4px solid #2ECC71; }
+        .notification-error { border-left: 4px solid #E74C3C; }
+        .notification-warning { border-left: 4px solid #F1C40F; }
+        .notification-info { border-left: 4px solid #3498DB; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .post-page .card { padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .specs-wrapper .spec-grid { grid-template-columns: 1fr; }
+            .file-preview { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+            .upload-zone { padding: 32px 16px; }
+            .upload-zone .icon { font-size: 40px; }
+            .submit-area .btn { flex: none; width: 100%; }
+            .header-container { flex-direction: column; align-items: stretch; }
+            .header-actions { justify-content: space-between; }
+        }
+        @media (max-width: 480px) {
+            .post-page .card .page-title { font-size: 20px; }
+            .file-preview { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
+<!-- ===== HEADER ===== -->
+<header class="header">
     <div class="header-container">
-        <a href="index.html" class="logo">🍪 КУКИ</a>
-        <div id="userActions"></div>
-    </div>
-</div>
-
-<div class="post-container">
-    <div class="content-card">
-        <h2 id="formTitle">📢 Создать объявление</h2>
-        <div id="errorMsg" style="display:none; background:#f8d7da; color:#721c24; padding:12px; border-radius:12px; margin-bottom:16px;"></div>
-        
-        <div class="file-upload-area" id="fileUploadArea">
-            📁 Нажмите или перетащите файлы (фото/видео)
-            <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display:none">
+        <a href="index.html" class="logo">🍪 Куки</a>
+        <div class="header-actions" id="headerActions">
+            <div style="width:24px;height:24px;border:2px solid var(--border-color);border-top-color:var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
         </div>
+    </div>
+</header>
+
+<!-- ===== POST PAGE ===== -->
+<div class="post-page">
+    <div class="card">
+        <div class="page-title" id="formTitle">📢 Создать объявление</div>
+        <div class="page-subtitle">
+            Заполните все поля и добавьте фотографии для привлечения покупателей
+            <span class="drive-status">
+                <span class="dot"></span>
+                Хранится на Google Drive
+            </span>
+        </div>
+
+        <!-- Кнопка авторизации Google -->
+        <button class="auth-google-btn" id="authGoogleBtn">
+            <span class="icon">🔑</span> Войти в Google Drive для загрузки фото
+        </button>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone">
+            <span class="icon">🖼️</span>
+            <div class="title">Нажмите или <span>перетащите</span> файлы</div>
+            <div class="subtitle">
+                Поддерживаются: <span class="formats">JPG, PNG, WEBP, GIF</span> до 10 МБ
+                <br>
+                <span class="drive-badge">☁️ Google Drive хранилище (15 ГБ)</span>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/*" style="display:none">
+        </div>
+
+        <!-- Progress -->
+        <div class="upload-progress" id="uploadProgress">
+            <div class="top">
+                <span class="label" id="progressLabel">⏳ Загрузка на Google Drive...</span>
+                <span class="percent" id="progressPercent">0%</span>
+            </div>
+            <div class="bar">
+                <div class="fill" id="progressFill"></div>
+            </div>
+            <div class="status" id="progressStatus">Подготовка...</div>
+        </div>
+
+        <!-- Preview -->
         <div class="file-preview" id="filePreview"></div>
-        
-        <div class="form-row"><label>Название</label><input type="text" id="title"></div>
-        <div class="form-row"><label>Цена (₽)</label><input type="number" id="price"></div>
-        <div class="form-row"><label>Категория</label>
-            <select id="category">
-                <option value="электроника">📱 Электроника</option>
-                <option value="одежда">👕 Одежда</option>
-                <option value="обувь">👟 Обувь</option>
-                <option value="авто">🚗 Авто</option>
-                <option value="недвижимость">🏠 Недвижимость</option>
-                <option value="для дома">🛋️ Для дома</option>
-                <option value="спорт">⚽ Спорт</option>
-                <option value="игрушки">🧸 Игрушки</option>
-                <option value="услуги">🔧 Услуги</option>
-            </select>
+        <div class="empty-preview" id="emptyPreview">
+            <span class="icon">📷</span> Нет загруженных изображений
         </div>
-        <div class="form-row"><label>Состояние</label>
-            <select id="condition">
-                <option value="new">✨ Новое</option>
-                <option value="used">🔄 Б/У</option>
-            </select>
+
+        <!-- Form -->
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>Название <span class="required">*</span></label>
+                <input type="text" class="form-control" id="title" placeholder="Например: iPhone 14 Pro Max 256GB">
+            </div>
+            <div class="form-group">
+                <label>Цена (₽) <span class="required">*</span></label>
+                <input type="number" class="form-control" id="price" placeholder="1000">
+            </div>
+            <div class="form-group">
+                <label>Категория</label>
+                <select class="form-control" id="category">
+                    <option value="электроника">📱 Электроника</option>
+                    <option value="одежда">👕 Одежда</option>
+                    <option value="обувь">👟 Обувь</option>
+                    <option value="авто">🚗 Авто</option>
+                    <option value="недвижимость">🏠 Недвижимость</option>
+                    <option value="для дома">🛋️ Для дома</option>
+                    <option value="спорт">⚽ Спорт</option>
+                    <option value="игрушки">🧸 Игрушки</option>
+                    <option value="услуги">🔧 Услуги</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Состояние</label>
+                <select class="form-control" id="condition">
+                    <option value="new">✨ Новое</option>
+                    <option value="used">🔄 Б/У</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Город</label>
+                <input type="text" class="form-control" id="location" placeholder="Москва">
+            </div>
+            <div class="form-group full">
+                <label>Описание</label>
+                <textarea class="form-control" id="description" rows="4" placeholder="Подробно опишите товар..."></textarea>
+            </div>
         </div>
-        
-        <!-- Динамические критерии для категорий -->
-        <div id="specsContainer"></div>
-        
-        <div class="form-row"><label>Город</label><input type="text" id="location"></div>
-        <div class="form-row"><label>Описание</label><textarea id="description" rows="4"></textarea></div>
-        
-        <button class="btn-primary" id="submitBtn" style="width:100%; padding:14px;">📤 Опубликовать</button>
+
+        <!-- Specs -->
+        <div class="specs-wrapper" id="specsWrapper" style="display:none;">
+            <div class="header">
+                <h4>📋 Характеристики</h4>
+                <span class="count" id="specsCount">0 характеристик</span>
+            </div>
+            <div class="spec-grid" id="specsGrid"></div>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-area">
+            <button class="btn btn-primary" id="submitBtn">📤 Опубликовать</button>
+            <a href="index.html" class="btn btn-secondary">Отмена</a>
+            <span class="hint">⚠️ Все поля обязательны для заполнения</span>
+        </div>
     </div>
 </div>
 
+<!-- ======================================== -->
+<!-- SCRIPTS -->
+<!-- ======================================== -->
 <script>
+    // ========================================
+    // FIREBASE CONFIG
+    // ========================================
     const firebaseConfig = {
         apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
         authDomain: "kyki-5e91a.firebaseapp.com",
@@ -83,240 +707,597 @@
         measurementId: "G-ETWXCGL9HK"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
+
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
-    
+
+    // ========================================
+    // GOOGLE DRIVE API — ВАШИ ДАННЫЕ
+    // ========================================
+    const GOOGLE_DRIVE_API_KEY = 'AIzaSyAO1a9mXdd_E4FFIggkqS1QOJxGICXo9do';
+    const CLIENT_ID = '315986487804-g3r6hmnsget3tkmqhoj7pp6rv2p3alk7.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    // ========================================
+    // STATE
+    // ========================================
     let currentUser = null;
-    let selectedFiles = [];
+    let userData = {};
+    let uploadedUrls = [];
     let editingId = null;
-    const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('edit');
-    
-    // Критерии для категорий
+    let isUploading = false;
+    let gapiInitialized = false;
+    let isGoogleAuthorized = false;
+    let tokenClient = null;
+
+    // ========================================
+    // DOM REFS
+    // ========================================
+    const headerActions = document.getElementById('headerActions');
+    const formTitle = document.getElementById('formTitle');
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const emptyPreview = document.getElementById('emptyPreview');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    const submitBtn = document.getElementById('submitBtn');
+    const authGoogleBtn = document.getElementById('authGoogleBtn');
+
+    // ========================================
+    // CATEGORY SPECS
+    // ========================================
     const categorySpecs = {
         электроника: [
-            { label: 'Бренд', type: 'text', placeholder: 'Apple, Samsung, Xiaomi...' },
+            { label: 'Бренд', type: 'text', placeholder: 'Apple, Samsung...' },
             { label: 'Модель', type: 'text', placeholder: 'iPhone 14 Pro' },
             { label: 'Год выпуска', type: 'number', placeholder: '2023' },
             { label: 'Состояние', type: 'select', options: ['Отличное', 'Хорошее', 'Среднее', 'Требует ремонта'] },
-            { label: 'Наличие гарантии', type: 'select', options: ['Есть', 'Нет'] },
-            { label: 'Комплектация', type: 'text', placeholder: 'Зарядка, коробка, чек' }
+            { label: 'Гарантия', type: 'select', options: ['Есть', 'Нет'] }
         ],
         одежда: [
-            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas, Zara...' },
-            { label: 'Размер', type: 'text', placeholder: 'S, M, L, XL, XXL' },
-            { label: 'Материал', type: 'text', placeholder: 'Хлопок, полиэстер, шерсть...' },
-            { label: 'Цвет', type: 'text', placeholder: 'Чёрный, белый, синий...' },
-            { label: 'Сезон', type: 'select', options: ['Лето', 'Зима', 'Демисезон', 'Всесезон'] }
+            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas...' },
+            { label: 'Размер', type: 'text', placeholder: 'S, M, L, XL' },
+            { label: 'Материал', type: 'text', placeholder: 'Хлопок, полиэстер...' },
+            { label: 'Цвет', type: 'text', placeholder: 'Чёрный, белый...' },
+            { label: 'Сезон', type: 'select', options: ['Лето', 'Зима', 'Демисезон'] }
         ],
         обувь: [
-            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas, Puma...' },
+            { label: 'Бренд', type: 'text', placeholder: 'Nike, Adidas...' },
             { label: 'Размер RU', type: 'number', placeholder: '36-45' },
-            { label: 'Материал', type: 'text', placeholder: 'Кожа, замша, текстиль...' },
-            { label: 'Тип', type: 'select', options: ['Кроссовки', 'Ботинки', 'Туфли', 'Сандалии', 'Сапоги'] }
+            { label: 'Материал', type: 'text', placeholder: 'Кожа, замша...' },
+            { label: 'Тип', type: 'select', options: ['Кроссовки', 'Ботинки', 'Туфли', 'Сандалии'] }
         ],
         авто: [
-            { label: 'Марка', type: 'text', placeholder: 'Toyota, BMW, Mercedes...' },
-            { label: 'Модель', type: 'text', placeholder: 'Camry, X5, E-class' },
+            { label: 'Марка', type: 'text', placeholder: 'Toyota, BMW...' },
+            { label: 'Модель', type: 'text', placeholder: 'Camry, X5...' },
             { label: 'Год выпуска', type: 'number', placeholder: '2015' },
             { label: 'Пробег', type: 'text', placeholder: '120 000 км' },
-            { label: 'Объём двигателя', type: 'text', placeholder: '2.0 л' },
-            { label: 'Коробка передач', type: 'select', options: ['Механика', 'Автомат', 'Робот', 'Вариатор'] },
+            { label: 'Двигатель', type: 'text', placeholder: '2.0 л' },
+            { label: 'Коробка', type: 'select', options: ['Механика', 'Автомат', 'Робот', 'Вариатор'] },
             { label: 'Привод', type: 'select', options: ['Передний', 'Задний', 'Полный'] }
         ],
         недвижимость: [
             { label: 'Тип', type: 'select', options: ['Квартира', 'Дом', 'Комната', 'Участок', 'Коммерция'] },
             { label: 'Площадь', type: 'text', placeholder: '65 м²' },
-            { label: 'Количество комнат', type: 'number', placeholder: '3' },
+            { label: 'Комнат', type: 'number', placeholder: '3' },
             { label: 'Этаж', type: 'text', placeholder: '5/9' },
             { label: 'Состояние', type: 'select', options: ['Новостройка', 'Вторичка', 'Требует ремонта'] }
         ],
         'для дома': [
             { label: 'Тип', type: 'select', options: ['Мебель', 'Техника', 'Посуда', 'Декор', 'Освещение'] },
-            { label: 'Материал', type: 'text', placeholder: 'Дерево, пластик, металл...' },
-            { label: 'Цвет', type: 'text', placeholder: 'Белый, чёрный, дуб...' },
+            { label: 'Материал', type: 'text', placeholder: 'Дерево, пластик...' },
+            { label: 'Цвет', type: 'text', placeholder: 'Белый, чёрный...' },
             { label: 'Состояние', type: 'select', options: ['Новое', 'Как новое', 'Хорошее', 'Б/У'] }
         ],
         спорт: [
             { label: 'Тип', type: 'select', options: ['Тренажёры', 'Велосипеды', 'Мячи', 'Форма', 'Инвентарь'] },
-            { label: 'Бренд', type: 'text', placeholder: 'Adidas, Nike, Reebok...' },
+            { label: 'Бренд', type: 'text', placeholder: 'Adidas, Nike...' },
             { label: 'Размер', type: 'text', placeholder: 'S, M, L' }
         ],
         игрушки: [
             { label: 'Тип', type: 'select', options: ['Мягкие', 'Конструкторы', 'Машинки', 'Куклы', 'Настольные'] },
             { label: 'Возраст', type: 'text', placeholder: '3+' },
-            { label: 'Материал', type: 'text', placeholder: 'Пластик, текстиль, дерево' }
+            { label: 'Материал', type: 'text', placeholder: 'Пластик, текстиль...' }
         ],
         услуги: [
-            { label: 'Категория услуг', type: 'select', options: ['Ремонт', 'Красота', 'Обучение', 'Консультации', 'Уборка', 'Доставка'] },
-            { label: 'Опыт работы', type: 'text', placeholder: '5 лет' },
-            { label: 'Срок выполнения', type: 'text', placeholder: '1-3 дня' }
+            { label: 'Категория', type: 'select', options: ['Ремонт', 'Красота', 'Обучение', 'Консультации', 'Уборка', 'Доставка'] },
+            { label: 'Опыт', type: 'text', placeholder: '5 лет' },
+            { label: 'Срок', type: 'text', placeholder: '1-3 дня' }
         ]
     };
-    
-    document.getElementById('category').addEventListener('change', () => {
-        renderSpecs();
-    });
-    
-    function renderSpecs() {
-        const category = document.getElementById('category').value;
-        const specs = categorySpecs[category] || [];
-        const container = document.getElementById('specsContainer');
+
+    // ========================================
+    // INIT GOOGLE DRIVE API
+    // ========================================
+    function initGoogleDriveAPI() {
+        return new Promise((resolve, reject) => {
+            if (gapiInitialized) {
+                resolve();
+                return;
+            }
+
+            gapi.load('client', async () => {
+                try {
+                    await gapi.client.init({
+                        apiKey: GOOGLE_DRIVE_API_KEY,
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                    });
+                    gapiInitialized = true;
+                    console.log('✅ Google Drive API инициализирован');
+                    resolve();
+                } catch (error) {
+                    console.error('❌ Google Drive API ошибка:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    // ========================================
+    // ИНИЦИАЛИЗАЦИЯ TOKEN CLIENT (OAuth 2.0)
+    // ========================================
+    function initTokenClient() {
+        if (tokenClient) return tokenClient;
         
-        if (specs.length === 0) {
-            container.innerHTML = '';
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (response) => {
+                if (response.error) {
+                    console.error('OAuth error:', response.error);
+                    showNotification('❌ Ошибка авторизации: ' + response.error, 'error');
+                    isGoogleAuthorized = false;
+                    authGoogleBtn.textContent = '🔑 Войти в Google Drive';
+                    authGoogleBtn.classList.remove('authorized');
+                } else {
+                    gapi.client.setToken(response);
+                    isGoogleAuthorized = true;
+                    authGoogleBtn.textContent = '✅ Авторизован';
+                    authGoogleBtn.classList.add('authorized');
+                    showNotification('✅ Авторизация Google Drive успешна!', 'success');
+                }
+            }
+        });
+        return tokenClient;
+    }
+
+    // ========================================
+    // АВТОРИЗАЦИЯ GOOGLE
+    // ========================================
+    function authorizeGoogleDrive() {
+        return new Promise((resolve, reject) => {
+            const client = initTokenClient();
+            client.requestAccessToken();
+            // Ждём ответа через callback
+            const checkAuth = setInterval(() => {
+                if (isGoogleAuthorized) {
+                    clearInterval(checkAuth);
+                    resolve();
+                }
+            }, 500);
+        });
+    }
+
+    // ========================================
+    // UPLOAD TO GOOGLE DRIVE
+    // ========================================
+    async function uploadToGoogleDrive(file) {
+        await initGoogleDriveAPI();
+
+        let token = gapi.client.getToken();
+        if (!token) {
+            await authorizeGoogleDrive();
+            token = gapi.client.getToken();
+        }
+
+        return new Promise((resolve, reject) => {
+            const metadata = {
+                name: `${Date.now()}_${file.name}`,
+                mimeType: file.type,
+                parents: ['root']
+            };
+
+            const accessToken = token?.access_token;
+            if (!accessToken) {
+                reject(new Error('Нет токена доступа. Авторизуйтесь в Google.'));
+                return;
+            }
+
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    updateProgress(percent, `Загрузка: ${file.name}`);
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const fileId = response.id;
+                    const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    
+                    resolve({
+                        url: fileUrl,
+                        thumb: fileUrl,
+                        direct: fileUrl,
+                        id: fileId,
+                        name: file.name
+                    });
+                } else {
+                    let errorMsg = `Ошибка загрузки: ${xhr.status}`;
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        errorMsg = errorData.error?.message || errorMsg;
+                    } catch (e) {}
+                    reject(new Error(errorMsg));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Ошибка сети'));
+            xhr.send(form);
+        });
+    }
+
+    // ========================================
+    // AUTH
+    // ========================================
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
             return;
         }
+        currentUser = user;
         
-        container.innerHTML = `
-            <div class="specs-section">
-                <div class="specs-title">📋 Характеристики</div>
-                ${specs.map(spec => `
-                    <div class="form-row">
-                        <label>${spec.label}</label>
-                        ${spec.type === 'select' ? 
-                            `<select id="spec_${spec.label.replace(/\s/g, '_')}">
-                                ${spec.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                            </select>` :
-                            `<input type="${spec.type}" id="spec_${spec.label.replace(/\s/g, '_')}" placeholder="${spec.placeholder}">`
-                        }
-                    </div>
-                `).join('')}
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        userData = userDoc.data() || {};
+        
+        setupHeader();
+        renderSpecs();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        if (editId) {
+            editingId = editId;
+            formTitle.textContent = '✏️ Редактировать объявление';
+            submitBtn.textContent = '💾 Сохранить';
+            await loadListing(editId);
+        }
+
+        // Инициализация Google Drive
+        try {
+            await initGoogleDriveAPI();
+            const token = gapi.client.getToken();
+            if (token) {
+                isGoogleAuthorized = true;
+                authGoogleBtn.textContent = '✅ Авторизован';
+                authGoogleBtn.classList.add('authorized');
+                authGoogleBtn.style.display = 'flex';
+            } else {
+                authGoogleBtn.textContent = '🔑 Войти в Google Drive для загрузки фото';
+                authGoogleBtn.classList.remove('authorized');
+                authGoogleBtn.style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('Google Drive ошибка:', error);
+            authGoogleBtn.textContent = '🔑 Войти в Google Drive для загрузки фото';
+            authGoogleBtn.style.display = 'flex';
+        }
+
+        authGoogleBtn.onclick = async () => {
+            try {
+                await authorizeGoogleDrive();
+            } catch (error) {
+                showNotification('❌ Ошибка авторизации Google', 'error');
+            }
+        };
+    });
+
+    // ========================================
+    // SETUP HEADER
+    // ========================================
+    function setupHeader() {
+        headerActions.innerHTML = `
+            <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+            <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+            <div class="header-user" onclick="window.location.href='profile.html'">
+                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
             </div>
         `;
     }
-    
-    // Загрузка файлов
-    const uploadArea = document.getElementById('fileUploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const filePreview = document.getElementById('filePreview');
-    
-    uploadArea.onclick = () => fileInput.click();
-    uploadArea.ondragover = (e) => { e.preventDefault(); uploadArea.style.borderColor = '#e84393'; };
-    uploadArea.ondragleave = () => uploadArea.style.borderColor = '#e8d5f5';
-    uploadArea.ondrop = (e) => {
+
+    // ========================================
+    // PROGRESS
+    // ========================================
+    function updateProgress(percent, status) {
+        progressFill.style.width = percent + '%';
+        progressPercent.textContent = percent + '%';
+        if (status) progressStatus.textContent = status;
+    }
+
+    // ========================================
+    // UPLOAD FILES
+    // ========================================
+    async function uploadFiles(files) {
+        if (isUploading) return;
+        
+        if (!isGoogleAuthorized) {
+            showNotification('⚠️ Сначала авторизуйтесь в Google Drive', 'warning');
+            authGoogleBtn.style.display = 'flex';
+            authGoogleBtn.style.animation = 'pulse 1s ease 3';
+            return;
+        }
+        
+        isUploading = true;
+        
+        uploadProgress.style.display = 'block';
+        progressFill.style.width = '0%';
+        progressLabel.textContent = '⏳ Загрузка на Google Drive...';
+        progressPercent.textContent = '0%';
+        progressStatus.textContent = `Подготовка ${files.length} файлов...`;
+        submitBtn.disabled = true;
+
+        const results = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            try {
+                progressStatus.textContent = `Загрузка ${i + 1} из ${files.length}: ${file.name}`;
+                
+                const result = await uploadToGoogleDrive(file);
+                results.push(result);
+                
+                addPreviewItem(result.url, i);
+                
+                const percent = Math.round(((i + 1) / files.length) * 100);
+                progressFill.style.width = percent + '%';
+                progressPercent.textContent = percent + '%';
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showNotification(`❌ Ошибка: ${file.name} - ${error.message}`, 'error');
+            }
+        }
+
+        progressLabel.textContent = '✅ Готово!';
+        progressStatus.textContent = `Загружено ${results.length} из ${files.length} файлов на Google Drive`;
+        submitBtn.disabled = false;
+        isUploading = false;
+
+        uploadedUrls = [...uploadedUrls, ...results];
+        
+        setTimeout(() => {
+            uploadProgress.style.display = 'none';
+        }, 2000);
+
+        return results;
+    }
+
+    // ========================================
+    // PREVIEW
+    // ========================================
+    function addPreviewItem(url, index) {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.dataset.index = index;
+        item.innerHTML = `
+            <img src="${url}" alt="Фото ${index + 1}" loading="lazy" onerror="this.src='https://via.placeholder.com/150/6C3B8E/FFFFFF?text=Error'">
+            <button class="remove" data-index="${index}">✕</button>
+        `;
+        filePreview.appendChild(item);
+        emptyPreview.style.display = 'none';
+        
+        item.querySelector('.remove').onclick = () => {
+            item.remove();
+            uploadedUrls = uploadedUrls.filter((_, i) => i !== index);
+            if (uploadedUrls.length === 0) {
+                emptyPreview.style.display = 'block';
+            }
+        };
+    }
+
+    // ========================================
+    // FILE UPLOAD EVENTS
+    // ========================================
+    uploadZone.onclick = () => fileInput.click();
+
+    uploadZone.ondragover = (e) => {
         e.preventDefault();
-        const files = Array.from(e.dataTransfer.files);
-        selectedFiles.push(...files);
-        updateFilePreview();
-        uploadArea.style.borderColor = '#e8d5f5';
+        uploadZone.classList.add('dragover');
     };
-    
-    fileInput.onchange = (e) => {
-        const files = Array.from(e.target.files);
-        selectedFiles.push(...files);
-        updateFilePreview();
+    uploadZone.ondragleave = () => {
+        uploadZone.classList.remove('dragover');
+    };
+    uploadZone.ondrop = async (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (files.length) {
+            await uploadFiles(files);
+        }
+    };
+
+    fileInput.onchange = async (e) => {
+        const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+        if (files.length) {
+            await uploadFiles(files);
+        }
         fileInput.value = '';
     };
-    
-    function updateFilePreview() {
-        filePreview.innerHTML = selectedFiles.map((file, idx) => `
-            <div class="preview-item">
-                ${file.type.startsWith('image/') ? 
-                    `<img src="${URL.createObjectURL(file)}">` : 
-                    `<video src="${URL.createObjectURL(file)}"></video>`}
-                <div class="remove-file" data-idx="${idx}">✕</div>
+
+    // ========================================
+    // SPECS
+    // ========================================
+    document.getElementById('category').addEventListener('change', renderSpecs);
+
+    function renderSpecs() {
+        const category = document.getElementById('category').value;
+        const specs = categorySpecs[category] || [];
+        const wrapper = document.getElementById('specsWrapper');
+        const grid = document.getElementById('specsGrid');
+        const count = document.getElementById('specsCount');
+
+        if (specs.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+
+        wrapper.style.display = 'block';
+        count.textContent = `${specs.length} характеристик`;
+
+        grid.innerHTML = specs.map(spec => `
+            <div class="form-group">
+                <label>${spec.label}</label>
+                ${spec.type === 'select' 
+                    ? `<select class="form-control" id="spec_${spec.label.replace(/\s/g, '_')}">
+                        ${spec.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>`
+                    : `<input type="${spec.type}" class="form-control" id="spec_${spec.label.replace(/\s/g, '_')}" placeholder="${spec.placeholder}">`
+                }
             </div>
         `).join('');
-        
-        document.querySelectorAll('.remove-file').forEach(btn => {
-            btn.onclick = () => {
-                const idx = parseInt(btn.dataset.idx);
-                selectedFiles.splice(idx, 1);
-                updateFilePreview();
-            };
-        });
     }
-    
-    async function uploadFiles() {
-        const urls = [];
-        for (const file of selectedFiles) {
-            const ext = file.type.startsWith('image/') ? 'images' : 'videos';
-            const storageRef = storage.ref(`listings/${Date.now()}_${file.name}`);
-            await storageRef.put(file);
-            const url = await storageRef.getDownloadURL();
-            urls.push({ url, type: file.type.startsWith('image/') ? 'image' : 'video' });
-        }
-        return urls;
-    }
-    
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "login.html"; return; }
-        currentUser = user;
-        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
-        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        
-        if (editId) {
-            editingId = editId;
-            document.getElementById('formTitle').innerHTML = '✏️ Редактировать объявление';
-            document.getElementById('submitBtn').innerHTML = '💾 Сохранить';
-            await loadListing();
-        }
-        renderSpecs();
-    });
-    
-    async function loadListing() {
-        const doc = await db.collection("listings").doc(editingId).get();
-        if (doc.exists) {
+
+    // ========================================
+    // LOAD LISTING (EDIT)
+    // ========================================
+    async function loadListing(id) {
+        try {
+            const doc = await db.collection("listings").doc(id).get();
+            if (!doc.exists) {
+                showNotification('Объявление не найдено', 'error');
+                return;
+            }
             const data = doc.data();
-            document.getElementById('title').value = data.title;
-            document.getElementById('price').value = data.price;
-            document.getElementById('category').value = data.category;
-            document.getElementById('condition').value = data.condition;
+            
+            document.getElementById('title').value = data.title || '';
+            document.getElementById('price').value = data.price || '';
+            document.getElementById('category').value = data.category || 'электроника';
+            document.getElementById('condition').value = data.condition || 'new';
             document.getElementById('location').value = data.location || '';
             document.getElementById('description').value = data.description || '';
+            
+            if (data.mediaFiles && data.mediaFiles.length) {
+                uploadedUrls = data.mediaFiles;
+                uploadedUrls.forEach((item, i) => {
+                    addPreviewItem(item.url || item, i);
+                });
+            }
+            
+            renderSpecs();
+            
             if (data.specs) {
                 for (const [key, value] of Object.entries(data.specs)) {
                     const el = document.getElementById(`spec_${key.replace(/\s/g, '_')}`);
                     if (el) el.value = value;
                 }
             }
+            
+        } catch (error) {
+            console.error('Error loading listing:', error);
+            showNotification('Ошибка загрузки', 'error');
         }
     }
-    
-    document.getElementById('submitBtn').onclick = async () => {
+
+    // ========================================
+    // SUBMIT
+    // ========================================
+    submitBtn.onclick = async () => {
         const title = document.getElementById('title').value.trim();
         const price = parseInt(document.getElementById('price').value);
-        if (!title || !price) { alert('Заполните название и цену'); return; }
         
-        // Сбор характеристик
-        const category = document.getElementById('category').value;
-        const specsList = categorySpecs[category] || [];
-        const specs = {};
-        for (const spec of specsList) {
-            const el = document.getElementById(`spec_${spec.label.replace(/\s/g, '_')}`);
-            if (el) specs[spec.label] = el.value;
+        if (!title || !price) {
+            showNotification('Заполните название и цену', 'error');
+            return;
         }
         
-        const mediaUrls = await uploadFiles();
-        const data = {
-            title, price,
-            category: category,
-            condition: document.getElementById('condition').value,
-            location: document.getElementById('location').value || 'Не указан',
-            description: document.getElementById('description').value,
-            image: mediaUrls.length > 0 ? mediaUrls[0].url : '📦',
-            mediaFiles: mediaUrls,
-            specs: specs,
-            status: 'active',
-            views: 0
-        };
-        
-        if (editingId) {
-            await db.collection("listings").doc(editingId).update({ ...data, updatedAt: new Date().toISOString() });
-            alert('✅ Обновлено!');
-            window.location.href = 'profile.html';
-        } else {
-            data.sellerId = currentUser.uid;
-            data.sellerName = currentUser.displayName;
-            data.createdAt = new Date().toISOString();
-            await db.collection("listings").add(data);
-            alert('✅ Опубликовано!');
-            window.location.href = 'index.html';
+        if (uploadedUrls.length === 0 && !editingId) {
+            showNotification('Добавьте хотя бы одно фото', 'error');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Публикация...';
+
+        try {
+            const category = document.getElementById('category').value;
+            const specsList = categorySpecs[category] || [];
+            const specs = {};
+            for (const spec of specsList) {
+                const el = document.getElementById(`spec_${spec.label.replace(/\s/g, '_')}`);
+                if (el) specs[spec.label] = el.value;
+            }
+
+            const data = {
+                title,
+                price,
+                category,
+                condition: document.getElementById('condition').value,
+                location: document.getElementById('location').value || 'Не указан',
+                description: document.getElementById('description').value,
+                image: uploadedUrls.length > 0 ? (uploadedUrls[0].url || uploadedUrls[0]) : '📦',
+                mediaFiles: uploadedUrls,
+                specs,
+                status: 'active',
+                views: 0,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (editingId) {
+                await db.collection("listings").doc(editingId).update(data);
+                showNotification('✅ Объявление обновлено!', 'success');
+                setTimeout(() => window.location.href = 'profile.html', 1500);
+            } else {
+                data.sellerId = currentUser.uid;
+                data.sellerName = userData.name || currentUser.displayName || 'Пользователь';
+                data.sellerPhoto = userData.photoURL || currentUser.photoURL || '';
+                data.createdAt = new Date().toISOString();
+                await db.collection("listings").add(data);
+                showNotification('✅ Объявление опубликовано!', 'success');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        } catch (error) {
+            console.error('Error publishing:', error);
+            showNotification('❌ Ошибка публикации: ' + error.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = editingId ? '💾 Сохранить' : '📤 Опубликовать';
         }
     };
+
+    // ========================================
+    // NOTIFICATIONS
+    // ========================================
+    function showNotification(message, type = 'info') {
+        document.querySelectorAll('.notification').forEach(el => el.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    console.log('✅ Все данные настроены!');
+    console.log('📌 API Key:', GOOGLE_DRIVE_API_KEY);
+    console.log('📌 Client ID:', CLIENT_ID);
+    console.log('📌 Project ID: kyki-5e91a');
 </script>
 </body>
 </html>
