@@ -9,60 +9,35 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        .cart-container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 24px;
-        }
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .cart-header h1 {
-            font-size: 32px;
-            color: #2d1b4e;
-        }
-        .cart-header .cart-count {
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
-        }
-        .cart-grid {
+        .cart-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
             gap: 30px;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 24px;
         }
-        .cart-items {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+
         .cart-item {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #f0e6ff;
-            padding: 20px;
             display: flex;
             gap: 20px;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 12px;
+            transition: var(--transition);
             align-items: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(155,89,182,0.06);
         }
         .cart-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(155,89,182,0.12);
+            border-color: var(--secondary);
+            transform: translateX(4px);
         }
-        .cart-item-img {
+        .cart-item .image {
             width: 100px;
             height: 100px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
+            border-radius: var(--radius);
+            background: var(--bg-input);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,162 +45,143 @@
             flex-shrink: 0;
             overflow: hidden;
         }
-        .cart-item-img img {
+        .cart-item .image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .cart-item-info {
+        .cart-item .info {
             flex: 1;
         }
-        .cart-item-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #2d1b4e;
+        .cart-item .info .title {
+            font-size: 16px;
+            font-weight: 600;
             margin-bottom: 4px;
         }
-        .cart-item-seller {
+        .cart-item .info .seller {
             font-size: 13px;
-            color: #b8a9d4;
-            margin-bottom: 8px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
         }
-        .cart-item-price {
+        .cart-item .info .price {
             font-size: 20px;
-            font-weight: 800;
-            color: #e84393;
+            font-weight: 700;
+            color: var(--secondary);
         }
-        .cart-item-actions {
+        .cart-item .controls {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 12px;
         }
-        .quantity-btn {
+        .cart-item .controls .qty-btn {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            border: 1px solid #e8d5f5;
-            background: white;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 18px;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .quantity-btn:hover {
-            background: #f8f4ff;
-            border-color: #e84393;
+        .cart-item .controls .qty-btn:hover {
+            border-color: var(--secondary);
         }
-        .quantity-input {
-            width: 50px;
+        .cart-item .controls .qty {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 30px;
             text-align: center;
-            padding: 8px;
-            border: 1px solid #e8d5f5;
-            border-radius: 12px;
-            background: #f8f4ff;
         }
-        .remove-item {
+        .cart-item .controls .remove-btn {
             background: none;
             border: none;
-            color: #d9534f;
+            color: var(--text-muted);
             font-size: 20px;
             cursor: pointer;
-            padding: 8px;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            padding: 4px;
         }
-        .remove-item:hover {
+        .cart-item .controls .remove-btn:hover {
+            color: #E74C3C;
             transform: scale(1.1);
         }
+
         .cart-summary {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #f0e6ff;
-            padding: 28px;
-            height: fit-content;
             position: sticky;
             top: 100px;
-            box-shadow: 0 4px 15px rgba(155,89,182,0.06);
+            height: fit-content;
         }
-        .cart-summary h3 {
-            font-size: 20px;
-            color: #2d1b4e;
-            margin-bottom: 20px;
+        .cart-summary .card {
+            padding: 24px;
         }
-        .summary-row {
+        .cart-summary .summary-row {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid #f0e6ff;
-            color: #666;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
         }
-        .summary-row.total {
+        .cart-summary .summary-row:last-child {
             border-bottom: none;
-            font-weight: 700;
+        }
+        .cart-summary .summary-row.total {
             font-size: 20px;
-            color: #2d1b4e;
+            font-weight: 700;
             padding-top: 16px;
         }
-        .summary-row .amount {
-            color: #e84393;
-            font-weight: 700;
+        .cart-summary .summary-row .value {
+            font-weight: 600;
         }
-        .promo-section {
+        .cart-summary .summary-row .value.highlight {
+            color: var(--secondary);
+        }
+
+        .promo-input {
             display: flex;
             gap: 10px;
             margin: 16px 0;
         }
-        .promo-section input {
+        .promo-input input {
             flex: 1;
             padding: 10px 16px;
-            border: 1px solid #e8d5f5;
-            border-radius: 40px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--text-primary);
             outline: none;
-            background: #f8f4ff;
         }
-        .promo-section input:focus {
-            border-color: #e84393;
+        .promo-input input:focus {
+            border-color: var(--secondary);
         }
-        .promo-section button {
+        .promo-input button {
             padding: 10px 20px;
-            border-radius: 40px;
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
         }
+
         .checkout-btn {
             width: 100%;
             padding: 16px;
-            border-radius: 60px;
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            border: none;
-            color: white;
             font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
             margin-top: 16px;
         }
-        .checkout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(232,67,147,0.4);
+
+        .delivery-info {
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
         }
-        .empty-cart {
-            text-align: center;
-            padding: 80px;
-            background: white;
-            border-radius: 32px;
-            border: 1px solid #f0e6ff;
+        .delivery-info strong {
+            color: var(--text-secondary);
         }
-        .empty-cart h3 {
-            font-size: 24px;
-            color: #9b59b6;
-            margin-bottom: 12px;
-        }
-        .empty-cart p {
-            color: #b8a9d4;
-            margin-bottom: 20px;
-        }
-        @media (max-width: 992px) {
-            .cart-grid {
+
+        @media (max-width: 1024px) {
+            .cart-layout {
                 grid-template-columns: 1fr;
             }
             .cart-summary {
@@ -236,209 +192,370 @@
             .cart-item {
                 flex-wrap: wrap;
             }
-            .cart-item-img {
+            .cart-item .image {
                 width: 70px;
                 height: 70px;
-                font-size: 30px;
+                font-size: 28px;
             }
-        }
-        .delivery-info {
-            background: #f8f4ff;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 16px;
-            font-size: 13px;
-            color: #666;
-        }
-        .delivery-info strong {
-            color: #9b59b6;
+            .cart-item .controls .qty-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="header">
+<!-- ===== HEADER ===== -->
+<header class="header">
     <div class="header-container">
-        <a href="index.html" class="logo">🍪 КУКИ</a>
-        <a href="index.html" class="btn">🏠 На главную</a>
-        <div id="userActions"></div>
+        <a href="index.html" class="logo">🍪 Куки</a>
+        <div class="header-actions" id="headerActions"></div>
+    </div>
+</header>
+
+<!-- ===== CART ===== -->
+<div class="cart-layout">
+    <div>
+        <h1 style="margin-bottom: 24px; font-size: 28px;">🛒 Корзина</h1>
+        <div id="cartItems">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <div class="cart-summary">
+        <div class="card">
+            <h3 style="font-size:18px; margin-bottom:16px;">📊 Итого</h3>
+            
+            <div class="summary-row">
+                <span>Товары (<span id="itemCount">0</span> шт.)</span>
+                <span class="value" id="subtotal">0 ₽</span>
+            </div>
+            <div class="summary-row">
+                <span>🚚 Доставка</span>
+                <span class="value" id="deliveryFee">300 ₽</span>
+            </div>
+            <div class="summary-row" id="discountRow" style="display:none;">
+                <span>🎁 Скидка</span>
+                <span class="value" id="discountAmount" style="color:#2ECC71;">-0 ₽</span>
+            </div>
+            <div class="summary-row total">
+                <span>Итого</span>
+                <span class="value highlight" id="total">0 ₽</span>
+            </div>
+
+            <div class="promo-input">
+                <input type="text" id="promoCode" placeholder="Введите промокод">
+                <button class="btn btn-secondary" id="applyPromoBtn">Применить</button>
+            </div>
+            <div id="promoStatus" style="font-size:13px; color:var(--text-muted);"></div>
+
+            <div class="delivery-info">
+                <strong>📦 Информация о доставке</strong>
+                <p style="margin-top:4px;">Срок: 3-7 рабочих дней<br>Бесплатно при заказе от 2000 ₽</p>
+            </div>
+
+            <button class="btn btn-primary checkout-btn" id="checkoutBtn">✅ Оформить заказ</button>
+        </div>
     </div>
 </div>
 
-<div class="cart-container">
-    <div class="cart-header">
-        <h1>🛒 Корзина</h1>
-        <span class="cart-count" id="cartCount">0 товаров</span>
-    </div>
-    <div id="cartContent"></div>
-</div>
+<!-- ===== SCRIPTS ===== -->
+<script type="module">
+    import { auth, db, getCurrentUser, getUserData, updateUserData } from './firebase-config.js';
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
-        authDomain: "kyki-5e91a.firebaseapp.com",
-        projectId: "kyki-5e91a",
-        storageBucket: "kyki-5e91a.firebasestorage.app",
-        messagingSenderId: "315986487804",
-        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
-        measurementId: "G-ETWXCGL9HK"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // ===== STATE =====
     let currentUser = null;
     let cart = [];
-    
+    let cartData = [];
+    let appliedPromo = null;
+    let totalPrice = 0;
+
+    // ===== DOM REFS =====
+    const headerActions = document.getElementById('headerActions');
+    const cartItems = document.getElementById('cartItems');
+    const itemCount = document.getElementById('itemCount');
+    const subtotal = document.getElementById('subtotal');
+    const deliveryFee = document.getElementById('deliveryFee');
+    const total = document.getElementById('total');
+    const discountRow = document.getElementById('discountRow');
+    const discountAmount = document.getElementById('discountAmount');
+    const promoInput = document.getElementById('promoCode');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
+    const promoStatus = document.getElementById('promoStatus');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    // ===== AUTH =====
     auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "login.html"; return; }
-        currentUser = user;
-        document.getElementById('userActions').innerHTML = `
-            <div class="user-info" style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='profile.html'">
-                <img src="${user.photoURL || 'https://via.placeholder.com/35'}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">
-                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
-            </div>
-            <button class="btn" id="logoutBtn">Выйти</button>
-        `;
-        document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        await loadCart();
-    });
-    
-    async function loadCart() {
-        cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        renderCart();
-    }
-    
-    function saveCart() {
-        localStorage.setItem('cart', JSON.stringify(cart));
-        renderCart();
-    }
-    
-    async function renderCart() {
-        const container = document.getElementById('cartContent');
-        const countEl = document.getElementById('cartCount');
-        
-        if (cart.length === 0) {
-            container.innerHTML = `
-                <div class="empty-cart">
-                    <h3>🛒 Корзина пуста</h3>
-                    <p>Добавьте товары и они появятся здесь</p>
-                    <a href="index.html" class="btn btn-primary">Перейти к покупкам</a>
-                </div>
-            `;
-            countEl.textContent = '0 товаров';
+        if (!user) {
+            window.location.href = 'login.html';
             return;
         }
-        
-        countEl.textContent = `${cart.length} товаров`;
-        
-        let itemsHtml = '';
-        let total = 0;
-        let itemCount = 0;
-        
-        for (const item of cart) {
-            const doc = await db.collection("listings").doc(item.id).get();
-            if (!doc.exists) continue;
-            const ad = doc.data();
-            const price = ad.price || 0;
-            const qty = item.qty || 1;
-            const subtotal = price * qty;
-            total += subtotal;
-            itemCount += qty;
-            
-            itemsHtml += `
-                <div class="cart-item" data-id="${item.id}">
-                    <div class="cart-item-img">${ad.image || '📦'}</div>
-                    <div class="cart-item-info">
-                        <div class="cart-item-title">${escapeHtml(ad.title)}</div>
-                        <div class="cart-item-seller">👤 ${escapeHtml(ad.sellerName || 'Продавец')}</div>
-                        <div class="cart-item-price">${(price).toLocaleString()} ₽</div>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button class="quantity-btn" onclick="changeQty('${item.id}', -1)">−</button>
-                        <input type="text" class="quantity-input" value="${qty}" readonly>
-                        <button class="quantity-btn" onclick="changeQty('${item.id}', 1)">+</button>
-                        <button class="remove-item" onclick="removeItem('${item.id}')">✕</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        const deliveryFee = total > 2000 ? 0 : 300;
-        const finalTotal = total + deliveryFee;
-        
-        container.innerHTML = `
-            <div class="cart-grid">
-                <div class="cart-items">${itemsHtml}</div>
-                <div class="cart-summary">
-                    <h3>📊 Итого</h3>
-                    <div class="summary-row"><span>Товары (${itemCount} шт.)</span><span class="amount">${total.toLocaleString()} ₽</span></div>
-                    <div class="summary-row"><span>🚚 Доставка</span><span class="amount">${deliveryFee === 0 ? 'Бесплатно' : deliveryFee + ' ₽'}</span></div>
-                    ${deliveryFee === 0 ? '<div style="font-size:12px;color:#5cb85c;margin:-8px 0 12px;">✅ Бесплатная доставка от 2000 ₽</div>' : ''}
-                    <div class="summary-row total"><span>Итого</span><span class="amount">${finalTotal.toLocaleString()} ₽</span></div>
-                    <div class="delivery-info">
-                        <strong>📦 Доставка</strong>
-                        <p>Срок доставки: 3-7 рабочих дней</p>
-                        <p>Способы: СДЭК, Почта России, Boxberry</p>
-                    </div>
-                    <button class="checkout-btn" onclick="checkout()">✅ Оформить заказ</button>
-                </div>
-            </div>
+        currentUser = user;
+        const userData = await getUserData(user.uid);
+        setupHeader(userData);
+        await loadCart();
+    });
+
+    // ===== SETUP HEADER =====
+    function setupHeader(userData) {
+        headerActions.innerHTML = `
+            <div class="balance-badge">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+            <a href="profile.html" class="header-user">
+                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+            </a>
         `;
     }
-    
+
+    // ===== LOAD CART =====
+    async function loadCart() {
+        const rawCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart = rawCart;
+        
+        if (cart.length === 0) {
+            cartItems.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🛒</div>
+                    <h3>Корзина пуста</h3>
+                    <p>Добавьте товары и они появятся здесь</p>
+                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                </div>
+            `;
+            updateSummary();
+            return;
+        }
+
+        // Загружаем данные товаров
+        cartData = [];
+        for (const item of cart) {
+            const doc = await db.collection("listings").doc(item.id).get();
+            if (doc.exists) {
+                cartData.push({ id: doc.id, ...doc.data(), qty: item.qty || 1 });
+            }
+        }
+
+        renderCart();
+        updateSummary();
+    }
+
+    // ===== RENDER CART =====
+    function renderCart() {
+        cartItems.innerHTML = cartData.map(item => `
+            <div class="cart-item" data-id="${item.id}">
+                <div class="image">${item.image || '📦'}</div>
+                <div class="info">
+                    <div class="title">${escapeHtml(item.title)}</div>
+                    <div class="seller">👤 ${escapeHtml(item.sellerName || 'Продавец')}</div>
+                    <div class="price">${Number(item.price).toLocaleString()} ₽</div>
+                </div>
+                <div class="controls">
+                    <button class="qty-btn" onclick="window.changeQty('${item.id}', -1)">−</button>
+                    <span class="qty" id="qty-${item.id}">${item.qty || 1}</span>
+                    <button class="qty-btn" onclick="window.changeQty('${item.id}', 1)">+</button>
+                    <button class="remove-btn" onclick="window.removeItem('${item.id}')">✕</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ===== UPDATE SUMMARY =====
+    function updateSummary() {
+        totalPrice = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+        const count = cartData.reduce((sum, item) => sum + (item.qty || 1), 0);
+        const delivery = totalPrice >= 2000 ? 0 : 300;
+        let discount = 0;
+
+        if (appliedPromo) {
+            if (appliedPromo.type === 'percent') {
+                discount = totalPrice * (appliedPromo.value / 100);
+            } else {
+                discount = appliedPromo.value;
+            }
+            if (discount > totalPrice) discount = totalPrice;
+        }
+
+        const finalTotal = totalPrice + delivery - discount;
+
+        itemCount.textContent = count;
+        subtotal.textContent = totalPrice.toLocaleString() + ' ₽';
+        deliveryFee.textContent = delivery === 0 ? 'Бесплатно' : delivery + ' ₽';
+        
+        if (discount > 0) {
+            discountRow.style.display = 'flex';
+            discountAmount.textContent = '-' + discount.toLocaleString() + ' ₽';
+        } else {
+            discountRow.style.display = 'none';
+        }
+        
+        total.textContent = finalTotal.toLocaleString() + ' ₽';
+        
+        // Обновляем localStorage
+        localStorage.setItem('cart', JSON.stringify(cartData.map(item => ({ id: item.id, qty: item.qty || 1 }))));
+    }
+
+    // ===== CART ACTIONS =====
     window.changeQty = (id, delta) => {
-        const item = cart.find(i => i.id === id);
+        const item = cartData.find(i => i.id === id);
         if (!item) return;
         const newQty = (item.qty || 1) + delta;
         if (newQty < 1) return;
         item.qty = newQty;
-        saveCart();
+        const cartItem = cart.find(i => i.id === id);
+        if (cartItem) cartItem.qty = newQty;
+        renderCart();
+        updateSummary();
     };
-    
+
     window.removeItem = (id) => {
+        cartData = cartData.filter(i => i.id !== id);
         cart = cart.filter(i => i.id !== id);
-        saveCart();
-    };
-    
-    window.checkout = async () => {
-        if (!currentUser) { alert('Войдите в аккаунт'); window.location.href = "login.html"; return; }
-        const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        const balance = userDoc.data()?.balance || 0;
-        
-        let total = 0;
-        for (const item of cart) {
-            const doc = await db.collection("listings").doc(item.id).get();
-            if (doc.exists) total += (doc.data().price || 0) * (item.qty || 1);
+        renderCart();
+        updateSummary();
+        if (cartData.length === 0) {
+            cartItems.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🛒</div>
+                    <h3>Корзина пуста</h3>
+                    <a href="index.html" class="btn btn-primary">🛍️ Начать покупки</a>
+                </div>
+            `;
         }
-        const deliveryFee = total > 2000 ? 0 : 300;
-        const finalTotal = total + deliveryFee;
-        
-        if (balance < finalTotal) {
-            alert(`❌ Недостаточно средств! Ваш баланс: ${balance} ₽. Пополните кошелёк.`);
-            window.location.href = "wallet.html";
+    };
+
+    // ===== PROMO CODE =====
+    applyPromoBtn.onclick = async () => {
+        const code = promoInput.value.trim().toUpperCase();
+        if (!code) {
+            promoStatus.textContent = '⚠️ Введите промокод';
+            promoStatus.style.color = '#F1C40F';
             return;
         }
-        
-        await db.collection("users").doc(currentUser.uid).update({
-            balance: balance - finalTotal
-        });
-        await db.collection("transactions").add({
-            userId: currentUser.uid,
-            amount: -finalTotal,
-            description: `Оплата заказа (${cart.length} товаров)`,
-            createdAt: new Date().toISOString()
-        });
-        
-        alert(`✅ Заказ оформлен! Сумма: ${finalTotal} ₽. Деньги списаны с баланса.`);
-        localStorage.removeItem('cart');
-        await loadCart();
-        window.location.href = "index.html";
+
+        try {
+            const snapshot = await db.collection("promocodes")
+                .where("code", "==", code)
+                .where("active", "==", true)
+                .get();
+
+            if (snapshot.empty) {
+                promoStatus.textContent = '❌ Промокод не найден или неактивен';
+                promoStatus.style.color = '#E74C3C';
+                return;
+            }
+
+            appliedPromo = snapshot.docs[0].data();
+            promoStatus.textContent = `✅ Промокод применён! Скидка ${appliedPromo.type === 'percent' ? appliedPromo.value + '%' : appliedPromo.value + ' ₽'}`;
+            promoStatus.style.color = '#2ECC71';
+            updateSummary();
+        } catch (error) {
+            promoStatus.textContent = '❌ Ошибка проверки промокода';
+            promoStatus.style.color = '#E74C3C';
+        }
     };
-    
+
+    // ===== CHECKOUT =====
+    checkoutBtn.onclick = async () => {
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (cartData.length === 0) {
+            showNotification('Корзина пуста', 'error');
+            return;
+        }
+
+        const userData = await getUserData(currentUser.uid);
+        const balance = userData.balance || 0;
+        
+        // Пересчитываем итог
+        let total = cartData.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+        const delivery = total >= 2000 ? 0 : 300;
+        let discount = 0;
+        if (appliedPromo) {
+            if (appliedPromo.type === 'percent') {
+                discount = total * (appliedPromo.value / 100);
+            } else {
+                discount = appliedPromo.value;
+            }
+            if (discount > total) discount = total;
+        }
+        const finalTotal = total + delivery - discount;
+
+        if (balance < finalTotal) {
+            showNotification(`❌ Недостаточно средств! Нужно ${finalTotal.toLocaleString()} ₽. Пополните кошелёк.`, 'error');
+            window.location.href = 'wallet.html';
+            return;
+        }
+
+        // Создаём заказ
+        try {
+            const orderData = {
+                buyerId: currentUser.uid,
+                buyerName: userData.name || 'Пользователь',
+                items: cartData.map(item => ({
+                    listingId: item.id,
+                    title: item.title,
+                    price: item.price,
+                    qty: item.qty || 1,
+                    sellerId: item.sellerId
+                })),
+                total: finalTotal,
+                subtotal: total,
+                delivery: delivery,
+                discount: discount,
+                promoCode: appliedPromo?.code || null,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            await db.collection("orders").add(orderData);
+            
+            // Списываем деньги
+            await updateUserData(currentUser.uid, { balance: balance - finalTotal });
+            
+            // Записываем транзакцию
+            await db.collection("transactions").add({
+                userId: currentUser.uid,
+                amount: -finalTotal,
+                description: `Оплата заказа (${cartData.length} товаров)`,
+                status: 'completed',
+                createdAt: new Date().toISOString()
+            });
+
+            // Очищаем корзину
+            localStorage.removeItem('cart');
+            cartData = [];
+            cart = [];
+            
+            showNotification(`✅ Заказ оформлен! Сумма: ${finalTotal.toLocaleString()} ₽`, 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'orders.html';
+            }, 1500);
+        } catch (error) {
+            showNotification('❌ Ошибка оформления заказа', 'error');
+        }
+    };
+
+    // ===== HELPERS =====
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+        return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
     }
 </script>
 </body>
