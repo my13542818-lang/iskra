@@ -2,569 +2,615 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Куки — доска объявлений</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Куки — Современная доска объявлений</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
-        /* Стили только для главной страницы */
-        .header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(155, 89, 182, 0.15);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(155, 89, 182, 0.08);
+        /* ===== HERO ===== */
+        .hero {
+            padding: 60px 0 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .header-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 12px 24px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: radial-gradient(ellipse at center, rgba(108, 59, 142, 0.15) 0%, transparent 70%);
+            animation: pulseGlow 4s ease-in-out infinite;
         }
-        .logo {
-            font-size: 28px;
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 {
+            font-size: 52px;
             font-weight: 800;
-            background: linear-gradient(135deg, #9b59b6, #e84393, #ff6b6b);
-            background-size: 200% auto;
+            margin-bottom: 16px;
+            line-height: 1.1;
+        }
+        .hero h1 span {
+            background: var(--gradient-main);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-decoration: none;
         }
-        .search-wrapper {
-            flex: 1;
-            max-width: 500px;
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 32px;
         }
-        .search-bar {
+        .hero-actions {
             display: flex;
-            background: white;
-            border: 2px solid #f0e6ff;
-            border-radius: 60px;
-            overflow: hidden;
-        }
-        .search-bar:focus-within {
-            border-color: #e84393;
-            box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.1);
-        }
-        .search-bar input {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            outline: none;
-        }
-        .search-bar button {
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            border: none;
-            padding: 0 28px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e84393;
-        }
-        .balance-badge {
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            padding: 6px 14px;
-            border-radius: 40px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .filters {
-            background: white;
-            border-bottom: 1px solid #f0e6ff;
-            padding: 12px 24px;
-            position: sticky;
-            top: 70px;
-            z-index: 99;
-        }
-        .filters-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
             justify-content: center;
+            flex-wrap: wrap;
         }
-        .filter-group {
+
+        /* ===== CATEGORIES ===== */
+        .categories-section {
+            padding: 40px 0;
+        }
+        .categories-section h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .category-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 8px;
-            background: #f8f4ff;
-            padding: 8px 18px;
-            border-radius: 60px;
-            border: 1px solid #f0e6ff;
-        }
-        .filter-group span {
-            color: #9b59b6;
-            font-weight: 500;
-        }
-        .filter-group select, .filter-group input {
-            background: transparent;
-            border: none;
-            outline: none;
-            padding: 5px 0;
-        }
-        .filter-reset {
-            background: linear-gradient(135deg, #9b59b6, #e84393);
-            border: none;
-            padding: 8px 20px;
-            border-radius: 60px;
-            color: white;
-            font-weight: 600;
+            padding: 20px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
             cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-primary);
         }
-        .main-wrapper {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px 24px;
+        .category-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
         }
-        .main-layout {
-            display: flex;
-            gap: 30px;
+        .category-card .icon {
+            font-size: 32px;
         }
-        .sidebar-filter {
-            width: 280px;
-            flex-shrink: 0;
+        .category-card .name {
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
         }
-        .filter-card {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #f0e6ff;
-            overflow: hidden;
-            position: sticky;
-            top: 140px;
+        .category-card .count {
+            font-size: 11px;
+            color: var(--text-muted);
         }
-        .filter-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0e6ff;
+
+        /* ===== LISTINGS ===== */
+        .listings-section {
+            padding: 40px 0;
+        }
+        .listings-header {
             display: flex;
             justify-content: space-between;
-        }
-        .filter-title {
-            font-weight: 700;
-            color: #9b59b6;
-        }
-        .filter-category-list {
-            padding: 8px 0;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        .filter-category-item {
-            display: flex;
             align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
             gap: 12px;
-            width: 100%;
-            padding: 12px 20px;
-            background: transparent;
-            border: none;
+        }
+        .listings-header h2 {
+            font-size: 24px;
+        }
+        .listings-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .listings-filters select,
+        .listings-filters input {
+            padding: 10px 18px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 13px;
+            transition: var(--transition);
             cursor: pointer;
-            text-align: left;
-            transition: all 0.3s ease;
-            color: #666;
         }
-        .filter-category-item:hover {
-            background: #f8f4ff;
+        .listings-filters select:focus,
+        .listings-filters input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.15);
         }
-        .filter-category-item.active {
-            background: linear-gradient(95deg, #f8f4ff, #fff0f5);
-            border-left: 3px solid #e84393;
-            color: #e84393;
+        .listings-filters select option {
+            background: var(--bg-card);
         }
-        .filter-category-name {
-            flex: 1;
-            font-size: 14px;
-        }
-        .filter-category-count {
-            background: #f8f4ff;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        .listings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
-        }
+
+        /* ===== LISTING CARD ===== */
         .listing-card {
-            background: white;
-            border-radius: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
             overflow: hidden;
-            border: 1px solid #f0e6ff;
+            transition: var(--transition);
             cursor: pointer;
-            transition: all 0.4s ease;
         }
         .listing-card:hover {
-            transform: translateY(-8px);
-            border-color: #e84393;
-            box-shadow: 0 20px 30px -10px rgba(155, 89, 182, 0.2);
+            transform: translateY(-6px);
+            border-color: var(--secondary);
+            box-shadow: var(--shadow-lg);
         }
-        .listing-img {
-            height: 200px;
-            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
+        .listing-card .image {
+            height: 220px;
+            background: var(--bg-input);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 60px;
+            position: relative;
             overflow: hidden;
         }
-        .listing-img img {
+        .listing-card .image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .listing-info {
-            padding: 16px;
+        .listing-card .image .badge-top {
+            position: absolute;
+            top: 12px;
+            left: 12px;
         }
-        .listing-title {
+        .listing-card .body {
+            padding: 16px 20px 20px;
+        }
+        .listing-card .title {
             font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 6px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .listing-price {
-            font-size: 20px;
+        .listing-card .price {
+            font-size: 22px;
             font-weight: 800;
-            color: #e84393;
+            color: var(--secondary);
             margin: 8px 0;
         }
-        .listing-meta {
+        .listing-card .meta {
             display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: #b8a9d4;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
             margin-bottom: 12px;
         }
-        .listing-actions {
+        .listing-card .footer {
             display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-        .action-btn {
-            flex: 1;
-            padding: 8px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-        }
-        .action-chat {
-            background: #f8f4ff;
-            border: 1px solid #f0e6ff;
-            color: #9b59b6;
-        }
-        .action-call {
-            background: linear-gradient(135deg, #e84393, #c13584);
-            border: none;
-            color: white;
-        }
-        .footer {
-            background: white;
-            border-top: 1px solid #f0e6ff;
-            padding: 40px 24px;
-            margin-top: 60px;
-        }
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
-            gap: 30px;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
         }
-        .footer-section h4 {
-            color: #9b59b6;
-            margin-bottom: 15px;
-        }
-        .footer-section p, .footer-section a {
-            color: #b8a9d4;
+        .listing-card .seller {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 13px;
-            text-decoration: none;
-            line-height: 1.8;
-            display: block;
         }
-        .footer-section a:hover {
-            color: #e84393;
+        .listing-card .seller .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
         }
-        .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            margin-top: 30px;
-            border-top: 1px solid #f0e6ff;
-            color: #b8a9d4;
+
+        /* ===== FAB ===== */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 500;
         }
-        @media (max-width: 1024px) {
-            .main-layout { flex-direction: column; }
-            .sidebar-filter { width: 100%; }
-            .filter-category-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; max-height: none; }
-            .filter-category-item { width: auto; padding: 8px 16px; border-radius: 40px; }
-            .filter-category-item.active { background: linear-gradient(135deg, #9b59b6, #e84393); color: white; border-left: none; }
-            .filter-category-count { background: rgba(255,255,255,0.2); color: white; }
+        .fab .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 30px;
+            box-shadow: var(--shadow-xl);
         }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .header-container { flex-direction: column; text-align: center; }
-            .search-wrapper { max-width: 100%; width: 100%; }
-            .user-actions { justify-content: center; }
-            .listings-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 34px; }
+            .hero p { font-size: 16px; }
+            .categories-grid { grid-template-columns: repeat(4, 1fr); }
+            .listings-filters { width: 100%; }
+            .listings-filters select,
+            .listings-filters input { flex: 1; min-width: 100px; }
+        }
+        @media (max-width: 480px) {
+            .categories-grid { grid-template-columns: repeat(3, 1fr); }
+            .hero h1 { font-size: 28px; }
+            .fab .btn { width: 52px; height: 52px; font-size: 24px; }
         }
     </style>
 </head>
 <body>
 
-<div class="header">
+<!-- ===== HEADER ===== -->
+<header class="header">
     <div class="header-container">
-        <a href="index.html" class="logo">🍪 КУКИ</a>
-        <div class="search-wrapper">
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Что вы ищете?">
-                <button id="searchBtn">Найти</button>
+        <a href="index.html" class="logo">🍪 Куки</a>
+        
+        <div class="header-search">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск товаров, услуг...">
+            <button id="searchBtn">Найти</button>
+        </div>
+        
+        <div class="header-actions" id="headerActions">
+            <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="container hero-content">
+        <h1>Покупайте и продавайте <span>с удовольствием</span></h1>
+        <p>Куки — современная платформа для безопасных сделок. Тысячи объявлений по всей России.</p>
+        <div class="hero-actions">
+            <a href="post-ad.html" class="btn btn-primary btn-lg">📤 Разместить объявление</a>
+            <a href="#listings" class="btn btn-secondary btn-lg">🛍️ Смотреть товары</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="categories-section">
+    <div class="container">
+        <h2>📂 Категории</h2>
+        <div class="categories-grid" id="categoriesGrid">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== LISTINGS ===== -->
+<section class="listings-section" id="listings">
+    <div class="container">
+        <div class="listings-header">
+            <h2>🔥 Актуальные объявления</h2>
+            <div class="listings-filters">
+                <select id="categoryFilter">
+                    <option value="all">Все категории</option>
+                    <option value="электроника">📱 Электроника</option>
+                    <option value="одежда">👕 Одежда</option>
+                    <option value="обувь">👟 Обувь</option>
+                    <option value="авто">🚗 Авто</option>
+                    <option value="недвижимость">🏠 Недвижимость</option>
+                    <option value="для дома">🛋️ Для дома</option>
+                    <option value="спорт">⚽ Спорт</option>
+                    <option value="игрушки">🧸 Игрушки</option>
+                    <option value="услуги">🔧 Услуги</option>
+                </select>
+                <select id="sortFilter">
+                    <option value="newest">🆕 Сначала новые</option>
+                    <option value="price-asc">💰 По возрастанию</option>
+                    <option value="price-desc">💰 По убыванию</option>
+                    <option value="popular">🔥 Популярные</option>
+                </select>
             </div>
         </div>
-        <div class="user-actions" id="userActions"></div>
+        <div class="grid-3" id="listingsGrid">
+            <div class="loading-spinner"></div>
+        </div>
+        <div style="text-align:center; margin-top: 32px;">
+            <button class="btn btn-secondary" id="loadMoreBtn" style="display:none;">Показать ещё</button>
+        </div>
     </div>
+</section>
+
+<!-- ===== FAB ===== -->
+<div class="fab">
+    <button class="btn btn-primary" id="fabBtn" title="Создать объявление">➕</button>
 </div>
 
-<div class="filters">
-    <div class="filters-container">
-        <div class="filter-group"><span>💰 Цена до</span><input type="number" id="priceFilter" placeholder="Любая"></div>
-        <div class="filter-group"><span>📌 Состояние</span><select id="conditionFilter"><option value="all">Любое</option><option value="new">✨ Новое</option><option value="used">🔄 Б/У</option></select></div>
-        <div class="filter-group"><span>🌍 Город</span><input type="text" id="locationFilter" placeholder="Город"></div>
-        <div class="filter-group"><span>⭐ Рейтинг</span><select id="ratingFilter"><option value="0">Любой</option><option value="4">4+</option><option value="3">3+</option></select></div>
-        <button class="filter-reset" id="resetFiltersBtn">🔄 Сбросить</button>
-    </div>
-</div>
-
-<div class="main-wrapper">
-    <div class="main-layout">
-        <aside class="sidebar-filter">
-            <div class="filter-card">
-                <div class="filter-header">
-                    <span class="filter-title">📂 Категории</span>
-                    <span>Все · <span id="totalListingsCount">0</span></span>
-                </div>
-                <div class="filter-category-list">
-                    <button class="filter-category-item active" data-cat="all"><span>🎯</span><span class="filter-category-name">Все объявления</span><span class="filter-category-count" id="allCount">0</span></button>
-                    <button class="filter-category-item" data-cat="электроника"><span>📱</span><span class="filter-category-name">Электроника</span><span class="filter-category-count" id="electronicsCount">0</span></button>
-                    <button class="filter-category-item" data-cat="одежда"><span>👕</span><span class="filter-category-name">Одежда</span><span class="filter-category-count" id="clothingCount">0</span></button>
-                    <button class="filter-category-item" data-cat="обувь"><span>👟</span><span class="filter-category-name">Обувь</span><span class="filter-category-count" id="shoesCount">0</span></button>
-                    <button class="filter-category-item" data-cat="авто"><span>🚗</span><span class="filter-category-name">Авто</span><span class="filter-category-count" id="autoCount">0</span></button>
-                    <button class="filter-category-item" data-cat="недвижимость"><span>🏠</span><span class="filter-category-name">Недвижимость</span><span class="filter-category-count" id="realtyCount">0</span></button>
-                    <button class="filter-category-item" data-cat="для дома"><span>🛋️</span><span class="filter-category-name">Для дома</span><span class="filter-category-count" id="homeCount">0</span></button>
-                    <button class="filter-category-item" data-cat="спорт"><span>⚽</span><span class="filter-category-name">Спорт</span><span class="filter-category-count" id="sportCount">0</span></button>
-                    <button class="filter-category-item" data-cat="игрушки"><span>🧸</span><span class="filter-category-name">Игрушки</span><span class="filter-category-count" id="toysCount">0</span></button>
-                    <button class="filter-category-item" data-cat="услуги"><span>🔧</span><span class="filter-category-name">Услуги</span><span class="filter-category-count" id="servicesCount">0</span></button>
-                </div>
+<!-- ===== FOOTER ===== -->
+<footer style="padding:40px 0; border-top:1px solid var(--border-color); margin-top:40px;">
+    <div class="container">
+        <div class="grid-4">
+            <div>
+                <h4 style="color:var(--text-secondary); margin-bottom:12px;">🍪 Куки</h4>
+                <p style="color:var(--text-muted); font-size:14px;">Современная платформа для безопасных сделок.</p>
             </div>
-        </aside>
-        
-        <main style="flex:1; min-width:0;">
-            <div id="listingsContainer" class="listings-grid"></div>
-        </main>
+            <div>
+                <h4 style="color:var(--text-secondary); margin-bottom:12px;">Покупателям</h4>
+                <a href="favorites.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">❤️ Избранное</a>
+                <a href="orders.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📦 Заказы</a>
+                <a href="payment.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">💳 Оплата</a>
+            </div>
+            <div>
+                <h4 style="color:var(--text-secondary); margin-bottom:12px;">Продавцам</h4>
+                <a href="post-ad.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📤 Разместить</a>
+                <a href="profile.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">👤 Профиль</a>
+                <a href="promotion.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🚀 Продвижение</a>
+            </div>
+            <div>
+                <h4 style="color:var(--text-secondary); margin-bottom:12px;">О нас</h4>
+                <a href="offer.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📜 Оферта</a>
+                <a href="privacy.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🔒 Конфиденциальность</a>
+                <a href="support-chat.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🎫 Поддержка</a>
+            </div>
+        </div>
+        <div style="text-align:center; padding-top:24px; margin-top:24px; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:13px;">
+            © 2026 Куки. Все права защищены. 💜
+        </div>
     </div>
-</div>
+</footer>
 
-<div class="footer">
-    <div class="footer-container">
-        <div class="footer-section"><h4>🍪 КУКИ</h4><p>Доска объявлений<br>Покупайте и продавайте<br>безопасно и удобно</p></div>
-        <div class="footer-section"><h4>📞 Контакты</h4><p>Телефон: <a href="tel:+79531114942">+7 (953) 111-49-42</a></p><p>Email: <a href="mailto:my13542818@gmail.com">my13542818@gmail.com</a></p></div>
-        <div class="footer-section"><h4>📜 Документы</h4><a href="offer.html">📄 Договор оферты</a><a href="privacy.html">🔒 Политика конфиденциальности</a><a href="payment.html">💳 Оплата и доставка</a></div>
-        <div class="footer-section"><h4>💰 Реквизиты</h4><p>Самозанятая Вагина Нина Васильевна<br>ИНН: 233501711069</p></div>
-    </div>
-    <div class="footer-bottom"><p>© 2026 Куки. Все права защищены. 💜</p></div>
-</div>
+<!-- ===== SCRIPTS ===== -->
+<script type="module">
+    import { 
+        auth, db, getCurrentUser, getUserData, signOutUser, 
+        getListings, addToCart, toggleFavorite 
+    } from './firebase-config.js';
 
-<script>
-    // Firebase конфигурация (замените на свои данные)
-    const firebaseConfig = {
-        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
-        authDomain: "kyki-5e91a.firebaseapp.com",
-        projectId: "kyki-5e91a",
-        storageBucket: "kyki-5e91a.firebasestorage.app",
-        messagingSenderId: "315986487804",
-        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
-        measurementId: "G-ETWXCGL9HK"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // ===== STATE =====
     let currentUser = null;
-    
+    let userData = {};
+    let listings = [];
+    let displayedCount = 9;
+    const loadMoreStep = 9;
+
+    // ===== DOM REFS =====
+    const headerActions = document.getElementById('headerActions');
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    const listingsGrid = document.getElementById('listingsGrid');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const fabBtn = document.getElementById('fabBtn');
+
+    // ===== AUTH =====
     auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "login.html"; return; }
-        currentUser = user;
-        
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const userData = userDoc.data();
-        if (!userData || !userData.name) {
-            window.location.href = "complete-profile.html";
-            return;
+        if (user) {
+            currentUser = user;
+            userData = await getUserData(user.uid) || {};
+            
+            headerActions.innerHTML = `
+                <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <a href="cart.html" class="btn btn-secondary btn-sm" title="Корзина">🛒</a>
+                <div class="dropdown">
+                    <div class="header-user" id="userMenuBtn">
+                        <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                        <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                        <span style="font-size:10px; color:var(--text-muted);">▼</span>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="profile.html">👤 Мой профиль</a>
+                        <a href="my-listings.html">📋 Мои объявления</a>
+                        <a href="orders.html">📦 Заказы</a>
+                        <a href="favorites.html">❤️ Избранное</a>
+                        <a href="chat.html">💬 Чаты</a>
+                        <a href="wallet.html">💳 Кошелёк</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" id="logoutBtn">🚪 Выйти</a>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('balanceBtn').onclick = () => window.location.href = 'wallet.html';
+            document.getElementById('logoutBtn').onclick = signOutUser;
+            document.getElementById('userMenuBtn').onclick = () => window.location.href = 'profile.html';
+            
+            // Проверка на незаполненный профиль
+            if (!userData.name || !userData.phone) {
+                showNotification('Заполните профиль для полного доступа', 'warning');
+            }
+        } else {
+            currentUser = null;
+            headerActions.innerHTML = `
+                <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
+                <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
+            `;
         }
-        
-        const balance = userData?.balance || 0;
-        document.getElementById('userActions').innerHTML = `
-            <div class="balance-badge" id="balanceBtn">💰 ${balance.toLocaleString()} ₽</div>
-            <a href="cart.html" class="btn">🛒 Корзина</a>
-            <a href="wallet.html" class="btn">💳 Кошелёк</a>
-            <div class="user-info" id="userMenuBtn">
-                <img src="${user.photoURL || userData?.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar">
-                <span>${userData?.name?.split(' ')[0] || user.displayName?.split(' ')[0] || 'User'}</span>
-            </div>
-        `;
-        
-        document.getElementById('balanceBtn').onclick = () => window.location.href = "wallet.html";
-        document.getElementById('userMenuBtn').onclick = () => {
-            window.location.href = "profile.html";
-        };
-        
+        await loadCategories();
         await loadListings();
-        await updateCategoryCounts();
     });
-    
+
+    // ===== CATEGORIES =====
+    async function loadCategories() {
+        const snapshot = await db.collection("listings").where("status", "==", "active").get();
+        const allListings = snapshot.docs.map(doc => doc.data());
+        
+        const categories = [
+            { id: 'all', name: 'Все', icon: '🎯' },
+            { id: 'электроника', name: 'Электроника', icon: '📱' },
+            { id: 'одежда', name: 'Одежда', icon: '👕' },
+            { id: 'обувь', name: 'Обувь', icon: '👟' },
+            { id: 'авто', name: 'Авто', icon: '🚗' },
+            { id: 'недвижимость', name: 'Недвижимость', icon: '🏠' },
+            { id: 'для дома', name: 'Для дома', icon: '🛋️' },
+            { id: 'спорт', name: 'Спорт', icon: '⚽' },
+            { id: 'игрушки', name: 'Игрушки', icon: '🧸' },
+            { id: 'услуги', name: 'Услуги', icon: '🔧' }
+        ];
+        
+        categoriesGrid.innerHTML = categories.map(cat => {
+            const count = cat.id === 'all' 
+                ? allListings.length 
+                : allListings.filter(l => l.category === cat.id).length;
+            return `
+                <div class="category-card" data-category="${cat.id}">
+                    <span class="icon">${cat.icon}</span>
+                    <span class="name">${cat.name}</span>
+                    <span class="count">${count}</span>
+                </div>
+            `;
+        }).join('');
+        
+        categoriesGrid.querySelectorAll('.category-card').forEach(el => {
+            el.onclick = () => {
+                categoryFilter.value = el.dataset.category;
+                displayedCount = loadMoreStep;
+                loadListings();
+            };
+        });
+    }
+
+    // ===== LISTINGS =====
     async function loadListings() {
-        const categoryBtn = document.querySelector('.filter-category-item.active');
-        const category = categoryBtn ? categoryBtn.dataset.cat : 'all';
-        const maxPrice = parseInt(document.getElementById('priceFilter')?.value) || Infinity;
-        const condition = document.getElementById('conditionFilter')?.value || 'all';
-        const location = document.getElementById('locationFilter')?.value || '';
-        const minRating = parseInt(document.getElementById('ratingFilter')?.value) || 0;
-        const search = document.getElementById('searchInput')?.value || '';
+        const category = categoryFilter.value;
+        const sort = sortFilter.value;
+        const search = searchInput.value.trim().toLowerCase();
         
         let query = db.collection("listings").where("status", "==", "active");
+        if (category !== 'all') {
+            query = query.where("category", "==", category);
+        }
+        
         const snapshot = await query.get();
-        let listings = [];
-        snapshot.forEach(doc => listings.push({ id: doc.id, ...doc.data() }));
+        let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        if (category !== 'all') listings = listings.filter(l => l.category === category);
-        if (maxPrice !== Infinity) listings = listings.filter(l => l.price <= maxPrice);
-        if (condition !== 'all') listings = listings.filter(l => l.condition === condition);
-        if (location) listings = listings.filter(l => l.location && l.location.toLowerCase().includes(location.toLowerCase()));
-        if (minRating > 0) listings = listings.filter(l => (l.sellerRating || 0) >= minRating);
-        if (search) listings = listings.filter(l => l.title.toLowerCase().includes(search.toLowerCase()));
+        // Фильтр по поиску
+        if (search) {
+            results = results.filter(l => 
+                l.title.toLowerCase().includes(search) || 
+                (l.description && l.description.toLowerCase().includes(search))
+            );
+        }
         
-        listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        renderListings(listings);
+        // Сортировка
+        switch(sort) {
+            case 'newest':
+                results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                break;
+            case 'price-asc':
+                results.sort((a, b) => (a.price || 0) - (b.price || 0));
+                break;
+            case 'price-desc':
+                results.sort((a, b) => (b.price || 0) - (a.price || 0));
+                break;
+            case 'popular':
+                results.sort((a, b) => (b.views || 0) - (a.views || 0));
+                break;
+            default:
+                results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        
+        listings = results;
+        renderListings();
     }
-    
-    function renderListings(listings) {
-        const container = document.getElementById('listingsContainer');
-        if (!listings || listings.length === 0) {
-            container.innerHTML = `<div class="empty-state"><h3>🍪 Ничего не найдено</h3><p>Попробуйте изменить параметры поиска</p></div>`;
+
+    function renderListings() {
+        const toShow = listings.slice(0, displayedCount);
+        
+        if (toShow.length === 0) {
+            listingsGrid.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <div class="icon">🔍</div>
+                    <h3>Ничего не найдено</h3>
+                    <p>Попробуйте изменить параметры поиска или фильтры</p>
+                    <button class="btn btn-secondary" onclick="window.location.reload()">🔄 Сбросить</button>
+                </div>
+            `;
+            loadMoreBtn.style.display = 'none';
             return;
         }
-        container.innerHTML = listings.map(ad => `
-            <div class="listing-card" data-id="${ad.id}">
-                <div class="listing-img">${ad.image || '📦'}</div>
-                <div class="listing-info">
-                    <div class="listing-title">${escapeHtml(ad.title)}</div>
-                    <div class="listing-price">${Number(ad.price).toLocaleString()} ₽</div>
-                    <div class="listing-meta">📍 ${ad.location || 'Не указан'} | ⭐ ${ad.sellerRating || 0}</div>
-                    <div class="listing-actions">
-                        <button class="action-btn action-chat" onclick="event.stopPropagation(); window.location.href='chat.html?sellerId=${ad.sellerId}&listingId=${ad.id}&title=${encodeURIComponent(ad.title)}'">💬 Написать</button>
-                        <button class="action-btn action-call" onclick="event.stopPropagation(); window.location.href='tel:${ad.sellerPhone || '+79531114942'}'">📞 Позвонить</button>
+        
+        listingsGrid.innerHTML = toShow.map(listing => `
+            <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
+                <div class="image">
+                    ${listing.mediaFiles && listing.mediaFiles.length > 0 
+                        ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
+                        : listing.image && listing.image.startsWith('http') 
+                            ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
+                            : '📦'
+                    }
+                    ${listing.condition === 'new' ? `<div class="badge-top"><span class="badge badge-success">✨ Новое</span></div>` : ''}
+                </div>
+                <div class="body">
+                    <div class="title">${escapeHtml(listing.title)}</div>
+                    <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
+                    <div class="meta">
+                        <span>📍 ${listing.location || 'Не указан'}</span>
+                        <span>👁️ ${listing.views || 0}</span>
+                    </div>
+                    <div class="footer">
+                        <div class="seller">
+                            <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
+                            <span>${listing.sellerName || 'Продавец'}</span>
+                        </div>
+                        <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
                     </div>
                 </div>
             </div>
         `).join('');
         
-        document.querySelectorAll('.listing-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
-                    window.location.href = `product.html?id=${card.dataset.id}`;
-                }
-            });
-        });
+        loadMoreBtn.style.display = displayedCount < listings.length ? 'block' : 'none';
     }
-    
-    async function updateCategoryCounts() {
-        const snapshot = await db.collection("listings").where("status", "==", "active").get();
-        const listings = snapshot.docs.map(doc => doc.data());
-        const counts = {
-            all: listings.length,
-            электроника: listings.filter(l => l.category === 'электроника').length,
-            одежда: listings.filter(l => l.category === 'одежда').length,
-            обувь: listings.filter(l => l.category === 'обувь').length,
-            авто: listings.filter(l => l.category === 'авто').length,
-            недвижимость: listings.filter(l => l.category === 'недвижимость').length,
-            'для дома': listings.filter(l => l.category === 'для дома').length,
-            спорт: listings.filter(l => l.category === 'спорт').length,
-            игрушки: listings.filter(l => l.category === 'игрушки').length,
-            услуги: listings.filter(l => l.category === 'услуги').length
-        };
-        for (const [key, value] of Object.entries(counts)) {
-            const id = key === 'для дома' ? 'homeCount' : 
-                       key === 'услуги' ? 'servicesCount' :
-                       key === 'спорт' ? 'sportCount' :
-                       key === 'игрушки' ? 'toysCount' :
-                       `${key}Count`;
-            if (document.getElementById(id)) document.getElementById(id).textContent = value;
-        }
-        document.getElementById('totalListingsCount').textContent = counts.all;
-    }
-    
-    document.querySelectorAll('.filter-category-item').forEach(item => {
-        item.addEventListener('click', () => {
-            document.querySelectorAll('.filter-category-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            loadListings();
-        });
-    });
-    
-    document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-        document.getElementById('priceFilter').value = '';
-        document.getElementById('conditionFilter').value = 'all';
-        document.getElementById('locationFilter').value = '';
-        document.getElementById('ratingFilter').value = '0';
-        document.getElementById('searchInput').value = '';
-        document.querySelector('.filter-category-item[data-cat="all"]').click();
-    });
-    
-    document.getElementById('searchBtn').addEventListener('click', () => loadListings());
-    document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') loadListings(); });
-    document.getElementById('priceFilter').addEventListener('input', loadListings);
-    document.getElementById('conditionFilter').addEventListener('change', loadListings);
-    document.getElementById('locationFilter').addEventListener('input', loadListings);
-    document.getElementById('ratingFilter').addEventListener('change', loadListings);
-    
-    function escapeHtml(str) { 
-        if (!str) return ''; 
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); 
-    }
-</script>
-    <div class="chat-button" id="openChatsBtn">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-    </svg>
-</div>
 
-<script>
-    document.getElementById('openChatsBtn')?.addEventListener('click', () => {
-        window.location.href = "chat.html";
-    });
+    // ===== LOAD MORE =====
+    loadMoreBtn.onclick = () => {
+        displayedCount += loadMoreStep;
+        renderListings();
+    };
+
+    // ===== FILTERS =====
+    categoryFilter.onchange = () => { displayedCount = loadMoreStep; loadListings(); };
+    sortFilter.onchange = () => { displayedCount = loadMoreStep; loadListings(); };
+    searchBtn.onclick = () => { displayedCount = loadMoreStep; loadListings(); };
+    searchInput.onkeypress = (e) => { if (e.key === 'Enter') { displayedCount = loadMoreStep; loadListings(); } };
+
+    // ===== FAB =====
+    fabBtn.onclick = () => {
+        if (!currentUser) {
+            showNotification('Войдите в аккаунт', 'error');
+            window.location.href = 'login.html';
+            return;
+        }
+        window.location.href = 'post-ad.html';
+    };
+
+    // ===== NOTIFICATION =====
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    // ===== UTILITY =====
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+    }
 </script>
 </body>
 </html>
