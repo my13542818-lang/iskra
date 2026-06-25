@@ -8,8 +8,255 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .cart-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .cart-header h1 {
+            font-size: 32px;
+            color: #2d1b4e;
+        }
+        .cart-header .cart-count {
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+        }
+        .cart-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+        }
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .cart-item {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f0e6ff;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(155,89,182,0.06);
+        }
+        .cart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(155,89,182,0.12);
+        }
+        .cart-item-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f8f4ff, #fff0f5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .cart-item-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2d1b4e;
+            margin-bottom: 4px;
+        }
+        .cart-item-seller {
+            font-size: 13px;
+            color: #b8a9d4;
+            margin-bottom: 8px;
+        }
+        .cart-item-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: #e84393;
+        }
+        .cart-item-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #e8d5f5;
+            background: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        .quantity-btn:hover {
+            background: #f8f4ff;
+            border-color: #e84393;
+        }
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #e8d5f5;
+            border-radius: 12px;
+            background: #f8f4ff;
+        }
+        .remove-item {
+            background: none;
+            border: none;
+            color: #d9534f;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+        .remove-item:hover {
+            transform: scale(1.1);
+        }
+        .cart-summary {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f0e6ff;
+            padding: 28px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            box-shadow: 0 4px 15px rgba(155,89,182,0.06);
+        }
+        .cart-summary h3 {
+            font-size: 20px;
+            color: #2d1b4e;
+            margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0e6ff;
+            color: #666;
+        }
+        .summary-row.total {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 20px;
+            color: #2d1b4e;
+            padding-top: 16px;
+        }
+        .summary-row .amount {
+            color: #e84393;
+            font-weight: 700;
+        }
+        .promo-section {
+            display: flex;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .promo-section input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #e8d5f5;
+            border-radius: 40px;
+            outline: none;
+            background: #f8f4ff;
+        }
+        .promo-section input:focus {
+            border-color: #e84393;
+        }
+        .promo-section button {
+            padding: 10px 20px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .checkout-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #9b59b6, #e84393);
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232,67,147,0.4);
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 80px;
+            background: white;
+            border-radius: 32px;
+            border: 1px solid #f0e6ff;
+        }
+        .empty-cart h3 {
+            font-size: 24px;
+            color: #9b59b6;
+            margin-bottom: 12px;
+        }
+        .empty-cart p {
+            color: #b8a9d4;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 992px) {
+            .cart-grid {
+                grid-template-columns: 1fr;
+            }
+            .cart-summary {
+                position: static;
+            }
+        }
+        @media (max-width: 600px) {
+            .cart-item {
+                flex-wrap: wrap;
+            }
+            .cart-item-img {
+                width: 70px;
+                height: 70px;
+                font-size: 30px;
+            }
+        }
+        .delivery-info {
+            background: #f8f4ff;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+        .delivery-info strong {
+            color: #9b59b6;
+        }
+    </style>
 </head>
 <body>
+
 <div class="header">
     <div class="header-container">
         <a href="index.html" class="logo">🍪 КУКИ</a>
@@ -18,21 +265,12 @@
     </div>
 </div>
 
-<div class="cart-container" style="max-width:1000px; margin:30px auto; padding:0 24px;">
-    <h1 style="margin-bottom:24px;">🛒 Корзина</h1>
-    <div id="cartItems"></div>
-    <div id="cartTotal" class="total-card" style="display:none;">
-        <p>Итого: <span class="total-amount" id="totalAmount">0</span> ₽</p>
-        <button class="btn-primary" id="checkoutBtn" style="margin-top:16px;">✅ Оформить заказ</button>
+<div class="cart-container">
+    <div class="cart-header">
+        <h1>🛒 Корзина</h1>
+        <span class="cart-count" id="cartCount">0 товаров</span>
     </div>
-    <div id="deliveryForm" class="delivery-form" style="display:none; background:white; border-radius:24px; padding:24px; margin-top:20px; border:1px solid #f0e6ff;">
-        <h3>🚚 Доставка</h3>
-        <div class="form-row"><label>ФИО</label><input type="text" id="recipientName"></div>
-        <div class="form-row"><label>Адрес</label><input type="text" id="deliveryAddress"></div>
-        <div class="form-row"><label>Компания</label><select id="deliveryCompany"><option>СДЭК</option><option>Почта России</option><option>Boxberry</option></select></div>
-        <div class="form-row"><label>Телефон</label><input type="tel" id="contactPhone"></div>
-        <button class="btn-primary" id="confirmOrderBtn">✅ Подтвердить заказ</button>
-    </div>
+    <div id="cartContent"></div>
 </div>
 
 <script>
@@ -46,56 +284,162 @@
         measurementId: "G-ETWXCGL9HK"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let currentUser = null;
+    let cart = [];
     
     auth.onAuthStateChanged(async (user) => {
         if (!user) { window.location.href = "login.html"; return; }
-        document.getElementById('userActions').innerHTML = `<div class="user-info"><img src="${user.photoURL || ''}" class="user-avatar"><span>${user.displayName?.split(' ')[0] || 'User'}</span></div><button class="btn" id="logoutBtn">Выйти</button>`;
+        currentUser = user;
+        document.getElementById('userActions').innerHTML = `
+            <div class="user-info" style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.location.href='profile.html'">
+                <img src="${user.photoURL || 'https://via.placeholder.com/35'}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">
+                <span>${user.displayName?.split(' ')[0] || 'User'}</span>
+            </div>
+            <button class="btn" id="logoutBtn">Выйти</button>
+        `;
         document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
         await loadCart();
     });
     
-    let cart = [];
     async function loadCart() {
         cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const container = document.getElementById('cartItems');
-        const totalDiv = document.getElementById('cartTotal');
-        const deliveryForm = document.getElementById('deliveryForm');
-        if (cart.length === 0) {
-            container.innerHTML = '<div class="empty-state"><h3>🛒 Корзина пуста</h3><a href="index.html" class="btn-primary" style="margin-top:16px;">Перейти к покупкам</a></div>';
-            totalDiv.style.display = 'none';
-            return;
-        }
-        let total = 0;
-        let itemsHtml = '';
-        for (const item of cart) {
-            const doc = await db.collection("listings").doc(item.id).get();
-            if (doc.exists) {
-                const ad = doc.data();
-                total += ad.price;
-                itemsHtml += `<div class="cart-item"><div class="cart-item-img">${ad.image || '📦'}</div><div class="cart-item-info"><div class="cart-item-title">${ad.title}</div><div class="cart-item-price">${ad.price} ₽</div></div><button class="btn-danger remove-item" data-id="${item.id}" style="padding:4px 12px;">🗑️</button></div>`;
-            }
-        }
-        container.innerHTML = itemsHtml;
-        document.getElementById('totalAmount').innerHTML = total.toLocaleString();
-        totalDiv.style.display = 'block';
-        deliveryForm.style.display = 'block';
-        document.querySelectorAll('.remove-item').forEach(btn => {
-            btn.onclick = () => { cart = cart.filter(i => i.id !== btn.dataset.id); localStorage.setItem('cart', JSON.stringify(cart)); loadCart(); };
-        });
+        renderCart();
     }
     
-    document.getElementById('confirmOrderBtn').onclick = async () => {
-        const name = document.getElementById('recipientName').value;
-        const address = document.getElementById('deliveryAddress').value;
-        const company = document.getElementById('deliveryCompany').value;
-        const phone = document.getElementById('contactPhone').value;
-        if (!name || !address || !phone) { alert('Заполните все поля'); return; }
-        alert('✅ Заказ оформлен! Спасибо за покупку!');
-        localStorage.removeItem('cart');
-        window.location.href = 'index.html';
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    }
+    
+    async function renderCart() {
+        const container = document.getElementById('cartContent');
+        const countEl = document.getElementById('cartCount');
+        
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <h3>🛒 Корзина пуста</h3>
+                    <p>Добавьте товары и они появятся здесь</p>
+                    <a href="index.html" class="btn btn-primary">Перейти к покупкам</a>
+                </div>
+            `;
+            countEl.textContent = '0 товаров';
+            return;
+        }
+        
+        countEl.textContent = `${cart.length} товаров`;
+        
+        let itemsHtml = '';
+        let total = 0;
+        let itemCount = 0;
+        
+        for (const item of cart) {
+            const doc = await db.collection("listings").doc(item.id).get();
+            if (!doc.exists) continue;
+            const ad = doc.data();
+            const price = ad.price || 0;
+            const qty = item.qty || 1;
+            const subtotal = price * qty;
+            total += subtotal;
+            itemCount += qty;
+            
+            itemsHtml += `
+                <div class="cart-item" data-id="${item.id}">
+                    <div class="cart-item-img">${ad.image || '📦'}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${escapeHtml(ad.title)}</div>
+                        <div class="cart-item-seller">👤 ${escapeHtml(ad.sellerName || 'Продавец')}</div>
+                        <div class="cart-item-price">${(price).toLocaleString()} ₽</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="quantity-btn" onclick="changeQty('${item.id}', -1)">−</button>
+                        <input type="text" class="quantity-input" value="${qty}" readonly>
+                        <button class="quantity-btn" onclick="changeQty('${item.id}', 1)">+</button>
+                        <button class="remove-item" onclick="removeItem('${item.id}')">✕</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        const deliveryFee = total > 2000 ? 0 : 300;
+        const finalTotal = total + deliveryFee;
+        
+        container.innerHTML = `
+            <div class="cart-grid">
+                <div class="cart-items">${itemsHtml}</div>
+                <div class="cart-summary">
+                    <h3>📊 Итого</h3>
+                    <div class="summary-row"><span>Товары (${itemCount} шт.)</span><span class="amount">${total.toLocaleString()} ₽</span></div>
+                    <div class="summary-row"><span>🚚 Доставка</span><span class="amount">${deliveryFee === 0 ? 'Бесплатно' : deliveryFee + ' ₽'}</span></div>
+                    ${deliveryFee === 0 ? '<div style="font-size:12px;color:#5cb85c;margin:-8px 0 12px;">✅ Бесплатная доставка от 2000 ₽</div>' : ''}
+                    <div class="summary-row total"><span>Итого</span><span class="amount">${finalTotal.toLocaleString()} ₽</span></div>
+                    <div class="delivery-info">
+                        <strong>📦 Доставка</strong>
+                        <p>Срок доставки: 3-7 рабочих дней</p>
+                        <p>Способы: СДЭК, Почта России, Boxberry</p>
+                    </div>
+                    <button class="checkout-btn" onclick="checkout()">✅ Оформить заказ</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    window.changeQty = (id, delta) => {
+        const item = cart.find(i => i.id === id);
+        if (!item) return;
+        const newQty = (item.qty || 1) + delta;
+        if (newQty < 1) return;
+        item.qty = newQty;
+        saveCart();
     };
+    
+    window.removeItem = (id) => {
+        cart = cart.filter(i => i.id !== id);
+        saveCart();
+    };
+    
+    window.checkout = async () => {
+        if (!currentUser) { alert('Войдите в аккаунт'); window.location.href = "login.html"; return; }
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const balance = userDoc.data()?.balance || 0;
+        
+        let total = 0;
+        for (const item of cart) {
+            const doc = await db.collection("listings").doc(item.id).get();
+            if (doc.exists) total += (doc.data().price || 0) * (item.qty || 1);
+        }
+        const deliveryFee = total > 2000 ? 0 : 300;
+        const finalTotal = total + deliveryFee;
+        
+        if (balance < finalTotal) {
+            alert(`❌ Недостаточно средств! Ваш баланс: ${balance} ₽. Пополните кошелёк.`);
+            window.location.href = "wallet.html";
+            return;
+        }
+        
+        await db.collection("users").doc(currentUser.uid).update({
+            balance: balance - finalTotal
+        });
+        await db.collection("transactions").add({
+            userId: currentUser.uid,
+            amount: -finalTotal,
+            description: `Оплата заказа (${cart.length} товаров)`,
+            createdAt: new Date().toISOString()
+        });
+        
+        alert(`✅ Заказ оформлен! Сумма: ${finalTotal} ₽. Деньги списаны с баланса.`);
+        localStorage.removeItem('cart');
+        await loadCart();
+        window.location.href = "index.html";
+    };
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
 </script>
 </body>
 </html>
