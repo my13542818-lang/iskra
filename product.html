@@ -69,6 +69,14 @@
             box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6); }
+        .btn-success {
+            background: linear-gradient(135deg, #2ECC71, #27AE60); color: white;
+        }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4); }
+        .btn-warning {
+            background: linear-gradient(135deg, #F39C12, #E67E22); color: white;
+        }
+        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(243, 156, 18, 0.4); }
         .btn-secondary {
             background: var(--bg-card); color: var(--text-primary);
             border: 1px solid var(--border-color);
@@ -142,6 +150,30 @@
         .product-info .meta-row span { display: flex; align-items: center; gap: 6px; }
         .product-info .description { color: var(--text-secondary); line-height: 1.7; font-size: 15px; }
 
+        .delivery-type-selector {
+            display: flex; gap: 12px; margin: 8px 0; flex-wrap: wrap;
+        }
+        .delivery-type-selector .option {
+            flex: 1; min-width: 140px; padding: 14px 16px;
+            border: 2px solid var(--border-color); border-radius: var(--radius);
+            cursor: pointer; text-align: center; transition: var(--transition);
+            background: var(--bg-input);
+        }
+        .delivery-type-selector .option:hover { border-color: var(--border-light); }
+        .delivery-type-selector .option.active {
+            border-color: var(--secondary);
+            background: rgba(232, 67, 147, 0.1);
+        }
+        .delivery-type-selector .option .icon { font-size: 24px; display: block; }
+        .delivery-type-selector .option .label { font-size: 13px; font-weight: 500; margin-top: 4px; }
+
+        .delivery-info-box {
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 16px 20px; border: 1px solid var(--border-color);
+            font-size: 14px; color: var(--text-muted);
+        }
+        .delivery-info-box strong { color: var(--text-secondary); }
+
         .specs-block {
             background: var(--bg-input); border-radius: var(--radius);
             padding: 20px 24px; border: 1px solid var(--border-color);
@@ -174,17 +206,7 @@
         .action-buttons .btn { flex: 1; min-width: 140px; justify-content: center; padding: 14px 24px; font-size: 15px; }
         .action-buttons .btn-secondary { flex: 0.5; min-width: 60px; }
 
-        .loading-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 80px 20px; gap: 16px;
-        }
-        .loading-state .spinner {
-            width: 48px; height: 48px;
-            border: 3px solid var(--border-color); border-top-color: var(--secondary);
-            border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        /* ===== БЕЙДЖИ ===== */
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 4px 12px; border-radius: var(--radius-full);
@@ -192,7 +214,10 @@
         }
         .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
         .badge-danger { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
+        .badge-warning { background: rgba(243, 156, 18, 0.2); color: #F39C12; }
+        .badge-info { background: rgba(52, 152, 219, 0.2); color: #3498DB; }
 
+        /* ===== УВЕДОМЛЕНИЯ ===== */
         .notification {
             position: fixed; bottom: 24px; right: 24px;
             padding: 16px 24px; border-radius: var(--radius);
@@ -207,8 +232,46 @@
         }
         .notification-success { border-left: 4px solid #2ECC71; }
         .notification-error { border-left: 4px solid #E74C3C; }
-        .notification-warning { border-left: 4px solid #F1C40F; }
+        .notification-warning { border-left: 4px solid #F39C12; }
         .notification-info { border-left: 4px solid #3498DB; }
+
+        /* ===== ОТЗЫВЫ ===== */
+        .review-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        .review-section h4 {
+            font-size: 15px; color: var(--text-secondary); margin-bottom: 12px;
+        }
+        .review-item {
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 12px 16px; margin-bottom: 8px;
+        }
+        .review-item .header {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px;
+        }
+        .review-item .header .name { font-weight: 600; }
+        .review-item .header .date { color: var(--text-muted); font-size: 11px; }
+        .review-item .text { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .review-item .stars { color: #F1C40F; font-size: 14px; }
+
+        /* ===== ЗАГРУЗКА ===== */
+        .loading-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 80px 20px; gap: 16px;
+        }
+        .loading-state .spinner {
+            width: 48px; height: 48px;
+            border: 3px solid var(--border-color); border-top-color: var(--secondary);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .badge-sold {
+            background: rgba(231, 76, 60, 0.2); color: #E74C3C;
+        }
 
         @media (max-width: 992px) {
             .product-grid { grid-template-columns: 1fr; }
@@ -222,6 +285,7 @@
             .action-buttons .btn { min-width: 100%; }
             .action-buttons .btn-secondary { flex: 1; min-width: 100%; }
             .product-gallery { padding: 16px; }
+            .delivery-type-selector .option { min-width: 100px; }
         }
     </style>
 </head>
@@ -272,6 +336,7 @@
         let listing = null;
         let listingId = null;
         let isFavorite = false;
+        let selectedDelivery = 'delivery'; // 'delivery' или 'meeting'
 
         // ========================================
         // DOM
@@ -343,6 +408,20 @@
                 }
 
                 listing = { id: doc.id, ...doc.data() };
+                
+                // Проверяем статус (если продано/архив)
+                if (listing.status === 'sold' || listing.status === 'archived') {
+                    productContent.innerHTML = `
+                        <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                            <div style="font-size:64px;margin-bottom:16px;">✅</div>
+                            <h3>Товар продан</h3>
+                            <p style="color:var(--text-muted);">Это объявление уже неактивно</p>
+                            <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
+                        </div>
+                    `;
+                    return;
+                }
+
                 await db.collection("listings").doc(listingId).update({
                     views: (listing.views || 0) + 1
                 });
@@ -384,6 +463,7 @@
             const mediaFiles = listing.mediaFiles || [];
             const mainImage = mediaFiles.length > 0 ? mediaFiles[0].url : (listing.image || null);
             const hasMultiple = mediaFiles.length > 1;
+            const isOwner = currentUser && listing.sellerId === currentUser.uid;
 
             const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
                 <div class="spec-item">
@@ -392,19 +472,34 @@
                 </div>
             `).join('') : '';
 
-            const statusBadge = listing.status === 'active' ?
-                '<span class="badge badge-success">Активно</span>' :
-                '<span class="badge badge-danger">Снято</span>';
-
             const conditionLabel = listing.condition === 'new' ? 'Новое' : 'Б/У';
+            const deliveryType = listing.deliveryType || 'both'; // 'delivery', 'meeting', 'both'
+
+            // Отзывы
+            const reviewsHtml = listing.reviews && listing.reviews.length > 0 ? `
+                <div class="review-section">
+                    <h4>⭐ Отзывы (${listing.reviews.length})</h4>
+                    ${listing.reviews.map(r => `
+                        <div class="review-item">
+                            <div class="header">
+                                <span class="name">${escapeHtml(r.userName || 'Пользователь')}</span>
+                                <span class="date">${new Date(r.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div class="stars">${'⭐'.repeat(r.rating)}</div>
+                            <div class="text">${escapeHtml(r.text)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
 
             productContent.innerHTML = `
                 <div class="product-grid">
+                    <!-- ===== GALLERY ===== -->
                     <div class="product-gallery">
                         <div class="main-image-wrap">
                             ${mainImage ? `<img src="${mainImage}" alt="${escapeHtml(listing.title)}" id="mainImage">` : `<div class="placeholder">📦</div>`}
                             <div class="badge-top">
-                                ${statusBadge}
+                                ${listing.status === 'active' ? '<span class="badge badge-success">Активно</span>' : '<span class="badge badge-danger">Снято</span>'}
                                 ${listing.condition === 'new' ? '<span class="badge badge-success">Новое</span>' : ''}
                             </div>
                         </div>
@@ -419,6 +514,7 @@
                         ` : ''}
                     </div>
 
+                    <!-- ===== INFO ===== -->
                     <div class="product-info">
                         <span class="category-badge">${escapeHtml(listing.category || 'Без категории')}</span>
                         <h1 class="title">${escapeHtml(listing.title)}</h1>
@@ -438,6 +534,40 @@
                             </div>
                         ` : ''}
 
+                        <!-- ===== ВЫБОР ТИПА СДЕЛКИ ===== -->
+                        ${!isOwner && listing.status === 'active' ? `
+                            <div class="delivery-type-selector" id="deliverySelector">
+                                ${deliveryType === 'delivery' || deliveryType === 'both' ? `
+                                    <div class="option active" data-type="delivery">
+                                        <span class="icon">🚚</span>
+                                        <div class="label">С доставкой</div>
+                                        <div style="font-size:11px;color:var(--text-muted);">Ozon ПВЗ</div>
+                                    </div>
+                                ` : ''}
+                                ${deliveryType === 'meeting' || deliveryType === 'both' ? `
+                                    <div class="option" data-type="meeting">
+                                        <span class="icon">🤝</span>
+                                        <div class="label">Без доставки</div>
+                                        <div style="font-size:11px;color:var(--text-muted);">Встреча/договор</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+
+                        ${!isOwner && listing.status === 'active' && deliveryType === 'delivery' ? `
+                            <div class="delivery-info-box" id="deliveryInfo">
+                                <strong>🚚 Доставка через Ozon</strong>
+                                <p style="margin-top:4px;">Выберите пункт выдачи Ozon при оформлении заказа. Продавец отправит товар после оплаты.</p>
+                            </div>
+                        ` : ''}
+
+                        ${!isOwner && listing.status === 'active' && deliveryType === 'meeting' ? `
+                            <div class="delivery-info-box" id="deliveryInfo">
+                                <strong>🤝 Встреча/договор</strong>
+                                <p style="margin-top:4px;">Свяжитесь с продавцом через чат и договоритесь о встрече или способе передачи товара.</p>
+                            </div>
+                        ` : ''}
+
                         ${specsHtml ? `
                             <div class="specs-block">
                                 <h4>📋 Характеристики</h4>
@@ -445,6 +575,7 @@
                             </div>
                         ` : ''}
 
+                        <!-- ===== ПРОДАВЕЦ ===== -->
                         <div class="seller-card">
                             <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'Продавец') + '&background=6C3B8E&color=fff'}" class="avatar" alt="Продавец">
                             <div class="info">
@@ -452,21 +583,71 @@
                                 <div class="rating">⭐ ${listing.sellerRating || 0}% рейтинг</div>
                                 <div class="stats">📦 ${listing.sellerDeals || 0} сделок</div>
                             </div>
-                            <button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>
+                            ${!isOwner ? `<button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>` : ''}
                         </div>
 
-                        <div class="action-buttons">
-                            <button class="btn btn-primary" id="cartBtn">🛒 В корзину</button>
-                            <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
-                            <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
-                        </div>
+                        <!-- ===== ДЕЙСТВИЯ ===== -->
+                        ${isOwner ? `
+                            <div class="action-buttons">
+                                <button class="btn btn-warning" onclick="markAsSold()">✅ Продано</button>
+                                <button class="btn btn-secondary" onclick="editListing()">✏️ Редактировать</button>
+                            </div>
+                        ` : listing.status === 'active' ? `
+                            <div class="action-buttons">
+                                ${selectedDelivery === 'delivery' ? `
+                                    <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
+                                ` : `
+                                    <button class="btn btn-success" id="chatBtn">💬 Перейти в чат с продавцом</button>
+                                `}
+                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                            </div>
+                        ` : ''}
+
+                        ${reviewsHtml}
                     </div>
                 </div>
             `;
 
+            // ===== EVENTS =====
             document.getElementById('cartBtn')?.addEventListener('click', addToCart);
+            document.getElementById('chatBtn')?.addEventListener('click', () => openChat());
             document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
             document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
+
+            // ===== ВЫБОР ТИПА ДОСТАВКИ =====
+            document.querySelectorAll('.delivery-type-selector .option').forEach(el => {
+                el.onclick = () => {
+                    document.querySelectorAll('.delivery-type-selector .option').forEach(o => o.classList.remove('active'));
+                    el.classList.add('active');
+                    selectedDelivery = el.dataset.type;
+                    
+                    // Обновляем кнопку
+                    const actionButtons = document.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (selectedDelivery === 'delivery') {
+                            actionButtons.innerHTML = `
+                                <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
+                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                            `;
+                            document.getElementById('cartBtn')?.addEventListener('click', addToCart);
+                            document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
+                            document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
+                        } else {
+                            actionButtons.innerHTML = `
+                                <button class="btn btn-success" id="chatBtn">💬 Перейти в чат с продавцом</button>
+                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                            `;
+                            document.getElementById('chatBtn')?.addEventListener('click', () => openChat());
+                            document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
+                            document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
+                        }
+                    }
+                };
+            });
+
             updateFavoriteButton();
         }
 
@@ -492,14 +673,24 @@
                 window.location.href = 'login.html';
                 return;
             }
+            if (currentUser.uid === listing.sellerId) {
+                showNotification('Вы не можете купить свой товар', 'error');
+                return;
+            }
+
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             if (cart.some(item => item.id === listingId)) {
                 showNotification('Товар уже в корзине', 'info');
                 return;
             }
-            cart.push({ id: listingId, qty: 1 });
+
+            cart.push({ 
+                id: listingId, 
+                qty: 1,
+                deliveryType: selectedDelivery || 'delivery'
+            });
             localStorage.setItem('cart', JSON.stringify(cart));
-            showNotification('Добавлено в корзину', 'success');
+            showNotification('Добавлено в корзину! Оформите заказ', 'success');
         }
 
         async function toggleFavorite() {
@@ -568,7 +759,63 @@
                 showNotification('Продавец не найден', 'error');
                 return;
             }
+            if (currentUser.uid === listing.sellerId) {
+                showNotification('Это ваш товар', 'info');
+                return;
+            }
             window.location.href = `chat.html?sellerId=${listing.sellerId}&listingId=${listingId}&title=${encodeURIComponent(listing.title)}`;
+        }
+
+        function editListing() {
+            window.location.href = `post-ad.html?edit=${listingId}`;
+        }
+
+        // ========================================
+        // MARK AS SOLD (для продавца)
+        // ========================================
+        async function markAsSold() {
+            if (!currentUser || currentUser.uid !== listing.sellerId) {
+                showNotification('Доступ запрещён', 'error');
+                return;
+            }
+
+            if (!confirm('Отметить товар как проданный? Он перейдёт в архив.')) return;
+
+            try {
+                // Создаём запись о сделке в архиве продавца
+                await db.collection("seller_archive").add({
+                    sellerId: currentUser.uid,
+                    listingId: listingId,
+                    listingTitle: listing.title,
+                    listingPrice: listing.price,
+                    buyerId: null, // Будет заполнено при заказе
+                    status: 'archived',
+                    createdAt: new Date().toISOString()
+                });
+
+                // Обновляем статус объявления
+                await db.collection("listings").doc(listingId).update({
+                    status: 'archived',
+                    archivedAt: new Date().toISOString()
+                });
+
+                // Обновляем количество сделок продавца
+                const userRef = db.collection("users").doc(currentUser.uid);
+                const userDoc = await userRef.get();
+                const currentDeals = userDoc.data()?.completedDeals || 0;
+                await userRef.update({
+                    completedDeals: currentDeals + 1
+                });
+
+                showNotification('✅ Товар отмечен как проданный!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error marking as sold:', error);
+                showNotification('Ошибка', 'error');
+            }
         }
 
         // ========================================
