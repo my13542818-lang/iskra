@@ -9,170 +9,789 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        .product-container { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background: white; border-radius: 32px; border: 1px solid #f0e6ff; overflow: hidden; }
-        .product-gallery { background: #f8f4ff; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .main-image { width: 100%; max-height: 400px; object-fit: contain; border-radius: 20px; }
-        .thumbnails { display: flex; gap: 12px; overflow-x: auto; width: 100%; justify-content: center; }
-        .thumbnail { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid transparent; }
-        .thumbnail.active { border-color: #e84393; }
-        .product-info { padding: 40px; }
-        .product-title { font-size: 28px; font-weight: 800; color: #2d1b4e; margin-bottom: 16px; }
-        .product-price { font-size: 36px; font-weight: 800; color: #e84393; margin: 20px 0; }
-        .specs-grid { background: #f8f4ff; border-radius: 20px; padding: 20px; margin: 20px 0; }
-        .spec-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0e6ff; }
-        .spec-label { font-weight: 600; color: #9b59b6; }
-        .action-buttons { display: flex; gap: 16px; margin-top: 24px; }
-        .action-buttons .btn { flex: 1; text-align: center; padding: 14px; }
-        @media (max-width: 768px) { .product-grid { grid-template-columns: 1fr; } }
+        /* ===== PRODUCT PAGE ===== */
+        .product-page {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        /* ===== GALLERY ===== */
+        .product-gallery {
+            padding: 30px;
+            background: var(--bg-input);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .main-image-wrap {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--bg-dark);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .main-image-wrap img:hover {
+            transform: scale(1.05);
+        }
+
+        .main-image-wrap .placeholder {
+            font-size: 80px;
+            opacity: 0.5;
+        }
+
+        .main-image-wrap .badge-top {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .thumbnail {
+            aspect-ratio: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thumbnail:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .thumbnail.active {
+            border-color: var(--secondary);
+            box-shadow: 0 0 20px rgba(232, 67, 147, 0.3);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail .thumb-placeholder {
+            font-size: 30px;
+            opacity: 0.3;
+        }
+
+        /* ===== INFO ===== */
+        .product-info {
+            padding: 30px 40px 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .product-info .category-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: var(--radius-full);
+            background: rgba(155, 89, 182, 0.2);
+            color: var(--primary-light);
+            font-size: 12px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .product-info .title {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .product-info .price {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .product-info .meta-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 12px 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .product-info .meta-row span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .product-info .description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* ===== SPECS ===== */
+        .specs-block {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .specs-block h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .specs-block .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+        }
+
+        .specs-block .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 14px;
+        }
+
+        .specs-block .spec-item .label {
+            color: var(--text-muted);
+        }
+
+        .specs-block .spec-item .value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ===== SELLER ===== */
+        .seller-card {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .seller-card .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary);
+        }
+
+        .seller-card .info {
+            flex: 1;
+        }
+
+        .seller-card .info .name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .seller-card .info .rating {
+            font-size: 13px;
+            color: #F1C40F;
+        }
+
+        .seller-card .info .stats {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ===== ACTIONS ===== */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 140px;
+            justify-content: center;
+            padding: 14px 24px;
+            font-size: 15px;
+        }
+
+        .action-buttons .btn-secondary {
+            flex: 0.5;
+            min-width: 60px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            gap: 16px;
+        }
+
+        .loading-state .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+            .product-info {
+                padding: 24px;
+            }
+            .specs-block .spec-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .product-info .title {
+                font-size: 22px;
+            }
+            .product-info .price {
+                font-size: 26px;
+            }
+            .thumbnail-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+            .action-buttons .btn {
+                min-width: 100%;
+            }
+            .action-buttons .btn-secondary {
+                flex: 1;
+                min-width: 100%;
+            }
+            .product-gallery {
+                padding: 16px;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .notification-success {
+            border-left: 4px solid #2ECC71;
+        }
+        .notification-error {
+            border-left: 4px solid #E74C3C;
+        }
+        .notification-warning {
+            border-left: 4px solid #F1C40F;
+        }
+        .notification-info {
+            border-left: 4px solid #3498DB;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="header-container">
-        <a href="index.html" class="logo">🍪 КУКИ</a>
-        <a href="index.html" class="btn">🏠 На главную</a>
-        <div id="userActions"></div>
-    </div>
-</div>
-
-<div class="product-container">
-    <div id="productContent" class="loading">Загрузка...</div>
-</div>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
-        authDomain: "kyki-5e91a.firebaseapp.com",
-        projectId: "kyki-5e91a",
-        storageBucket: "kyki-5e91a.firebasestorage.app",
-        messagingSenderId: "315986487804",
-        appId: "1:315986487804:web:29f131e8a57bffadac2a79",
-        measurementId: "G-ETWXCGL9HK"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    let currentUser = null;
-    let listing = null;
-    let currentImageIndex = 0;
-    const urlParams = new URLSearchParams(window.location.search);
-    const listingId = urlParams.get('id');
-    
-    auth.onAuthStateChanged(async (user) => {
-        currentUser = user;
-        if (user) {
-            document.getElementById('userActions').innerHTML = `
-                <div class="user-info" id="userMenuBtn">
-                    <img src="${user.photoURL || 'https://via.placeholder.com/35'}" class="user-avatar">
-                    <span>${user.displayName?.split(' ')[0] || 'User'}</span>
-                </div>
-                <button class="btn" id="logoutBtn">Выйти</button>
-            `;
-            document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.href = "login.html");
-        } else {
-            document.getElementById('userActions').innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
-            document.getElementById('loginBtn').onclick = () => window.location.href = "login.html";
-        }
-        await loadProduct();
-    });
-    
-    async function loadProduct() {
-        const doc = await db.collection("listings").doc(listingId).get();
-        if (!doc.exists) {
-            document.getElementById('productContent').innerHTML = '<div class="empty-state"><h3>❌ Товар не найден</h3></div>';
-            return;
-        }
-        listing = { id: doc.id, ...doc.data() };
-        await db.collection("listings").doc(listingId).update({ views: (listing.views || 0) + 1 });
-        renderProduct();
-    }
-    
-    function renderProduct() {
-        const mediaFiles = listing.mediaFiles || [];
-        const mainImage = mediaFiles.length > 0 ? mediaFiles[0].url : (listing.image && listing.image.startsWith('http') ? listing.image : null);
-        
-        const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
-            <div class="spec-item"><span class="spec-label">${key}</span><span class="spec-value">${escapeHtml(val)}</span></div>
-        `).join('') : '';
-        
-        document.getElementById('productContent').innerHTML = `
-            <div class="product-grid">
-                <div class="product-gallery">
-                    ${mainImage ? `<img src="${mainImage}" class="main-image" id="mainImage">` : `<div class="main-image" style="display:flex;align-items:center;justify-content:center;font-size:100px;">${listing.image || '📦'}</div>`}
-                    ${mediaFiles.length > 1 ? `
-                        <div class="thumbnails">
-                            ${mediaFiles.map((m, i) => `
-                                <img src="${m.url}" class="thumbnail ${i === 0 ? 'active' : ''}" onclick="changeImage(${i})">
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                <div class="product-info">
-                    <h1 class="product-title">${escapeHtml(listing.title)}</h1>
-                    <div class="product-price">${Number(listing.price).toLocaleString()} ₽</div>
-                    <div class="product-meta" style="display:flex; gap:16px; color:#666; font-size:14px;">
-                        <span>📍 ${listing.location || 'Не указан'}</span>
-                        <span>📦 ${listing.condition === 'new' ? 'Новое' : 'Б/У'}</span>
-                        <span>👁️ ${listing.views || 0} просмотров</span>
-                    </div>
-                    ${specsHtml ? `<div class="specs-grid">${specsHtml}</div>` : ''}
-                    <div class="product-description"><strong>Описание:</strong><br>${escapeHtml(listing.description) || 'Описание отсутствует'}</div>
-                    <div class="seller-info" style="background:#f8f4ff; border-radius:20px; padding:16px; margin:20px 0;">
-                        <div style="font-weight:600;">👤 ${escapeHtml(listing.sellerName || 'Продавец')}</div>
-                        <div style="font-size:13px; color:#666;">⭐ Рейтинг: ${listing.sellerRating || 0}%</div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" id="cartBtn">🛒 В корзину</button>
-                        <button class="btn" id="favoriteBtn">❤️ В избранное</button>
-                        <button class="btn" id="chatBtn">💬 Написать</button>
-                    </div>
-                </div>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div style="width:24px;height:24px;border:2px solid var(--border-color);border-top-color:var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
             </div>
-        `;
-        
-        window.changeImage = (index) => {
+        </div>
+    </header>
+
+    <!-- ===== PRODUCT PAGE ===== -->
+    <div class="product-page">
+        <div id="productContent">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p style="color:var(--text-muted);">Загрузка товара...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE CONFIG
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let listing = null;
+        let listingId = null;
+        let isFavorite = false;
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const productContent = document.getElementById('productContent');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            setupHeader();
+            await loadProduct();
+
+            if (user && listingId) {
+                await checkFavorite();
+            }
+        });
+
+        // ========================================
+        // SETUP HEADER
+        // ========================================
+        function setupHeader() {
+            if (currentUser) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                headerActions.innerHTML = `
+                    <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                    <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                    <div class="header-user" onclick="window.location.href='profile.html'">
+                        <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                        <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                    </div>
+                `;
+            } else {
+                headerActions.innerHTML = `
+                    <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
+                    <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
+                `;
+            }
+        }
+
+        // ========================================
+        // LOAD PRODUCT
+        // ========================================
+        async function loadProduct() {
+            const urlParams = new URLSearchParams(window.location.search);
+            listingId = urlParams.get('id');
+
+            if (!listingId) {
+                productContent.innerHTML = `
+                    <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                        <div style="font-size:64px;margin-bottom:16px;">🔍</div>
+                        <h3>Товар не найден</h3>
+                        <p>Проверьте ссылку или вернитесь на главную</p>
+                        <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const doc = await db.collection("listings").doc(listingId).get();
+
+                if (!doc.exists) {
+                    productContent.innerHTML = `
+                        <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                            <div style="font-size:64px;margin-bottom:16px;">📭</div>
+                            <h3>Объявление удалено</h3>
+                            <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listing = { id: doc.id, ...doc.data() };
+
+                // Увеличиваем просмотры
+                await db.collection("listings").doc(listingId).update({
+                    views: (listing.views || 0) + 1
+                });
+
+                renderProduct();
+
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                productContent.innerHTML = `
+                    <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                        <div style="font-size:64px;margin-bottom:16px;">❌</div>
+                        <h3>Ошибка загрузки</h3>
+                        <p>${error.message}</p>
+                        <a href="index.html" class="btn btn-primary" style="margin-top:16px;">На главную</a>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // CHECK FAVORITE
+        // ========================================
+        async function checkFavorite() {
+            if (!currentUser || !listingId) return;
+            try {
+                const snapshot = await db.collection("favorites")
+                    .where("userId", "==", currentUser.uid)
+                    .where("listingId", "==", listingId)
+                    .get();
+                isFavorite = !snapshot.empty;
+                updateFavoriteButton();
+            } catch (e) {
+                console.error('Favorite check error:', e);
+            }
+        }
+
+        // ========================================
+        // RENDER PRODUCT
+        // ========================================
+        function renderProduct() {
+            if (!listing) return;
+
+            const mediaFiles = listing.mediaFiles || [];
+            const mainImage = mediaFiles.length > 0 ? mediaFiles[0].url : (listing.image || null);
+            const hasMultiple = mediaFiles.length > 1;
+
+            // Характеристики
+            const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
+                <div class="spec-item">
+                    <span class="label">${escapeHtml(key)}</span>
+                    <span class="value">${escapeHtml(val)}</span>
+                </div>
+            `).join('') : '';
+
+            // Статус
+            const statusBadge = listing.status === 'active' ?
+                '<span class="badge badge-success">✅ Активно</span>' :
+                '<span class="badge badge-danger">⛔ Снято</span>';
+
+            const conditionLabel = listing.condition === 'new' ? '✨ Новое' : '🔄 Б/У';
+
+            productContent.innerHTML = `
+                <div class="product-grid">
+                    <!-- ===== GALLERY ===== -->
+                    <div class="product-gallery">
+                        <div class="main-image-wrap">
+                            ${mainImage ? `<img src="${mainImage}" alt="${escapeHtml(listing.title)}" id="mainImage">` : `<div class="placeholder">📦</div>`}
+                            <div class="badge-top">
+                                ${statusBadge}
+                                ${listing.condition === 'new' ? '<span class="badge badge-success">✨ Новое</span>' : ''}
+                            </div>
+                        </div>
+                        ${hasMultiple ? `
+                            <div class="thumbnail-grid" id="thumbnailGrid">
+                                ${mediaFiles.map((file, i) => `
+                                    <div class="thumbnail ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="changeImage(${i})">
+                                        ${file.url ? `<img src="${file.url}" alt="Фото ${i+1}" loading="lazy">` : `<div class="thumb-placeholder">📷</div>`}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- ===== INFO ===== -->
+                    <div class="product-info">
+                        <span class="category-badge">${escapeHtml(listing.category || 'Без категории')}</span>
+
+                        <h1 class="title">${escapeHtml(listing.title)}</h1>
+
+                        <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
+
+                        <div class="meta-row">
+                            <span>📍 ${escapeHtml(listing.location || 'Не указан')}</span>
+                            <span>📦 ${conditionLabel}</span>
+                            <span>👁️ ${listing.views || 0} просмотров</span>
+                            <span>📅 ${listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : ''}</span>
+                        </div>
+
+                        ${listing.description ? `
+                            <div class="description">
+                                <strong>Описание:</strong><br>
+                                ${escapeHtml(listing.description)}
+                            </div>
+                        ` : ''}
+
+                        ${specsHtml ? `
+                            <div class="specs-block">
+                                <h4>📋 Характеристики</h4>
+                                <div class="spec-grid">${specsHtml}</div>
+                            </div>
+                        ` : ''}
+
+                        <!-- ===== SELLER ===== -->
+                        <div class="seller-card">
+                            <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'Продавец') + '&background=6C3B8E&color=fff'}" class="avatar" alt="Продавец">
+                            <div class="info">
+                                <div class="name">${escapeHtml(listing.sellerName || 'Продавец')}</div>
+                                <div class="rating">⭐ ${listing.sellerRating || 0}% рейтинг</div>
+                                <div class="stats">📦 ${listing.sellerDeals || 0} сделок</div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>
+                        </div>
+
+                        <!-- ===== ACTIONS ===== -->
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="cartBtn">🛒 В корзину</button>
+                            <button class="btn btn-secondary" id="favoriteBtn">❤️</button>
+                            <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ===== EVENTS =====
+            document.getElementById('cartBtn')?.addEventListener('click', addToCart);
+            document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
+            document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
+
+            updateFavoriteButton();
+        }
+
+        // ========================================
+        // CHANGE IMAGE
+        // ========================================
+        window.changeImage = function(index) {
+            const mediaFiles = listing?.mediaFiles || [];
             if (!mediaFiles[index]) return;
-            currentImageIndex = index;
+
             const mainImg = document.getElementById('mainImage');
-            if (mainImg) mainImg.src = mediaFiles[index].url;
-            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-                thumb.classList.toggle('active', i === index);
+            if (mainImg) {
+                mainImg.src = mediaFiles[index].url;
+            }
+
+            document.querySelectorAll('.thumbnail').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
             });
         };
-        
-        document.getElementById('cartBtn')?.addEventListener('click', addToCart);
-        document.getElementById('favoriteBtn')?.addEventListener('click', addToFavorites);
-        document.getElementById('chatBtn')?.addEventListener('click', () => {
-            if (!currentUser) { alert('Войдите в аккаунт'); window.location.href = "login.html"; return; }
-            window.location.href = `chat.html?chatId=${listingId}`;
-        });
-    }
-    
-    async function addToCart() {
-        if (!currentUser) { alert('Войдите в аккаунт'); window.location.href = "login.html"; return; }
-        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        if (cart.some(item => item.id === listingId)) { alert('Товар уже в корзине'); return; }
-        cart.push({ id: listingId });
-        localStorage.setItem('cart', JSON.stringify(cart));
-        alert('✅ Добавлено в корзину');
-    }
-    
-    async function addToFavorites() {
-        if (!currentUser) { alert('Войдите в аккаунт'); window.location.href = "login.html"; return; }
-        const snapshot = await db.collection("favorites").where("userId", "==", currentUser.uid).where("listingId", "==", listingId).get();
-        if (!snapshot.empty) {
-            snapshot.forEach(doc => doc.ref.delete());
-            alert('❌ Удалено из избранного');
-        } else {
-            await db.collection("favorites").add({ userId: currentUser.uid, listingId: listingId, addedAt: new Date().toISOString() });
-            alert('❤️ Добавлено в избранное');
+
+        // ========================================
+        // ADD TO CART
+        // ========================================
+        async function addToCart() {
+            if (!currentUser) {
+                showNotification('Войдите в аккаунт', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (cart.some(item => item.id === listingId)) {
+                showNotification('Товар уже в корзине', 'info');
+                return;
+            }
+
+            cart.push({ id: listingId, qty: 1 });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            showNotification('✅ Добавлено в корзину', 'success');
         }
-    }
-    
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
-</script>
+
+        // ========================================
+        // TOGGLE FAVORITE
+        // ========================================
+        async function toggleFavorite() {
+            if (!currentUser) {
+                showNotification('Войдите в аккаунт', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection("favorites")
+                    .where("userId", "==", currentUser.uid)
+                    .where("listingId", "==", listingId)
+                    .get();
+
+                if (!snapshot.empty) {
+                    await snapshot.docs[0].ref.delete();
+                    isFavorite = false;
+                    showNotification('❌ Удалено из избранного', 'info');
+                } else {
+                    await db.collection("favorites").add({
+                        userId: currentUser.uid,
+                        listingId: listingId,
+                        addedAt: new Date().toISOString()
+                    });
+                    isFavorite = true;
+                    showNotification('❤️ Добавлено в избранное', 'success');
+                }
+                updateFavoriteButton();
+            } catch (error) {
+                console.error('Favorite error:', error);
+                showNotification('Ошибка', 'error');
+            }
+        }
+
+        // ========================================
+        // UPDATE FAVORITE BUTTON
+        // ========================================
+        function updateFavoriteButton() {
+            const btn = document.getElementById('favoriteBtn');
+            if (btn) {
+                btn.textContent = isFavorite ? '❤️' : '🤍';
+                btn.style.color = isFavorite ? '#E84393' : '';
+            }
+        }
+
+        // ========================================
+        // SHARE
+        // ========================================
+        function shareProduct() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: listing?.title || 'Куки',
+                    text: `Посмотрите "${listing?.title || 'товар'}" на Куки!`,
+                    url: url
+                }).catch(() => {});
+            } else {
+                navigator.clipboard?.writeText(url).then(() => {
+                    showNotification('✅ Ссылка скопирована', 'success');
+                }).catch(() => {
+                    showNotification('📤 ' + url, 'info');
+                });
+            }
+        }
+
+        // ========================================
+        // OPEN CHAT
+        // ========================================
+        function openChat() {
+            if (!currentUser) {
+                showNotification('Войдите в аккаунт', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!listing?.sellerId) {
+                showNotification('Продавец не найден', 'error');
+                return;
+            }
+            window.location.href = `chat.html?sellerId=${listing.sellerId}&listingId=${listingId}&title=${encodeURIComponent(listing.title)}`;
+        }
+
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        // ========================================
+        // KEYBOARD NAVIGATION
+        // ========================================
+        document.addEventListener('keydown', (e) => {
+            if (!listing?.mediaFiles?.length) return;
+            const mediaFiles = listing.mediaFiles;
+            let currentIndex = 0;
+
+            document.querySelectorAll('.thumbnail').forEach((el, i) => {
+                if (el.classList.contains('active')) currentIndex = i;
+            });
+
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                changeImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight' && currentIndex < mediaFiles.length - 1) {
+                changeImage(currentIndex + 1);
+            }
+        });
+    </script>
 </body>
 </html>
