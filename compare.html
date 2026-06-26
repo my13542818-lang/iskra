@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сравнение товаров — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .compare-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+        .compare-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .compare-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .compare-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        .compare-card .image {
+            height: 150px;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .compare-card .image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .compare-card .title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .compare-card .price {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+        .compare-card .location {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .compare-card .specs {
+            margin-top: 12px;
+            text-align: left;
+        }
+        .compare-card .specs .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .compare-card .specs .spec-item .label {
+            color: var(--text-muted);
+        }
+        .compare-card .specs .spec-item .value {
+            font-weight: 500;
+        }
+        .compare-card .remove-btn {
+            margin-top: 12px;
+        }
+        .compare-card .remove-btn .btn {
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1/-1;
+        }
+        .empty-state .icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .compare-hint {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            background: var(--bg-input);
+            border-radius: var(--radius-full);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .compare-hint span {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .compare-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== COMPARE ===== -->
+    <div class="compare-container">
+        <div class="compare-header">
+            <h1>📊 Сравнение товаров</h1>
+            <span class="compare-hint">Максимум <span>3</span> товара</span>
+        </div>
+        <div id="compareList" class="compare-grid">
+            <div class="loading-spinner"></div>
+        </div>
+        <a href="index.html" class="back-link btn btn-secondary">← Вернуться на главную</a>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const compareList = document.getElementById('compareList');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            const data = doc.data() || {};
+
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(data.balance || 0).toLocaleString()} ₽</div>
+                <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
+                <div class="header-user" onclick="window.location.href='profile/index.html'">
+                    <img src="${data.photoURL || 'https://ui-avatars.com/api/?name=' + (data.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${data.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+
+            await loadCompare();
+        });
+
+        // ========================================
+        // LOAD COMPARE
+        // ========================================
+        async function loadCompare() {
+            const container = compareList;
+            const compareIds = JSON.parse(localStorage.getItem('compare') || '[]');
+
+            if (compareIds.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📊</span>
+                        <h3>Нет товаров для сравнения</h3>
+                        <p>Добавьте товары через кнопку "Сравнить" на карточке товара</p>
+                        <a href="index.html" class="btn btn-primary" style="margin-top:16px;">🛍️ Начать покупки</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const items = [];
+            for (const id of compareIds) {
+                try {
+                    const doc = await db.collection("listings").doc(id).get();
+                    if (doc.exists) {
+                        items.push({ id: doc.id, ...doc.data() });
+                    }
+                } catch (e) {
+                    console.warn('Listing not found:', id);
+                }
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📭</span>
+                        <h3>Товары не найдены</h3>
+                        <p>Возможно, они были удалены</p>
+                        <button class="btn btn-secondary" onclick="localStorage.removeItem('compare'); location.reload();" style="margin-top:16px;">🔄 Очистить список</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Собираем все характеристики
+            const allSpecs = new Set();
+            items.forEach(item => {
+                if (item.specs) {
+                    Object.keys(item.specs).forEach(k => allSpecs.add(k));
+                }
+            });
+
+            container.innerHTML = items.map(item => `
+                <div class="compare-card">
+                    <div class="image">
+                        ${item.mediaFiles && item.mediaFiles.length > 0
+                            ? `<img src="${item.mediaFiles[0].url}" alt="${escapeHtml(item.title)}" loading="lazy">`
+                            : item.image && item.image.startsWith('http')
+                                ? `<img src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy">`
+                                : '📦'
+                        }
+                    </div>
+                    <div class="title">${escapeHtml(item.title)}</div>
+                    <div class="price">${Number(item.price).toLocaleString()} ₽</div>
+                    <div class="location">📍 ${escapeHtml(item.location || 'Не указан')}</div>
+
+                    ${item.specs && Object.keys(item.specs).length > 0 ? `
+                        <div class="specs">
+                            ${Object.entries(item.specs).map(([key, val]) => `
+                                <div class="spec-item">
+                                    <span class="label">${escapeHtml(key)}</span>
+                                    <span class="value">${escapeHtml(val)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div style="color:var(--text-muted);font-size:13px;margin-top:12px;">Нет характеристик</div>
+                    `}
+
+                    <div class="remove-btn">
+                        <button class="btn btn-danger btn-sm" onclick="removeFromCompare('${item.id}')">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========================================
+        // REMOVE FROM COMPARE
+        // ========================================
+        window.removeFromCompare = (id) => {
+            let compare = JSON.parse(localStorage.getItem('compare') || '[]');
+            compare = compare.filter(item => item !== id);
+            localStorage.setItem('compare', JSON.stringify(compare));
+            loadCompare();
+
+            showNotification('🗑️ Товар удалён из сравнения', 'info');
+        };
+
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+    </script>
+</body>
+</html>
