@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модерация — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item active"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>🛡️ Модерация</h1>
+                    <div class="subtitle">Одобрение новых объявлений</div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>Объявления на модерации</h3>
+                    <div class="actions">
+                        <input type="text" id="moderationSearch" placeholder="🔍 Поиск..." style="width:200px;">
+                    </div>
+                </div>
+                <div id="moderationList">
+                    <div class="empty-state"><span class="icon">✅</span><h3>Нет объявлений на модерации</h3></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadModeration() {
+            try {
+                const snapshot = await db.collection("listings")
+                    .where("status", "==", "pending")
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const container = document.getElementById('moderationList');
+
+                if (items.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><span class="icon">✅</span><h3>Нет объявлений на модерации</h3></div>`;
+                    document.getElementById('moderationBadge').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('moderationBadge').textContent = items.length;
+
+                container.innerHTML = items.map(item => `
+                    <div class="moderation-item">
+                        <div class="left">
+                            <div class="title">${escapeHtml(item.title)}</div>
+                            <div class="meta">
+                                👤 ${escapeHtml(item.sellerName || 'Продавец')} • 
+                                💰 ${Number(item.price).toLocaleString()} ₽ • 
+                                📅 ${item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-success btn-sm" onclick="approveListing('${item.id}')">✅ Одобрить</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectListing('${item.id}')">❌ Отклонить</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.open('../product.html?id=${item.id}','_blank')">👁️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('moderationSearch')?.addEventListener('input', function() {
+                    const search = this.value.toLowerCase();
+                    document.querySelectorAll('.moderation-item').forEach(item => {
+                        item.style.display = item.textContent.toLowerCase().includes(search) ? '' : 'none';
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error loading moderation:', error);
+                document.getElementById('moderationList').innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        window.approveListing = async (id) => {
+            try {
+                await db.collection("listings").doc(id).update({ status: 'active' });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Одобрил объявление ${id}`);
+                showNotification('✅ Объявление одобрено', 'success');
+                await loadModeration();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        window.rejectListing = async (id) => {
+            if (!confirm('Отклонить объявление?')) return;
+            try {
+                await db.collection("listings").doc(id).update({ status: 'rejected' });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отклонил объявление ${id}`);
+                showNotification('❌ Объявление отклонено', 'success');
+                await loadModeration();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        async function init() {
+            await checkAdminAccess();
+            await loadModeration();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказы — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item active"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>🛒 Заказы</h1>
+                    <div class="subtitle">Управление заказами</div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>Список заказов</h3>
+                    <div class="actions">
+                        <select id="orderStatusFilter">
+                            <option value="all">Все статусы</option>
+                            <option value="pending">⏳ Ожидает</option>
+                            <option value="paid">✅ Оплачен</option>
+                            <option value="shipped">🚚 Отправлен</option>
+                            <option value="delivered">📦 Доставлен</option>
+                            <option value="completed">🎉 Завершён</option>
+                            <option value="cancelled">❌ Отменён</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Товар</th>
+                                <th>Покупатель</th>
+                                <th>Сумма</th>
+                                <th>Тип</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <tr><td colspan="7" class="empty-state">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadOrders() {
+            try {
+                const snapshot = await db.collection("orders").orderBy("createdAt", "desc").get();
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const tbody = document.getElementById('ordersTable');
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Нет заказов</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td>#${o.id.substring(0,8)}</td>
+                        <td>${escapeHtml(o.listingTitle || o.items?.[0]?.title || '-')}</td>
+                        <td>${escapeHtml(o.buyerName || o.buyerId?.substring(0,8) || '-')}</td>
+                        <td>${(o.total || 0).toLocaleString()} ₽</td>
+                        <td>${o.deliveryType === 'delivery' ? '🚚 Доставка' : '🤝 Встреча'}</td>
+                        <td><span class="status-badge status-${o.status || 'pending'}">${getStatusText(o.status)}</span></td>
+                        <td>
+                            ${o.status === 'pending' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'paid')" title="Оплачен">✅</button>` : ''}
+                            ${o.status === 'paid' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'shipped')" title="Отправлен">🚚</button>` : ''}
+                            ${o.status === 'shipped' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'delivered')" title="Доставлен">📦</button>` : ''}
+                            ${o.status === 'delivered' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'completed')" title="Завершён">🎉</button>` : ''}
+                            ${o.status !== 'completed' && o.status !== 'cancelled' ? `<button class="btn-icon danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" title="Отменить">❌</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('ordersBadge').textContent = orders.length;
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('ordersTable').innerHTML = `<tr><td colspan="7" class="empty-state">Ошибка загрузки</td></tr>`;
+            }
+        }
+
+        window.updateOrderStatus = async (orderId, status) => {
+            try {
+                await db.collection("orders").doc(orderId).update({
+                    status: status,
+                    updatedAt: new Date().toISOString()
+                });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил статус заказа ${orderId} на ${status}`);
+                showNotification(`✅ Статус изменён на "${getStatusText(status)}"`, 'success');
+                await loadOrders();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        document.getElementById('orderStatusFilter')?.addEventListener('change', function() {
+            const status = this.value;
+            document.querySelectorAll('#ordersTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const badge = row.querySelector('.status-badge');
+                const rowStatus = badge ? badge.textContent.trim() : '';
+                let show = status === 'all';
+                if (status === 'pending' && rowStatus.includes('⏳')) show = true;
+                if (status === 'paid' && rowStatus.includes('✅')) show = true;
+                if (status === 'shipped' && rowStatus.includes('🚚')) show = true;
+                if (status === 'delivered' && rowStatus.includes('📦')) show = true;
+                if (status === 'completed' && rowStatus.includes('🎉')) show = true;
+                if (status === 'cancelled' && rowStatus.includes('❌')) show = true;
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
+        async function init() {
+            await checkAdminAccess();
+            await loadOrders();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Объявления — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item active"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>📦 Объявления</h1>
+                    <div class="subtitle">Управление объявлениями</div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>Список объявлений</h3>
+                    <div class="actions">
+                        <input type="text" id="listingSearch" placeholder="🔍 Поиск..." style="width:200px;">
+                        <select id="listingStatusFilter">
+                            <option value="all">Все статусы</option>
+                            <option value="active">✅ Активные</option>
+                            <option value="inactive">⛔ Неактивные</option>
+                            <option value="archived">📦 Архив</option>
+                            <option value="pending">⏳ На модерации</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Продавец</th>
+                                <th>Цена</th>
+                                <th>Статус</th>
+                                <th>Просмотры</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listingsTable">
+                            <tr><td colspan="6" class="empty-state">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadListings() {
+            try {
+                const snapshot = await db.collection("listings").orderBy("createdAt", "desc").get();
+                const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const tbody = document.getElementById('listingsTable');
+
+                if (listings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Нет объявлений</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = listings.map(l => `
+                    <tr>
+                        <td>${escapeHtml(l.title || 'Без названия')}</td>
+                        <td>${escapeHtml(l.sellerName || l.sellerId?.substring(0,8) || '-')}</td>
+                        <td>${(l.price || 0).toLocaleString()} ₽</td>
+                        <td><span class="status-badge ${l.status === 'active' ? 'status-active' : l.status === 'archived' ? 'status-archived' : l.status === 'pending' ? 'status-pending' : 'status-inactive'}">${l.status || 'active'}</span></td>
+                        <td>${l.views || 0}</td>
+                        <td>
+                            <button class="btn-icon success" onclick="toggleListingStatus('${l.id}', '${l.status || 'active'}')" title="Сменить статус">🔄</button>
+                            ${l.status === 'pending' ? `
+                                <button class="btn-icon success" onclick="approveListing('${l.id}')" title="Одобрить">✅</button>
+                                <button class="btn-icon danger" onclick="rejectListing('${l.id}')" title="Отклонить">❌</button>
+                            ` : ''}
+                            <button class="btn-icon danger" onclick="deleteListing('${l.id}')" title="Удалить">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('listingsBadge').textContent = listings.length;
+
+            } catch (error) {
+                console.error('Error loading listings:', error);
+                document.getElementById('listingsTable').innerHTML = `<tr><td colspan="6" class="empty-state">Ошибка загрузки</td></tr>`;
+            }
+        }
+
+        window.toggleListingStatus = async (id, currentStatus) => {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            try {
+                await db.collection("listings").doc(id).update({ status: newStatus });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил статус объявления ${id} на ${newStatus}`);
+                showNotification(`✅ Статус изменён на ${newStatus}`, 'success');
+                await loadListings();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        window.approveListing = async (id) => {
+            try {
+                await db.collection("listings").doc(id).update({ status: 'active' });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Одобрил объявление ${id}`);
+                showNotification('✅ Объявление одобрено', 'success');
+                await loadListings();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        window.rejectListing = async (id) => {
+            if (!confirm('Отклонить объявление?')) return;
+            try {
+                await db.collection("listings").doc(id).update({ status: 'rejected' });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отклонил объявление ${id}`);
+                showNotification('❌ Объявление отклонено', 'success');
+                await loadListings();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        window.deleteListing = async (id) => {
+            if (!confirm('Удалить объявление навсегда?')) return;
+            try {
+                await db.collection("listings").doc(id).delete();
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Удалил объявление ${id}`);
+                showNotification('✅ Объявление удалено', 'success');
+                await loadListings();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        document.getElementById('listingSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('#listingsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('listingStatusFilter')?.addEventListener('change', function() {
+            const status = this.value;
+            document.querySelectorAll('#listingsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const badge = row.querySelector('.status-badge');
+                const rowStatus = badge ? badge.textContent.toLowerCase() : '';
+                let show = status === 'all';
+                if (status === 'active' && rowStatus.includes('active')) show = true;
+                if (status === 'inactive' && rowStatus.includes('inactive')) show = true;
+                if (status === 'archived' && rowStatus.includes('archived')) show = true;
+                if (status === 'pending' && rowStatus.includes('pending')) show = true;
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
+        async function init() {
+            await checkAdminAccess();
+            await loadListings();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выводы — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item active"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>💳 Заявки на вывод</h1>
+                    <div class="subtitle">Управление заявками на вывод средств</div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>Список заявок</h3>
+                    <div class="actions">
+                        <select id="withdrawalStatusFilter">
+                            <option value="all">Все статусы</option>
+                            <option value="pending">⏳ Ожидает</option>
+                            <option value="completed">✅ Выполнено</option>
+                            <option value="rejected">❌ Отклонено</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Пользователь</th>
+                                <th>Сумма</th>
+                                <th>Метод</th>
+                                <th>Реквизиты</th>
+                                <th>Статус</th>
+                                <th>Дата</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTable">
+                            <tr><td colspan="8" class="empty-state">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadWithdrawals() {
+            try {
+                const snapshot = await db.collection("withdrawals").orderBy("createdAt", "desc").get();
+                const withdrawals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const tbody = document.getElementById('withdrawalsTable');
+
+                if (withdrawals.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Нет заявок на вывод</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = withdrawals.map(w => `
+                    <tr>
+                        <td>#${w.id.substring(0,8)}</td>
+                        <td>${escapeHtml(w.userName || w.userId?.substring(0,8) || '-')}</td>
+                        <td>${(w.amount || 0).toLocaleString()} ₽</td>
+                        <td>${w.method || '-'}</td>
+                        <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(w.details || '-')}</td>
+                        <td><span class="status-badge status-${w.status || 'pending'}">${w.status === 'pending' ? '⏳ Ожидает' : w.status === 'completed' ? '✅ Выполнено' : '❌ Отклонено'}</span></td>
+                        <td>${w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '-'}</td>
+                        <td>
+                            ${w.status === 'pending' ? `
+                                <button class="btn-icon success" onclick="approveWithdrawal('${w.id}')" title="Одобрить">✅</button>
+                                <button class="btn-icon danger" onclick="rejectWithdrawal('${w.id}')" title="Отклонить">❌</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('withdrawalsBadge').textContent = withdrawals.length;
+
+            } catch (error) {
+                console.error('Error loading withdrawals:', error);
+                document.getElementById('withdrawalsTable').innerHTML = `<tr><td colspan="8" class="empty-state">Ошибка загрузки</td></tr>`;
+            }
+        }
+
+        window.approveWithdrawal = async (id) => {
+            if (!confirm('Одобрить вывод средств?')) return;
+            try {
+                await db.collection("withdrawals").doc(id).update({ status: 'completed' });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Одобрил вывод ${id}`);
+                showNotification('✅ Вывод одобрен', 'success');
+                await loadWithdrawals();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        window.rejectWithdrawal = async (id) => {
+            if (!confirm('Отклонить вывод? Средства вернутся пользователю.')) return;
+            try {
+                const doc = await db.collection("withdrawals").doc(id).get();
+                const data = doc.data();
+                await doc.ref.update({ status: 'rejected' });
+                const userRef = db.collection("users").doc(data.userId);
+                const userDoc = await userRef.get();
+                await userRef.update({ balance: (userDoc.data()?.balance || 0) + data.amount });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отклонил вывод ${id}, средства возвращены`);
+                showNotification('❌ Вывод отклонён, средства возвращены', 'success');
+                await loadWithdrawals();
+            } catch (error) {
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        document.getElementById('withdrawalStatusFilter')?.addEventListener('change', function() {
+            const status = this.value;
+            document.querySelectorAll('#withdrawalsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const badge = row.querySelector('.status-badge');
+                const rowStatus = badge ? badge.textContent.trim() : '';
+                let show = status === 'all';
+                if (status === 'pending' && rowStatus.includes('⏳')) show = true;
+                if (status === 'completed' && rowStatus.includes('✅')) show = true;
+                if (status === 'rejected' && rowStatus.includes('❌')) show = true;
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
+        async function init() {
+            await checkAdminAccess();
+            await loadWithdrawals();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

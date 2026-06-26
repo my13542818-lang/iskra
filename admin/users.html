@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item active"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <!-- ===== CONTENT ===== -->
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>👥 Пользователи</h1>
+                    <div class="subtitle">Управление пользователями платформы</div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>Список пользователей</h3>
+                    <div class="actions">
+                        <input type="text" id="userSearch" placeholder="🔍 Поиск..." style="width:200px;">
+                        <select id="userRoleFilter">
+                            <option value="all">Все роли</option>
+                            <option value="admin">👑 Админ</option>
+                            <option value="moderator">🛡️ Модератор</option>
+                            <option value="user">👤 Пользователь</option>
+                            <option value="banned">⛔ Забанен</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Пользователь</th>
+                                <th>Email</th>
+                                <th>Баланс</th>
+                                <th>Роль</th>
+                                <th>Верификация</th>
+                                <th>Дата</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr><td colspan="7" class="empty-state">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        // ========================================
+        // LOAD USERS
+        // ========================================
+        async function loadUsers() {
+            try {
+                const snapshot = await db.collection("users").orderBy("createdAt", "desc").get();
+                const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const tbody = document.getElementById('usersTable');
+
+                if (users.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Нет пользователей</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <img src="${u.photoURL || 'https://ui-avatars.com/api/?name=' + (u.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar-mini" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                                <span>${escapeHtml(u.name || 'Без имени')}</span>
+                                ${u.phoneVerified ? '<span style="color:#2ECC71;font-size:12px;">✅</span>' : ''}
+                            </div>
+                        </td>
+                        <td>${escapeHtml(u.email || '-')}</td>
+                        <td>${(u.balance || 0).toLocaleString()} ₽</td>
+                        <td>
+                            <select class="role-select" data-id="${u.id}" style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:var(--radius-full);padding:4px 12px;color:var(--text-primary);outline:none;">
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>👑 Админ</option>
+                                <option value="moderator" ${u.role === 'moderator' ? 'selected' : ''}>🛡️ Модератор</option>
+                                <option value="user" ${u.role === 'user' ? 'selected' : ''}>👤 Пользователь</option>
+                                <option value="banned" ${u.role === 'banned' ? 'selected' : ''}>⛔ Забанен</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn-icon success" onclick="verifyUser('${u.id}')" title="${u.phoneVerified ? 'Уже верифицирован' : 'Верифицировать'}">
+                                ${u.phoneVerified ? '✅' : '❌'}
+                            </button>
+                        </td>
+                        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
+                        <td>
+                            <button class="btn-icon success" onclick="editBalance('${u.id}')" title="Изменить баланс">💰</button>
+                            <button class="btn-icon danger" onclick="deleteUser('${u.id}')" title="Удалить">🗑️</button>
+                            <button class="btn-icon" onclick="resetUserPassword('${u.id}')" title="Сбросить пароль">🔑</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Обработка изменения роли
+                tbody.querySelectorAll('.role-select').forEach(select => {
+                    select.onchange = async () => {
+                        try {
+                            await db.collection("users").doc(select.dataset.id).update({ role: select.value });
+                            const uid = currentUser ? currentUser.uid : 'system';
+                            await addLog(uid, `Изменил роль пользователя ${select.dataset.id} на ${select.value}`);
+                            showNotification('✅ Роль обновлена', 'success');
+                            await loadUsers();
+                        } catch (error) { showNotification('❌ Ошибка', 'error'); }
+                    };
+                });
+
+                document.getElementById('usersBadge').textContent = users.length;
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersTable').innerHTML = `<tr><td colspan="7" class="empty-state">Ошибка загрузки</td></tr>`;
+            }
+        }
+
+        // ========================================
+        // VERIFY USER
+        // ========================================
+        window.verifyUser = async (userId) => {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                const userDoc = await userRef.get();
+                const isVerified = userDoc.data()?.phoneVerified || false;
+
+                await userRef.update({
+                    phoneVerified: !isVerified,
+                    verifiedAt: !isVerified ? new Date().toISOString() : null
+                });
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `${!isVerified ? 'Верифицировал' : 'Снял верификацию с'} пользователя ${userId}`);
+                showNotification(`${!isVerified ? '✅' : '❌'} Статус верификации изменён`, 'success');
+                await loadUsers();
+            } catch (error) {
+                showNotification('❌ Ошибка', 'error');
+            }
+        };
+
+        // ========================================
+        // EDIT BALANCE
+        // ========================================
+        window.editBalance = async (userId) => {
+            const action = prompt('Что сделать?\n1 - Добавить\n2 - Вычесть\n3 - Установить');
+            if (!action) return;
+            const amount = parseInt(prompt('Сумма:'));
+            if (!amount || amount <= 0) { showNotification('Введите корректную сумму', 'error'); return; }
+
+            try {
+                const userRef = db.collection("users").doc(userId);
+                const doc = await userRef.get();
+                const currentBalance = doc.data()?.balance || 0;
+                let newBalance;
+
+                switch (action) {
+                    case '1': newBalance = currentBalance + amount; break;
+                    case '2': newBalance = Math.max(0, currentBalance - amount); break;
+                    case '3': newBalance = amount; break;
+                    default: showNotification('Неверный выбор', 'error'); return;
+                }
+
+                await userRef.update({ balance: newBalance });
+                await db.collection("transactions").add({
+                    userId: userId,
+                    amount: newBalance - currentBalance,
+                    description: `Ручное изменение баланса администратором`,
+                    status: 'completed',
+                    createdAt: new Date().toISOString()
+                });
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил баланс пользователя ${userId} на ${newBalance} ₽`);
+                showNotification('✅ Баланс обновлён', 'success');
+                await loadUsers();
+
+            } catch (error) { showNotification('❌ Ошибка: ' + error.message, 'error'); }
+        };
+
+        // ========================================
+        // DELETE USER
+        // ========================================
+        window.deleteUser = async (userId) => {
+            if (!confirm('Удалить пользователя навсегда?')) return;
+            try {
+                await db.collection("users").doc(userId).delete();
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Удалил пользователя ${userId}`);
+                showNotification('✅ Пользователь удалён', 'success');
+                await loadUsers();
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        // ========================================
+        // RESET PASSWORD
+        // ========================================
+        window.resetUserPassword = async (userId) => {
+            try {
+                const userDoc = await db.collection("users").doc(userId).get();
+                const email = userDoc.data()?.email;
+                if (!email) {
+                    showNotification('У пользователя нет email', 'error');
+                    return;
+                }
+
+                await auth.sendPasswordResetEmail(email);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отправил ссылку на сброс пароля для ${email}`);
+                showNotification('✅ Ссылка на сброс пароля отправлена', 'success');
+
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
+        };
+
+        // ========================================
+        // SEARCH / FILTER
+        // ========================================
+        document.getElementById('userSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('#usersTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('userRoleFilter')?.addEventListener('change', function() {
+            const role = this.value;
+            document.querySelectorAll('#usersTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const select = row.querySelector('.role-select');
+                const rowRole = select ? select.value : '';
+                row.style.display = (role === 'all' || rowRole === role) ? '' : 'none';
+            });
+        });
+
+        // ========================================
+        // INIT
+        // ========================================
+        async function init() {
+            await checkAdminAccess();
+            await loadUsers();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

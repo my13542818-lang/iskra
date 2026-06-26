@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чёрный список слов — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item active"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>🚫 Чёрный список слов</h1>
+                    <div class="subtitle">Автоматическая фильтрация плохих слов</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
+                <div class="settings-card">
+                    <h4>➕ Добавить слово</h4>
+                    <div class="form-group">
+                        <label>Слово или фраза</label>
+                        <input type="text" class="form-control" id="badWordInput" placeholder="Например: спам">
+                    </div>
+                    <button class="btn btn-primary" id="addBadWordBtn">✅ Добавить</button>
+                </div>
+                <div class="settings-card">
+                    <h4>📋 Список запрещённых слов</h4>
+                    <div class="bad-words-list" id="badWordsList">
+                        <div class="empty-state" style="padding:20px;"><p>Нет запрещённых слов</p></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        let badWords = [];
+
+        async function loadBadWords() {
+            try {
+                const doc = await db.collection("settings").doc("badwords").get();
+                badWords = doc.exists ? doc.data().words || [] : [];
+                renderBadWords();
+            } catch (error) { console.error('Error loading bad words:', error); }
+        }
+
+        function renderBadWords() {
+            const container = document.getElementById('badWordsList');
+            if (badWords.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding:20px;"><p>Нет запрещённых слов</p></div>`;
+                return;
+            }
+            container.innerHTML = badWords.map(word => `
+                <span class="bad-word-tag">
+                    ${escapeHtml(word)}
+                    <span class="remove" onclick="removeBadWord('${escapeHtml(word)}')">✕</span>
+                </span>
+            `).join('');
+        }
+
+        async function removeBadWord(word) {
+            badWords = badWords.filter(w => w !== word);
+            await db.collection("settings").doc("badwords").set({ words: badWords });
+            renderBadWords();
+            showNotification('✅ Слово удалено', 'success');
+        }
+
+        document.getElementById('addBadWordBtn').onclick = async () => {
+            const input = document.getElementById('badWordInput');
+            const word = input.value.trim().toLowerCase();
+            if (!word) { showNotification('Введите слово', 'error'); return; }
+            if (badWords.includes(word)) { showNotification('Слово уже есть', 'warning'); return; }
+
+            badWords.push(word);
+            await db.collection("settings").doc("badwords").set({ words: badWords });
+            input.value = '';
+            renderBadWords();
+            showNotification('✅ Слово добавлено', 'success');
+        };
+
+        async function init() {
+            await checkAdminAccess();
+            await loadBadWords();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>

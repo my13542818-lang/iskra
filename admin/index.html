@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — Куки</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item active" data-tab="dashboard">
+                <span class="icon">📊</span> Панель
+            </a>
+            <a href="users.html" class="menu-item">
+                <span class="icon">👥</span> Пользователи
+                <span class="badge" id="usersBadge">0</span>
+            </a>
+            <a href="listings.html" class="menu-item">
+                <span class="icon">📦</span> Объявления
+                <span class="badge" id="listingsBadge">0</span>
+            </a>
+            <a href="orders.html" class="menu-item">
+                <span class="icon">🛒</span> Заказы
+                <span class="badge" id="ordersBadge">0</span>
+            </a>
+            <a href="withdrawals.html" class="menu-item">
+                <span class="icon">💳</span> Выводы
+                <span class="badge" id="withdrawalsBadge">0</span>
+            </a>
+            <a href="moderation.html" class="menu-item">
+                <span class="icon">🛡️</span> Модерация
+                <span class="badge" id="moderationBadge">0</span>
+            </a>
+            <a href="logs.html" class="menu-item">
+                <span class="icon">📜</span> Логи действий
+            </a>
+            <a href="badwords.html" class="menu-item">
+                <span class="icon">🚫</span> Чёрный список слов
+            </a>
+            <a href="mailing.html" class="menu-item">
+                <span class="icon">📧</span> Массовая рассылка
+            </a>
+            <a href="promos.html" class="menu-item">
+                <span class="icon">🎁</span> Промокоды
+            </a>
+            <a href="settings.html" class="menu-item">
+                <span class="icon">⚙️</span> Настройки
+            </a>
+            <a href="../index.html" class="menu-item">
+                <span class="icon">🏠</span> На сайт
+            </a>
+        </aside>
+
+        <!-- ===== CONTENT ===== -->
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>📊 Панель управления</h1>
+                    <div class="subtitle">Общая статистика платформы</div>
+                </div>
+                <span style="color:var(--text-muted);font-size:14px;">
+                    🕐 Обновлено: <span id="lastUpdated">только что</span>
+                </span>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <span class="icon">👥</span>
+                    <div class="value" id="statUsers">0</div>
+                    <div class="label">Пользователей</div>
+                </div>
+                <div class="stat-card">
+                    <span class="icon">📦</span>
+                    <div class="value" id="statListings">0</div>
+                    <div class="label">Объявлений</div>
+                </div>
+                <div class="stat-card">
+                    <span class="icon">🛒</span>
+                    <div class="value" id="statOrders">0</div>
+                    <div class="label">Заказов</div>
+                </div>
+                <div class="stat-card">
+                    <span class="icon">💳</span>
+                    <div class="value" id="statWithdrawals">0</div>
+                    <div class="label">Заявок на вывод</div>
+                </div>
+                <div class="stat-card">
+                    <span class="icon">💰</span>
+                    <div class="value" id="statRevenue">0 ₽</div>
+                    <div class="label">Выручка</div>
+                </div>
+                <div class="stat-card">
+                    <span class="icon">⭐</span>
+                    <div class="value" id="statAvgRating">0%</div>
+                    <div class="label">Средний рейтинг</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h4>📈 Заказы по дням</h4>
+                    <canvas id="ordersChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>📊 Категории объявлений</h4>
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="stat-card">
+                    <div style="font-size:14px;color:var(--text-muted);">Активных объявлений</div>
+                    <div style="font-size:28px;font-weight:800;color:#2ECC71;" id="statActive">0</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size:14px;color:var(--text-muted);">Завершённых сделок</div>
+                    <div style="font-size:28px;font-weight:800;color:#9B59B6;" id="statCompleted">0</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        // ========================================
+        // LOAD STATS
+        // ========================================
+        async function loadStats() {
+            try {
+                const users = await db.collection("users").get();
+                const listings = await db.collection("listings").get();
+                const orders = await db.collection("orders").get();
+                const withdrawals = await db.collection("withdrawals").get();
+
+                document.getElementById('statUsers').textContent = users.size;
+                document.getElementById('statListings').textContent = listings.size;
+                document.getElementById('statOrders').textContent = orders.size;
+                document.getElementById('statWithdrawals').textContent = withdrawals.size;
+
+                let revenue = 0,
+                    completed = 0,
+                    active = 0,
+                    totalRating = 0,
+                    ratingCount = 0;
+
+                orders.forEach(doc => {
+                    const data = doc.data();
+                    if (data.status === 'completed') { revenue += data.total || 0;
+                        completed++; }
+                });
+
+                listings.forEach(doc => { if (doc.data().status === 'active') active++; });
+
+                users.forEach(doc => {
+                    const data = doc.data();
+                    if (data.rating && data.rating > 0) { totalRating += data.rating;
+                        ratingCount++; }
+                });
+
+                document.getElementById('statRevenue').textContent = revenue.toLocaleString() + ' ₽';
+                document.getElementById('statCompleted').textContent = completed;
+                document.getElementById('statActive').textContent = active;
+                document.getElementById('statAvgRating').textContent = (ratingCount > 0 ? Math.round(totalRating / ratingCount) : 0) + '%';
+
+                // Обновляем бейджи
+                document.getElementById('usersBadge').textContent = users.size;
+                document.getElementById('listingsBadge').textContent = listings.size;
+                document.getElementById('ordersBadge').textContent = orders.size;
+                document.getElementById('withdrawalsBadge').textContent = withdrawals.size;
+                document.getElementById('moderationBadge').textContent = listings.docs.filter(d => d.data().status === 'pending').length;
+
+            } catch (error) { console.error('Error loading stats:', error); }
+        }
+
+        // ========================================
+        // CHARTS
+        // ========================================
+        function setupCharts() {
+            const ctx1 = document.getElementById('ordersChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    datasets: [{
+                        label: 'Заказы',
+                        data: [12, 19, 15, 22, 28, 18, 14],
+                        borderColor: '#E84393',
+                        backgroundColor: 'rgba(232,67,147,0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('categoriesChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Электроника', 'Одежда', 'Авто', 'Недвижимость', 'Услуги', 'Другое'],
+                    datasets: [{
+                        data: [35, 20, 15, 12, 10, 8],
+                        backgroundColor: ['#E84393', '#9B59B6', '#3498DB', '#2ECC71', '#F1C40F', '#E74C3C']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#C4B5D8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========================================
+        // INIT
+        // ========================================
+        async function init() {
+            await checkAdminAccess();
+            await loadStats();
+            setupCharts();
+            setupNavigation();
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString('ru-RU');
+        }
+
+        init();
+    </script>
+</body>
+</html>

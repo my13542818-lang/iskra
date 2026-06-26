@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рассылка — Админ-панель</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="../index.html" class="logo">🍪 Куки Admin</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-layout">
+
+        <aside class="admin-sidebar">
+            <div class="brand">🍪 Куки Admin</div>
+            <a href="index.html" class="menu-item"><span class="icon">📊</span> Панель</a>
+            <a href="users.html" class="menu-item"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></a>
+            <a href="listings.html" class="menu-item"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></a>
+            <a href="orders.html" class="menu-item"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></a>
+            <a href="withdrawals.html" class="menu-item"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></a>
+            <a href="moderation.html" class="menu-item"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></a>
+            <a href="logs.html" class="menu-item"><span class="icon">📜</span> Логи действий</a>
+            <a href="badwords.html" class="menu-item"><span class="icon">🚫</span> Чёрный список слов</a>
+            <a href="mailing.html" class="menu-item active"><span class="icon">📧</span> Массовая рассылка</a>
+            <a href="promos.html" class="menu-item"><span class="icon">🎁</span> Промокоды</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> Настройки</a>
+            <a href="../index.html" class="menu-item"><span class="icon">🏠</span> На сайт</a>
+        </aside>
+
+        <main class="admin-content">
+
+            <div class="page-header">
+                <div>
+                    <h1>📧 Массовая рассылка</h1>
+                    <div class="subtitle">Отправить письмо всем пользователям</div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="form-group">
+                    <label>Тема письма</label>
+                    <input type="text" class="form-control" id="mailSubject" placeholder="Важное объявление">
+                </div>
+                <div class="form-group">
+                    <label>Текст письма</label>
+                    <textarea class="form-control" id="mailBody" rows="6" placeholder="Напишите текст письма..."></textarea>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="sendMailBtn">📧 Отправить всем</button>
+                    <span style="color:var(--text-muted);font-size:13px;align-self:center;" id="mailCount">Всего пользователей: 0</span>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadMailCount() {
+            try {
+                const snapshot = await db.collection("users").get();
+                document.getElementById('mailCount').textContent = `Всего пользователей: ${snapshot.size}`;
+            } catch (error) { console.error('Error loading mail count:', error); }
+        }
+
+        document.getElementById('sendMailBtn').onclick = async () => {
+            const subject = document.getElementById('mailSubject').value.trim();
+            const body = document.getElementById('mailBody').value.trim();
+
+            if (!subject || !body) {
+                showNotification('Заполните тему и текст письма', 'error');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection("users").get();
+                const users = snapshot.docs.map(doc => doc.data().email).filter(email => email);
+                const count = users.length;
+
+                if (count === 0) {
+                    showNotification('Нет пользователей для рассылки', 'warning');
+                    return;
+                }
+
+                if (!confirm(`Отправить письмо всем ${count} пользователям?`)) return;
+
+                await db.collection("mailings").add({
+                    subject: subject,
+                    body: body,
+                    recipients: count,
+                    sentAt: new Date().toISOString()
+                });
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отправил массовую рассылку (${count} пользователей)`);
+
+                showNotification(`✅ Письмо отправлено ${count} пользователям!`, 'success');
+                document.getElementById('mailSubject').value = '';
+                document.getElementById('mailBody').value = '';
+
+            } catch (error) {
+                console.error('Error sending mail:', error);
+                showNotification('❌ Ошибка отправки: ' + error.message, 'error');
+            }
+        };
+
+        async function init() {
+            await checkAdminAccess();
+            await loadMailCount();
+            setupNavigation();
+        }
+
+        init();
+    </script>
+</body>
+</html>
