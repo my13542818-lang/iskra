@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Вход — Куки</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -31,7 +33,6 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ===== LIGHT THEME ===== */
         .light {
             --bg-base: #F8F9FB;
             --bg-surface: #FFFFFF;
@@ -55,7 +56,6 @@
             transition: var(--transition);
         }
 
-        /* ===== CONTAINER ===== */
         .auth-container {
             width: 100%;
             max-width: 400px;
@@ -67,7 +67,6 @@
             transition: var(--transition);
         }
 
-        /* ===== LOGO ===== */
         .auth-logo {
             text-align: center;
             margin-bottom: 28px;
@@ -91,7 +90,6 @@
             margin-top: 4px;
         }
 
-        /* ===== TITLE ===== */
         .auth-title {
             text-align: center;
             margin-bottom: 24px;
@@ -106,7 +104,6 @@
             margin-top: 4px;
         }
 
-        /* ===== FORM ===== */
         .form-group {
             margin-bottom: 16px;
         }
@@ -136,7 +133,6 @@
             color: var(--text-muted);
         }
 
-        /* ===== CHECKBOX ===== */
         .checkbox-group {
             display: flex;
             align-items: flex-start;
@@ -166,7 +162,6 @@
             text-decoration: underline;
         }
 
-        /* ===== BUTTONS ===== */
         .btn {
             width: 100%;
             padding: 14px;
@@ -181,15 +176,19 @@
             justify-content: center;
             gap: 10px;
         }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #21A038, #1B8A30);
             color: white;
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(33, 160, 56, 0.4);
         }
-        .btn-primary:active {
+        .btn-primary:active:not(:disabled) {
             transform: scale(0.97);
         }
 
@@ -198,11 +197,11 @@
             color: var(--text-primary);
             border: 1px solid var(--border-color);
         }
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: var(--bg-hover);
             border-color: var(--accent);
         }
-        .btn-secondary:active {
+        .btn-secondary:active:not(:disabled) {
             transform: scale(0.97);
         }
 
@@ -211,7 +210,7 @@
             color: var(--text-primary);
             border: 1px solid var(--border-color);
         }
-        .btn-google:hover {
+        .btn-google:hover:not(:disabled) {
             background: var(--bg-hover);
             border-color: var(--accent);
         }
@@ -220,7 +219,6 @@
             height: 20px;
         }
 
-        /* ===== DIVIDER ===== */
         .divider {
             display: flex;
             align-items: center;
@@ -237,7 +235,6 @@
             background: var(--border-color);
         }
 
-        /* ===== FOOTER LINK ===== */
         .auth-footer {
             text-align: center;
             margin-top: 20px;
@@ -253,7 +250,30 @@
             text-decoration: underline;
         }
 
-        /* ===== RESPONSIVE ===== */
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+        .notification-success { border-left: 4px solid #2ECC71; }
+        .notification-error { border-left: 4px solid #E74C3C; }
+        .notification-warning { border-left: 4px solid #F39C12; }
+        .notification-info { border-left: 4px solid #3498DB; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         @media (max-width: 480px) {
             .auth-container {
                 padding: 28px 20px;
@@ -274,26 +294,22 @@
 <body>
 
     <div class="auth-container">
-        <!-- ===== LOGO ===== -->
         <div class="auth-logo">
             <span class="icon">🍪</span>
             <h1>Куки</h1>
             <p>Покупай и продавай с удовольствием</p>
         </div>
 
-        <!-- ===== TITLE ===== -->
         <div class="auth-title">
             <h2>Вход по номеру телефона</h2>
             <p>Введите номер телефона. Вы получите СМС с кодом</p>
         </div>
 
-        <!-- ===== PHONE INPUT ===== -->
         <div class="form-group">
             <label>Номер телефона</label>
             <input type="tel" id="phoneInput" placeholder="+7 (999) 123-45-67" value="+7 999 1234567">
         </div>
 
-        <!-- ===== CHECKBOX ===== -->
         <div class="checkbox-group">
             <input type="checkbox" id="consent" checked>
             <label for="consent">
@@ -302,7 +318,6 @@
             </label>
         </div>
 
-        <!-- ===== BUTTONS ===== -->
         <button class="btn btn-primary" id="smsBtn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
@@ -317,16 +332,13 @@
             Получить звонок с кодом
         </button>
 
-        <!-- ===== DIVIDER ===== -->
         <div class="divider"><span>или</span></div>
 
-        <!-- ===== GOOGLE BUTTON ===== -->
         <button class="btn btn-google" id="googleBtn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
             Войти через Google
         </button>
 
-        <!-- ===== FOOTER ===== -->
         <div class="auth-footer">
             Уже есть аккаунт? <a href="#">Войти</a>
         </div>
@@ -334,7 +346,7 @@
 
     <script>
         // ========================================
-        // FIREBASE
+        // FIREBASE — ВСЁ ВНУТРИ, firebase ГЛОБАЛЬНЫЙ
         // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -345,7 +357,11 @@
             appId: "1:315986487804:web:29f131e8a57bffadac2a79",
             measurementId: "G-ETWXCGL9HK"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        // Инициализация Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -359,33 +375,16 @@
         const googleBtn = document.getElementById('googleBtn');
 
         // ========================================
-        // FUNCTIONS
+        // ФУНКЦИИ
         // ========================================
         function showNotification(message, type = 'info') {
-            const existing = document.querySelector('.notification');
-            if (existing) existing.remove();
+            document.querySelectorAll('.notification').forEach(el => el.remove());
 
             const notif = document.createElement('div');
-            notif.className = 'notification';
-            notif.style.cssText = `
-                position: fixed; bottom: 24px; right: 24px;
-                padding: 16px 24px; border-radius: 16px;
-                background: var(--bg-surface);
-                border: 1px solid var(--border-color);
-                color: var(--text-primary);
-                box-shadow: var(--shadow);
-                z-index: 9999;
-                max-width: 400px;
-                animation: slideIn 0.3s ease;
-            `;
+            notif.className = `notification notification-${type}`;
             notif.textContent = message;
-
-            if (type === 'success') notif.style.borderLeft = '4px solid #2ECC71';
-            else if (type === 'error') notif.style.borderLeft = '4px solid #E74C3C';
-            else if (type === 'warning') notif.style.borderLeft = '4px solid #F39C12';
-            else notif.style.borderLeft = '4px solid #3498DB';
-
             document.body.appendChild(notif);
+
             setTimeout(() => {
                 notif.style.opacity = '0';
                 notif.style.transform = 'translateX(100px)';
@@ -420,7 +419,6 @@
 
             try {
                 // Здесь будет отправка SMS через ваш сервис
-                // Пока имитируем
                 setTimeout(() => {
                     showNotification(`✅ Код отправлен на ${phone}`, 'success');
                     smsBtn.disabled = false;
@@ -459,7 +457,6 @@
             callBtn.textContent = '⏳ Звонок...';
 
             try {
-                // Здесь будет звонок через ваш сервис
                 setTimeout(() => {
                     showNotification(`📞 Звонок на ${phone} выполнен`, 'success');
                     callBtn.disabled = false;
@@ -518,7 +515,7 @@
 
             } catch (error) {
                 console.error('Google login error:', error);
-                showNotification('❌ Ошибка входа через Google', 'error');
+                showNotification('❌ Ошибка входа через Google: ' + error.message, 'error');
             }
         };
 
@@ -557,6 +554,7 @@
         });
 
         console.log('✅ Страница входа загружена');
+        console.log('✅ Firebase инициализирован');
     </script>
 </body>
 </html>
