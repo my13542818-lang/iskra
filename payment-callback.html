@@ -45,7 +45,7 @@
         }
 
         // ========================================
-        // ПОЛУЧАЕМ ДАННЫЕ ИЗ URL (GET-запрос)
+        // ПОЛУЧАЕМ ДАННЫЕ ИЗ URL
         // ========================================
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -58,23 +58,16 @@
         const currencyCode = urlParams.get('MNT_CURRENCY_CODE') || 'RUB';
 
         // ========================================
-        // ЛОГИРУЕМ ВСЁ
+        // ЛОГИРУЕМ
         // ========================================
         addLog('📥 Получен запрос от PayAnyWay');
-        addLog('📌 Параметры:');
         addLog(`  MNT_TRANSACTION_ID: ${transactionId}`);
         addLog(`  MNT_AMOUNT: ${amount}`);
         addLog(`  MNT_OPERATION_ID: ${operationId}`);
-        addLog(`  MNT_SUBSCRIBER_ID: ${subscriberId}`);
-        addLog(`  MNT_TEST_MODE: ${testMode}`);
-        addLog(`  MNT_SIGNATURE: ${signature}`);
-        addLog(`  MNT_CURRENCY_CODE: ${currencyCode}`);
 
         // ========================================
         // ПРОВЕРЯЕМ ПОДПИСЬ
         // ========================================
-        // Правильный порядок по документации PayAnyWay:
-        // MNT_ID + MNT_TRANSACTION_ID + MNT_OPERATION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE
         const signatureData =
             MNT_ID +
             transactionId +
@@ -87,18 +80,10 @@
 
         const expectedSignature = CryptoJS.MD5(signatureData).toString();
 
-        addLog(`🔐 Данные для подписи: ${signatureData}`);
-        addLog(`🔐 Ожидаемая подпись: ${expectedSignature}`);
-        addLog(`🔐 Полученная подпись: ${signature}`);
-
-        // ========================================
-        // ЕСЛИ ПОДПИСЬ НЕ СОВПАДАЕТ
-        // ========================================
         if (signature !== expectedSignature) {
             addLog('❌ ПОДПИСЬ НЕ СОВПАДАЕТ!');
             document.body.innerHTML = `
                     <h1 style="color:red;">❌ Ошибка подписи</h1>
-                    <p>Подпись не совпадает. Запрос не обработан.</p>
                     <pre>${logEl.textContent}</pre>
                 `;
             return;
@@ -110,54 +95,26 @@
         // РАЗБИРАЕМ MNT_TRANSACTION_ID
         // ========================================
         const parts = transactionId.split('|');
-        const timestamp = parts[0] || '';
         const userId = parts[1] || '';
-        const orderAmount = parseFloat(parts[2] || '0');
         const parsedAmount = parseFloat(amount);
 
-        addLog(`📦 Разбор transactionId:`);
-        addLog(`  timestamp: ${timestamp}`);
         addLog(`  userId: ${userId}`);
-        addLog(`  orderAmount: ${orderAmount}`);
         addLog(`  parsedAmount: ${parsedAmount}`);
-
-        // ========================================
-        // ПРОВЕРЯЕМ СУММУ
-        // ========================================
-        if (Math.abs(parsedAmount - orderAmount) > 0.01) {
-            addLog('❌ Сумма не совпадает!');
-            document.body.innerHTML = `
-                    <h1 style="color:red;">❌ Ошибка суммы</h1>
-                    <p>Сумма не совпадает: ${parsedAmount} != ${orderAmount}</p>
-                    <pre>${logEl.textContent}</pre>
-                `;
-            return;
-        }
-
-        addLog('✅ Сумма совпадает!');
 
         // ========================================
         // ОБНОВЛЯЕМ БАЛАНС
         // ========================================
-        if (userId && parsedAmount > 0) {
-            addLog(`🔄 Обновляем баланс пользователя: ${userId}`);
-
-            db.collection("users").doc(userId).get()
-                .then(doc => {
+        async function processPayment() {
+            try {
+                if (userId && parsedAmount > 0) {
+                    const userRef = db.collection("users").doc(userId);
+                    const doc = await userRef.get();
                     const currentBalance = doc.exists ? doc.data().balance || 0 : 0;
                     const newBalance = currentBalance + parsedAmount;
-                    addLog(`  Текущий баланс: ${currentBalance}`);
-                    addLog(`  Новый баланс: ${newBalance}`);
 
-                    return db.collection("users").doc(userId).update({
-                        balance: newBalance
-                    });
-                })
-                .then(() => {
-                    addLog('✅ Баланс обновлён!');
+                    await userRef.update({ balance: newBalance });
 
-                    // Сохраняем транзакцию
-                    return db.collection("transactions").add({
+                    await db.collection("transactions").add({
                         userId: userId,
                         amount: parsedAmount,
                         description: 'Пополнение баланса через PayAnyWay',
@@ -166,40 +123,73 @@
                         operationId: operationId,
                         createdAt: new Date().toISOString()
                     });
-                })
-                .then(() => {
-                    addLog('✅ Транзакция сохранена!');
-                    showSuccess();
-                })
-                .catch(err => {
-                    addLog(`❌ Ошибка: ${err.message}`);
-                    showError(err.message);
-                });
-        } else {
-            addLog('⚠️ ID пользователя не найден или сумма равна 0');
-            showError('ID пользователя не найден');
+
+                    addLog('✅ Баланс обновлён!');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`);
+            }
         }
 
         // ========================================
-        // ПОКАЗЫВАЕМ РЕЗУЛЬТАТ
+        // ФОРМИРУЕМ ОТВЕТ ДЛЯ PAYANYWAY
         // ========================================
-        function showSuccess() {
+        // ✅ ВАЖНО! Добавляем номенклатуру для фискализации чека
+        const productName = 'Пополнение баланса Куки';
+        const productPrice = parseFloat(amount).toFixed(2);
+        const productQuantity = 1;
+
+        // Формируем XML ответ с номенклатурой
+        const xmlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+        <MNT_RESPONSE>
+            <MNT_ID>${MNT_ID}</MNT_ID>
+            <MNT_TRANSACTION_ID>${transactionId}</MNT_TRANSACTION_ID>
+            <MNT_RESULT_CODE>200</MNT_RESULT_CODE>
+            <MNT_SIGNATURE>${CryptoJS.MD5('200' + MNT_ID + transactionId + MNT_INTEGRITY_CODE).toString()}</MNT_SIGNATURE>
+            <MNT_ATTRIBUTES>
+                <ATTRIBUTE>
+                    <KEY>INVENTORY</KEY>
+                    <VALUE>[{"name": "${productName}", "price": ${productPrice}, "quantity": ${productQuantity}, "vatTag": "none", "pm": "full_payment", "po": "service"}]</VALUE>
+                </ATTRIBUTE>
+                <ATTRIBUTE>
+                    <KEY>CLIENT</KEY>
+                    <VALUE>[{"email": "${subscriberId}"}]</VALUE>
+                </ATTRIBUTE>
+            </MNT_ATTRIBUTES>
+        </MNT_RESPONSE>`;
+
+        addLog('📤 Ответ PayAnyWay:');
+        addLog(xmlResponse);
+
+        // ========================================
+        // ЗАПУСКАЕМ ОБРАБОТКУ И ОТВЕЧАЕМ
+        // ========================================
+        processPayment().then(() => {
+            // Отправляем XML ответ
             document.body.innerHTML = `
                     <h1 style="color:green;">✅ Успешно!</h1>
                     <p>Баланс пополнен на ${parsedAmount} ₽</p>
                     <p>Пользователь: ${userId}</p>
                     <p>Операция: ${operationId}</p>
                     <pre>${logEl.textContent}</pre>
+                    <hr>
+                    <h3>📤 Ответ PayAnyWay (XML):</h3>
+                    <pre style="background:#1a1625;padding:16px;border-radius:8px;overflow-x:auto;">${xmlResponse}</pre>
                 `;
-        }
 
-        function showError(msg) {
+            // Если это callback-запрос, отправляем XML
+            // PayAnyWay ожидает XML ответ
+            if (window.location.search.includes('MNT_TRANSACTION_ID')) {
+                document.write(xmlResponse);
+            }
+        }).catch(err => {
+            addLog(`❌ Ошибка: ${err.message}`);
             document.body.innerHTML = `
                     <h1 style="color:red;">❌ Ошибка</h1>
-                    <p>${msg}</p>
+                    <p>${err.message}</p>
                     <pre>${logEl.textContent}</pre>
                 `;
-        }
+        });
 
         addLog('✅ Обработка завершена');
     </script>
