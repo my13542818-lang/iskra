@@ -21,13 +21,17 @@
 
         .admin-sidebar {
             background: var(--bg-card);
-            border-right: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg) 0 0 var(--radius-lg);
             padding: 20px 16px;
             position: sticky;
             top: 70px;
             height: calc(100vh - 70px);
             overflow-y: auto;
         }
+        .admin-sidebar::-webkit-scrollbar { width: 4px; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
         .admin-sidebar .brand {
             font-size: 20px;
             font-weight: 700;
@@ -79,6 +83,7 @@
         .admin-content {
             padding: 30px 32px;
             background: var(--bg-dark);
+            border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
         }
         .admin-content .page-header {
             display: flex;
@@ -136,9 +141,7 @@
             display: none;
             animation: fadeIn 0.3s ease;
         }
-        .tab-panel.active {
-            display: block;
-        }
+        .tab-panel.active { display: block; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -183,9 +186,7 @@
             border-color: var(--secondary);
         }
 
-        .table-scroll {
-            overflow-x: auto;
-        }
+        .table-scroll { overflow-x: auto; }
         .table {
             width: 100%;
             border-collapse: collapse;
@@ -205,12 +206,8 @@
             border-bottom: 1px solid var(--border-color);
             vertical-align: middle;
         }
-        .table tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        .table tr:last-child td {
-            border-bottom: none;
-        }
+        .table tr:hover td { background: rgba(255,255,255,0.02); }
+        .table tr:last-child td { border-bottom: none; }
 
         .table .status-badge {
             display: inline-block;
@@ -264,16 +261,12 @@
             font-weight: 600;
             margin-bottom: 16px;
         }
-        .settings-card .form-group {
-            margin-bottom: 16px;
-        }
+        .settings-card .form-group { margin-bottom: 16px; }
         .settings-card .form-group label {
             font-size: 13px;
             color: var(--text-secondary);
         }
-        .settings-card .form-group .form-control {
-            margin-top: 4px;
-        }
+        .settings-card .form-group .form-control { margin-top: 4px; }
         .settings-card .form-group .hint {
             font-size: 12px;
             color: var(--text-muted);
@@ -319,7 +312,6 @@
         .notification-warning { border-left: 4px solid #F39C12; }
         .notification-info { border-left: 4px solid #3498DB; }
 
-        /* ===== CHARTS ===== */
         .charts-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -337,11 +329,8 @@
             font-weight: 600;
             margin-bottom: 16px;
         }
-        .chart-card canvas {
-            max-height: 250px;
-        }
+        .chart-card canvas { max-height: 250px; }
 
-        /* ===== BAD WORDS ===== */
         .bad-words-list {
             display: flex;
             flex-wrap: wrap;
@@ -364,12 +353,8 @@
             opacity: 0.5;
             transition: var(--transition);
         }
-        .bad-word-tag .remove:hover {
-            opacity: 1;
-            transform: scale(1.2);
-        }
+        .bad-word-tag .remove:hover { opacity: 1; transform: scale(1.2); }
 
-        /* ===== MODERATION ===== */
         .moderation-item {
             display: flex;
             justify-content: space-between;
@@ -378,33 +363,22 @@
             border-bottom: 1px solid var(--border-color);
             transition: var(--transition);
         }
-        .moderation-item:hover {
-            background: var(--bg-input);
-        }
-        .moderation-item:last-child {
-            border-bottom: none;
-        }
+        .moderation-item:hover { background: var(--bg-input); }
+        .moderation-item:last-child { border-bottom: none; }
         .moderation-item .left {
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
-        .moderation-item .left .title {
-            font-weight: 500;
-        }
+        .moderation-item .left .title { font-weight: 500; }
         .moderation-item .left .meta {
             font-size: 12px;
             color: var(--text-muted);
         }
-        .moderation-item .actions {
-            display: flex;
-            gap: 8px;
-        }
+        .moderation-item .actions { display: flex; gap: 8px; }
 
         @media (max-width: 1024px) {
-            .admin-layout {
-                grid-template-columns: 1fr;
-            }
+            .admin-layout { grid-template-columns: 1fr; }
             .admin-sidebar {
                 display: flex;
                 gap: 4px;
@@ -412,50 +386,36 @@
                 padding: 12px 16px;
                 position: static;
                 height: auto;
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
             }
-            .admin-sidebar .brand {
-                display: none;
-            }
+            .admin-sidebar .brand { display: none; }
             .admin-sidebar .menu-item {
                 width: auto;
                 padding: 8px 16px;
                 font-size: 13px;
             }
-            .admin-sidebar .menu-item .badge {
-                display: none;
-            }
+            .admin-sidebar .menu-item .badge { display: none; }
             .admin-content {
                 padding: 20px 16px;
+                border-radius: 0 0 var(--radius-lg) var(--radius-lg);
             }
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
+            .charts-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
             .table-wrapper .table-header {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .table-wrapper .table-header .actions {
-                flex-direction: column;
-            }
+            .table-wrapper .table-header .actions { flex-direction: column; }
             .table-wrapper .table-header .actions input,
-            .table-wrapper .table-header .actions select {
-                width: 100%;
-            }
-            .admin-content .page-header h1 {
-                font-size: 22px;
-            }
+            .table-wrapper .table-header .actions select { width: 100%; }
+            .admin-content .page-header h1 { font-size: 22px; }
         }
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
             .admin-sidebar .menu-item {
                 padding: 6px 12px;
                 font-size: 12px;
@@ -464,14 +424,8 @@
                 font-size: 14px;
                 width: 20px;
             }
-            .moderation-item {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .moderation-item .actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
+            .moderation-item { flex-wrap: wrap; gap: 8px; }
+            .moderation-item .actions { width: 100%; justify-content: flex-end; }
         }
     </style>
 </head>
@@ -551,7 +505,7 @@
             <!-- ===== USERS ===== -->
             <div class="tab-panel" id="tab-users">
                 <div class="page-header">
-                    <div><h1>👥 Пользователи</h1><div class="subtitle">Управление пользователями платформы</div></div>
+                    <div><h1>👥 Пользователи</h1><div class="subtitle">Управление пользователями</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -636,7 +590,7 @@
             <!-- ===== WITHDRAWALS ===== -->
             <div class="tab-panel" id="tab-withdrawals">
                 <div class="page-header">
-                    <div><h1>💳 Заявки на вывод</h1><div class="subtitle">Управление заявками на вывод средств</div></div>
+                    <div><h1>💳 Заявки на вывод</h1><div class="subtitle">Управление заявками</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -662,7 +616,7 @@
             <!-- ===== MODERATION ===== -->
             <div class="tab-panel" id="tab-moderation">
                 <div class="page-header">
-                    <div><h1>🛡️ Модерация объявлений</h1><div class="subtitle">Одобрение или отклонение новых объявлений</div></div>
+                    <div><h1>🛡️ Модерация</h1><div class="subtitle">Одобрение объявлений</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -709,7 +663,7 @@
             <!-- ===== BAD WORDS ===== -->
             <div class="tab-panel" id="tab-badwords">
                 <div class="page-header">
-                    <div><h1>🚫 Чёрный список слов</h1><div class="subtitle">Автоматическая фильтрация плохих слов</div></div>
+                    <div><h1>🚫 Чёрный список слов</h1><div class="subtitle">Автоматическая фильтрация</div></div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
                     <div class="settings-card">
@@ -791,7 +745,7 @@
                     <div class="settings-card">
                         <h4>💰 Финансы</h4>
                         <div class="form-group"><label>Комиссия платформы (%)</label><input type="number" class="form-control" id="siteCommission" value="5"><div class="hint">Процент от каждой сделки</div></div>
-                        <div class="form-group"><label>Минимальная сумма вывода</label><input type="number" class="form-control" id="minWithdrawal" value="500"><div class="hint">Минимальная сумма для вывода средств</div></div>
+                        <div class="form-group"><label>Минимальная сумма вывода</label><input type="number" class="form-control" id="minWithdrawal" value="500"><div class="hint">Минимальная сумма для вывода</div></div>
                     </div>
                     <div class="settings-card">
                         <h4>📋 Общие</h4>
@@ -808,7 +762,7 @@
 
     <script>
         // ========================================
-        // FIREBASE
+        // FIREBASE — ИНИЦИАЛИЗАЦИЯ
         // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -830,7 +784,6 @@
         let currentUser = null;
         let userData = {};
         let badWords = [];
-        let logs = [];
         let moderationList = [];
 
         // ========================================
@@ -842,18 +795,24 @@
         // AUTH
         // ========================================
         auth.onAuthStateChanged(async (user) => {
-            if (!user) { window.location.href = 'login.html'; return; }
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
 
             const doc = await db.collection("users").doc(user.uid).get();
             userData = doc.data() || {};
+            currentUser = user;
 
             if (userData.role !== 'admin') {
                 document.body.innerHTML = `
                     <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-dark);color:var(--text-primary);text-align:center;padding:20px;">
-                        <div><div style="font-size:64px;margin-bottom:16px;">⛔</div>
-                        <h1 style="font-size:28px;margin-bottom:8px;">Доступ запрещён</h1>
-                        <p style="color:var(--text-muted);margin-bottom:20px;">У вас нет прав администратора</p>
-                        <a href="index.html" class="btn btn-primary">На главную</a></div>
+                        <div>
+                            <div style="font-size:64px;margin-bottom:16px;">⛔</div>
+                            <h1 style="font-size:28px;margin-bottom:8px;">Доступ запрещён</h1>
+                            <p style="color:var(--text-muted);margin-bottom:20px;">У вас нет прав администратора</p>
+                            <a href="index.html" class="btn btn-primary">На главную</a>
+                        </div>
                     </div>
                 `;
                 return;
@@ -901,6 +860,11 @@
                     if (tab === 'logs') loadLogs();
                     if (tab === 'badwords') loadBadWords();
                     if (tab === 'mailing') loadMailCount();
+                    if (tab === 'users') loadUsers();
+                    if (tab === 'listings') loadListings();
+                    if (tab === 'orders') loadOrders();
+                    if (tab === 'withdrawals') loadWithdrawals();
+                    if (tab === 'promo') loadPromos();
                 };
             });
         }
@@ -982,10 +946,12 @@
 
                 tbody.innerHTML = users.map(u => `
                     <tr>
-                        <td><div style="display:flex;align-items:center;gap:10px;">
-                            <img src="${u.photoURL || 'https://ui-avatars.com/api/?name=' + (u.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar-mini" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-                            <span>${escapeHtml(u.name || 'Без имени')}</span>
-                        </div></td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <img src="${u.photoURL || 'https://ui-avatars.com/api/?name=' + (u.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar-mini" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                                <span>${escapeHtml(u.name || 'Без имени')}</span>
+                            </div>
+                        </td>
                         <td>${escapeHtml(u.email || '-')}</td>
                         <td>${(u.balance || 0).toLocaleString()} ₽</td>
                         <td>
@@ -1009,7 +975,8 @@
                     select.onchange = async () => {
                         try {
                             await db.collection("users").doc(select.dataset.id).update({ role: select.value });
-                            await addLog('admin', `Изменил роль пользователя ${select.dataset.id} на ${select.value}`);
+                            const uid = currentUser ? currentUser.uid : 'system';
+                            await addLog(uid, `Изменил роль пользователя ${select.dataset.id} на ${select.value}`);
                             showNotification('✅ Роль обновлена', 'success');
                             updateBadges();
                         } catch (error) { showNotification('❌ Ошибка', 'error'); }
@@ -1199,7 +1166,7 @@
                     .limit(100)
                     .get();
 
-                logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const tbody = document.getElementById('logsTable');
 
                 if (logs.length === 0) {
@@ -1223,21 +1190,34 @@
         }
 
         // ========================================
-        // ADD LOG
+        // ADD LOG — БЕЗ ОШИБКИ
         // ========================================
         async function addLog(userId, action, type = 'admin') {
             try {
-                const userDoc = await db.collection("users").doc(userId).get();
-                const userName = userDoc.exists ? userDoc.data().name || userId : userId;
+                const safeUserId = userId || 'system';
+                let userName = 'Система';
+
+                if (userId && userId !== 'system') {
+                    try {
+                        const userDoc = await db.collection("users").doc(safeUserId).get();
+                        if (userDoc.exists) {
+                            userName = userDoc.data().name || safeUserId;
+                        }
+                    } catch (e) {
+                        userName = safeUserId;
+                    }
+                }
 
                 await db.collection("logs").add({
-                    userId: userId,
+                    userId: safeUserId,
                     userName: userName,
                     action: action,
                     type: type,
                     timestamp: new Date().toISOString()
                 });
-            } catch (error) { console.error('Error adding log:', error); }
+            } catch (error) {
+                console.error('Error adding log:', error);
+            }
         }
 
         // ========================================
@@ -1295,6 +1275,9 @@
             } catch (error) { console.error('Error loading mail count:', error); }
         }
 
+        // ========================================
+        // MAILING — ИСПРАВЛЕННАЯ
+        // ========================================
         document.getElementById('sendMailBtn').onclick = async () => {
             const subject = document.getElementById('mailSubject').value.trim();
             const body = document.getElementById('mailBody').value.trim();
@@ -1304,29 +1287,35 @@
                 return;
             }
 
-            if (!confirm(`Отправить письмо всем ${document.getElementById('mailCount').textContent}?`)) return;
-
             try {
                 const snapshot = await db.collection("users").get();
                 const users = snapshot.docs.map(doc => doc.data().email).filter(email => email);
+                const count = users.length;
 
-                // Сохраняем рассылку в Firestore
+                if (count === 0) {
+                    showNotification('Нет пользователей для рассылки', 'warning');
+                    return;
+                }
+
+                if (!confirm(`Отправить письмо всем ${count} пользователям?`)) return;
+
                 await db.collection("mailings").add({
                     subject: subject,
                     body: body,
-                    recipients: users.length,
+                    recipients: count,
                     sentAt: new Date().toISOString()
                 });
 
-                await addLog(currentUser.uid, `Отправил массовую рассылку (${users.length} пользователей)`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отправил массовую рассылку (${count} пользователей)`);
 
-                showNotification(`✅ Письмо отправлено ${users.length} пользователям!`, 'success');
+                showNotification(`✅ Письмо отправлено ${count} пользователям!`, 'success');
                 document.getElementById('mailSubject').value = '';
                 document.getElementById('mailBody').value = '';
 
             } catch (error) {
                 console.error('Error sending mail:', error);
-                showNotification('❌ Ошибка отправки', 'error');
+                showNotification('❌ Ошибка отправки: ' + error.message, 'error');
             }
         };
 
@@ -1393,7 +1382,7 @@
         }
 
         // ========================================
-        // ACTIONS
+        // ACTIONS — ВСЕ ФУНКЦИИ ГЛОБАЛЬНЫЕ
         // ========================================
 
         window.editBalance = async (userId) => {
@@ -1424,110 +1413,149 @@
                     createdAt: new Date().toISOString()
                 });
 
-                await addLog(currentUser.uid, `Изменил баланс пользователя ${userId} на ${newBalance} ₽`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил баланс пользователя ${userId} на ${newBalance} ₽`);
                 showNotification('✅ Баланс обновлён', 'success');
                 await loadUsers();
                 await loadStats();
                 updateBadges();
 
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) { showNotification('❌ Ошибка: ' + error.message, 'error'); }
         };
 
         window.resetUserPassword = async (userId) => {
             try {
                 const userDoc = await db.collection("users").doc(userId).get();
                 const email = userDoc.data()?.email;
-                if (!email) { showNotification('У пользователя нет email', 'error'); return; }
+                if (!email) {
+                    showNotification('У пользователя нет email', 'error');
+                    return;
+                }
 
                 await auth.sendPasswordResetEmail(email);
-                await addLog(currentUser.uid, `Отправил ссылку на сброс пароля для ${email}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отправил ссылку на сброс пароля для ${email}`);
                 showNotification('✅ Ссылка на сброс пароля отправлена', 'success');
 
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.deleteUser = async (userId) => {
             if (!confirm('Удалить пользователя навсегда?')) return;
             try {
                 await db.collection("users").doc(userId).delete();
-                await addLog(currentUser.uid, `Удалил пользователя ${userId}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Удалил пользователя ${userId}`);
                 showNotification('✅ Пользователь удалён', 'success');
                 await loadUsers();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.approveListing = async (id) => {
             try {
                 await db.collection("listings").doc(id).update({ status: 'active' });
-                await addLog(currentUser.uid, `Одобрил объявление ${id}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Одобрил объявление ${id}`);
                 showNotification('✅ Объявление одобрено', 'success');
                 await loadListings();
                 await loadModeration();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Approve listing error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.rejectListing = async (id) => {
             if (!confirm('Отклонить объявление?')) return;
             try {
                 await db.collection("listings").doc(id).update({ status: 'rejected' });
-                await addLog(currentUser.uid, `Отклонил объявление ${id}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отклонил объявление ${id}`);
                 showNotification('❌ Объявление отклонено', 'success');
                 await loadListings();
                 await loadModeration();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Reject listing error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.toggleListingStatus = async (id, currentStatus) => {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             try {
                 await db.collection("listings").doc(id).update({ status: newStatus });
-                await addLog(currentUser.uid, `Изменил статус объявления ${id} на ${newStatus}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил статус объявления ${id} на ${newStatus}`);
                 showNotification(`✅ Статус изменён на ${newStatus}`, 'success');
                 await loadListings();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Toggle listing error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.deleteListing = async (id) => {
             if (!confirm('Удалить объявление навсегда?')) return;
             try {
                 await db.collection("listings").doc(id).delete();
-                await addLog(currentUser.uid, `Удалил объявление ${id}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Удалил объявление ${id}`);
                 showNotification('✅ Объявление удалено', 'success');
                 await loadListings();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Delete listing error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.updateOrderStatus = async (orderId, status) => {
             try {
-                await db.collection("orders").doc(orderId).update({ status: status, updatedAt: new Date().toISOString() });
-                await addLog(currentUser.uid, `Изменил статус заказа ${orderId} на ${status}`);
+                await db.collection("orders").doc(orderId).update({
+                    status: status,
+                    updatedAt: new Date().toISOString()
+                });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил статус заказа ${orderId} на ${status}`);
                 showNotification(`✅ Статус изменён на "${getStatusText(status)}"`, 'success');
                 await loadOrders();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Update order error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.approveWithdrawal = async (id) => {
             if (!confirm('Одобрить вывод средств?')) return;
             try {
                 await db.collection("withdrawals").doc(id).update({ status: 'completed' });
-                await addLog(currentUser.uid, `Одобрил вывод ${id}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Одобрил вывод ${id}`);
                 showNotification('✅ Вывод одобрен', 'success');
                 await loadWithdrawals();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Approve withdrawal error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         window.rejectWithdrawal = async (id) => {
@@ -1535,35 +1563,26 @@
             try {
                 const doc = await db.collection("withdrawals").doc(id).get();
                 const data = doc.data();
+
                 await doc.ref.update({ status: 'rejected' });
+
                 const userRef = db.collection("users").doc(data.userId);
                 const userDoc = await userRef.get();
-                await userRef.update({ balance: (userDoc.data()?.balance || 0) + data.amount });
-                await addLog(currentUser.uid, `Отклонил вывод ${id}, средства возвращены`);
+                await userRef.update({
+                    balance: (userDoc.data()?.balance || 0) + data.amount
+                });
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Отклонил вывод ${id}, средства возвращены`);
                 showNotification('❌ Вывод отклонён, средства возвращены', 'success');
                 await loadWithdrawals();
                 await loadStats();
                 updateBadges();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
-        };
 
-        window.togglePromo = async (id, active) => {
-            try {
-                await db.collection("promocodes").doc(id).update({ active });
-                await addLog(currentUser.uid, `Изменил статус промокода ${id}`);
-                showNotification('✅ Статус изменён', 'success');
-                await loadPromos();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
-        };
-
-        window.deletePromo = async (id) => {
-            if (!confirm('Удалить промокод?')) return;
-            try {
-                await db.collection("promocodes").doc(id).delete();
-                await addLog(currentUser.uid, `Удалил промокод ${id}`);
-                showNotification('✅ Промокод удалён', 'success');
-                await loadPromos();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+            } catch (error) {
+                console.error('Reject withdrawal error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         document.getElementById('createPromoBtn').onclick = async () => {
@@ -1586,8 +1605,30 @@
                 document.getElementById('promoCode').value = '';
                 document.getElementById('promoValue').value = '';
                 document.getElementById('promoBonus').value = '';
-                await addLog(currentUser.uid, `Создал промокод ${code}`);
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Создал промокод ${code}`);
                 showNotification('✅ Промокод создан', 'success');
+                await loadPromos();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
+        window.togglePromo = async (id, active) => {
+            try {
+                await db.collection("promocodes").doc(id).update({ active });
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Изменил статус промокода ${id}`);
+                showNotification('✅ Статус изменён', 'success');
+                await loadPromos();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
+        window.deletePromo = async (id) => {
+            if (!confirm('Удалить промокод?')) return;
+            try {
+                await db.collection("promocodes").doc(id).delete();
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, `Удалил промокод ${id}`);
+                showNotification('✅ Промокод удалён', 'success');
                 await loadPromos();
             } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
@@ -1596,11 +1637,20 @@
             if (!confirm('Очистить все логи?')) return;
             try {
                 const snapshot = await db.collection("logs").get();
-                snapshot.forEach(doc => doc.ref.delete());
-                await addLog(currentUser.uid, 'Очистил логи');
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, 'Очистил логи');
+
                 showNotification('✅ Логи очищены', 'success');
                 await loadLogs();
-            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+
+            } catch (error) {
+                console.error('Clear logs error:', error);
+                showNotification('❌ Ошибка: ' + error.message, 'error');
+            }
         };
 
         document.getElementById('saveSettingsBtn').onclick = async () => {
@@ -1613,16 +1663,22 @@
                     maxPhotos: parseInt(document.getElementById('maxPhotos').value) || 10,
                     updatedAt: new Date().toISOString()
                 });
-                await addLog(currentUser.uid, 'Обновил настройки платформы');
+
+                const uid = currentUser ? currentUser.uid : 'system';
+                await addLog(uid, 'Обновил настройки платформы');
+
                 showNotification('✅ Настройки сохранены', 'success');
-            } catch (error) { showNotification('❌ Ошибка сохранения', 'error'); }
+
+            } catch (error) {
+                console.error('Save settings error:', error);
+                showNotification('❌ Ошибка сохранения: ' + error.message, 'error');
+            }
         };
 
         // ========================================
         // CHARTS
         // ========================================
         function setupCharts() {
-            // График заказов
             const ctx1 = document.getElementById('ordersChart').getContext('2d');
             new Chart(ctx1, {
                 type: 'line',
@@ -1639,9 +1695,7 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
                         x: { grid: { display: false } }
@@ -1649,7 +1703,6 @@
                 }
             });
 
-            // График категорий
             const ctx2 = document.getElementById('categoriesChart').getContext('2d');
             new Chart(ctx2, {
                 type: 'doughnut',
@@ -1670,39 +1723,6 @@
                     }
                 }
             });
-        }
-
-        // ========================================
-        // UTILITY
-        // ========================================
-        function getStatusText(status) {
-            const map = {
-                'pending': '⏳ Ожидает',
-                'paid': '✅ Оплачен',
-                'shipped': '🚚 Отправлен',
-                'delivered': '📦 Доставлен',
-                'completed': '🎉 Завершён',
-                'cancelled': '❌ Отменён'
-            };
-            return map[status] || status;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-        }
-
-        function showNotification(message, type = 'info') {
-            document.querySelectorAll('.notification').forEach(el => el.remove());
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100px)';
-                setTimeout(() => notification.remove(), 300);
-            }, 3500);
         }
 
         // ========================================
@@ -1773,6 +1793,41 @@
                 item.style.display = item.textContent.toLowerCase().includes(search) ? '' : 'none';
             });
         });
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function getStatusText(status) {
+            const map = {
+                'pending': '⏳ Ожидает',
+                'paid': '✅ Оплачен',
+                'shipped': '🚚 Отправлен',
+                'delivered': '📦 Доставлен',
+                'completed': '🎉 Завершён',
+                'cancelled': '❌ Отменён'
+            };
+            return map[status] || status;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
 
         console.log('✅ Admin panel loaded with new features!');
     </script>
