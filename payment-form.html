@@ -8,17 +8,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <!-- Подключаем библиотеку для MD5 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js">
+    </script>
     <style>
-        .payment-page { max-width: 520px; margin: 30px auto; padding: 0 20px; }
+        .payment-page {
+            max-width: 520px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
         .payment-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 32px;
         }
-        .payment-card .logo { text-align: center; margin-bottom: 24px; }
+        .payment-card .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
         .payment-card .logo h1 {
             font-size: 28px;
             font-weight: 800;
@@ -27,7 +34,10 @@
             background-clip: text;
             color: transparent;
         }
-        .payment-card .logo p { color: var(--text-muted); font-size: 14px; }
+        .payment-card .logo p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
         .payment-card .balance-display {
             background: var(--bg-input);
             border-radius: 16px;
@@ -37,7 +47,10 @@
             justify-content: space-between;
             align-items: center;
         }
-        .payment-card .balance-display .label { font-size: 13px; color: var(--text-muted); }
+        .payment-card .balance-display .label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
         .payment-card .balance-display .amount {
             font-size: 22px;
             font-weight: 700;
@@ -60,7 +73,10 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .amount-presets button:hover { border-color: var(--secondary); background: var(--bg-card-hover); }
+        .amount-presets button:hover {
+            border-color: var(--secondary);
+            background: var(--bg-card-hover);
+        }
         .amount-presets button.active {
             border-color: var(--secondary);
             background: rgba(232, 67, 147, 0.15);
@@ -82,8 +98,12 @@
             outline: none;
             transition: var(--transition);
         }
-        .custom-amount input:focus { border-color: var(--secondary); }
-        .custom-amount input::placeholder { color: var(--text-muted); }
+        .custom-amount input:focus {
+            border-color: var(--secondary);
+        }
+        .custom-amount input::placeholder {
+            color: var(--text-muted);
+        }
         .btn-pay {
             width: 100%;
             padding: 16px;
@@ -111,7 +131,9 @@
             font-size: 13px;
             color: var(--text-muted);
         }
-        .secure-badge .lock { color: #2ECC71; }
+        .secure-badge .lock {
+            color: #2ECC71;
+        }
         .payment-info {
             background: rgba(52, 152, 219, 0.08);
             border: 1px solid rgba(52, 152, 219, 0.2);
@@ -124,7 +146,9 @@
             align-items: center;
             gap: 10px;
         }
-        .payment-info .icon { font-size: 20px; }
+        .payment-info .icon {
+            font-size: 20px;
+        }
         .back-link {
             display: block;
             text-align: center;
@@ -134,7 +158,9 @@
             font-size: 14px;
             transition: var(--transition);
         }
-        .back-link:hover { color: var(--secondary); }
+        .back-link:hover {
+            color: var(--secondary);
+        }
         .production-badge {
             display: inline-block;
             background: #2ECC71;
@@ -159,7 +185,9 @@
             overflow-y: auto;
             display: none;
         }
-        .debug-box.show { display: block; }
+        .debug-box.show {
+            display: block;
+        }
         .debug-toggle {
             background: none;
             border: none;
@@ -167,10 +195,15 @@
             font-size: 12px;
             cursor: pointer;
             text-decoration: underline;
+            margin-top: 10px;
         }
         @media (max-width: 480px) {
-            .amount-presets { grid-template-columns: repeat(2, 1fr); }
-            .payment-card { padding: 20px; }
+            .amount-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .payment-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -211,12 +244,13 @@
             </div>
 
             <div class="custom-amount">
-                <input type="number" id="customAmount" placeholder="Своя сумма" min="1">
+                <input type="number" id="customAmount" placeholder="Своя сумма" min="10">
             </div>
 
             <button class="btn-pay" id="payBtn">💳 Перейти к оплате</button>
 
-
+            <button class="debug-toggle" id="debugToggle">🔧 Показать отладку</button>
+            <div class="debug-box" id="debugBox"></div>
 
             <div class="secure-badge">
                 <span class="lock">🔒</span> Защищённое соединение. Данные шифруются.
@@ -251,220 +285,216 @@
             MNT_ID: '99389874',
             MNT_INTEGRITY_CODE: '12345',
             MNT_CURRENCY_CODE: 'RUB',
-            MNT_TEST_MODE: '0',          // 0 = боевой
+            MNT_TEST_MODE: '0',
             PAY_URL: 'https://payanyway.ru/assistant.htm',
             SUCCESS_URL: 'https://iskrakor.ru/payment-success.html',
             FAIL_URL: 'https://iskrakor.ru/payment-fail.html'
         };
 
-        // ========================================
-        // DOM REFS
-        // ========================================
-        const headerActions = document.getElementById('headerActions');
-        const currentBalance = document.getElementById('currentBalance');
-        const customAmount = document.getElementById('customAmount');
-        const payBtn = document.getElementById('payBtn');
-        const debugBox = document.getElementById('debugBox');
-        const debugToggle = document.getElementById('debugToggle');
-
-        let selectedAmount = 0;
-        let userData = {};
+        console.log('🚀 БОЕВОЙ РЕЖИМ ВКЛЮЧЕН!');
 
         // ========================================
-        // DEBUG
+        // ДОЖИДАЕМСЯ ЗАГРУЗКИ DOM
         // ========================================
-        function debugLog(message, data) {
-            const entry = `[${new Date().toLocaleTimeString()}] ${message}\n${data ? JSON.stringify(data, null, 2) : ''}\n---\n`;
-            debugBox.textContent += entry;
-            debugBox.scrollTop = debugBox.scrollHeight;
-            console.log(message, data || '');
-        }
+        document.addEventListener('DOMContentLoaded', function() {
 
-        debugToggle.onclick = () => {
-            debugBox.classList.toggle('show');
-            debugToggle.textContent = debugBox.classList.contains('show') ? '🔧 Скрыть отладку' : '🔧 Показать отладку';
-        };
+            // ========================================
+            // DOM REFS
+            // ========================================
+            const headerActions = document.getElementById('headerActions');
+            const currentBalance = document.getElementById('currentBalance');
+            const customAmount = document.getElementById('customAmount');
+            const payBtn = document.getElementById('payBtn');
+            const debugBox = document.getElementById('debugBox');
+            const debugToggle = document.getElementById('debugToggle');
 
-        // ========================================
-        // AUTH
-        // ========================================
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
+            let selectedAmount = 0;
+            let userData = {};
+
+            // ========================================
+            // DEBUG
+            // ========================================
+            function debugLog(message, data) {
+                if (!debugBox) return;
+                const entry = `[${new Date().toLocaleTimeString()}] ${message}\n${data ? JSON.stringify(data, null, 2) : ''}\n---\n`;
+                debugBox.textContent += entry;
+                debugBox.scrollTop = debugBox.scrollHeight;
+                console.log(message, data || '');
             }
 
-            const doc = await db.collection("users").doc(user.uid).get();
-            userData = doc.data() || {};
+            if (debugToggle) {
+                debugToggle.onclick = () => {
+                    debugBox.classList.toggle('show');
+                    debugToggle.textContent = debugBox.classList.contains('show') ? '🔧 Скрыть отладку' :
+                        '🔧 Показать отладку';
+                };
+            }
 
-            currentBalance.textContent = (userData.balance || 0).toLocaleString() + ' ₽';
-
-            headerActions.innerHTML = `
-                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
-                <div class="header-user" onclick="window.location.href='profile/index.html'">
-                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
-                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
-                </div>
-            `;
-        });
-
-        // ========================================
-        // PRESET AMOUNTS
-        // ========================================
-        document.querySelectorAll('#presetAmounts button').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                customAmount.value = '';
-                selectedAmount = parseInt(btn.dataset.amount);
-                debugLog('Выбран пресет', { amount: selectedAmount });
-            };
-        });
-
-        customAmount.addEventListener('input', () => {
-            document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
-            selectedAmount = parseInt(customAmount.value) || 0;
-        });
-
-        // ========================================
-        // ГЕНЕРАЦИЯ ПОДПИСИ — ПРАВИЛЬНЫЙ ПОРЯДОК
-        // ========================================
-        function generateSignature(params) {
             // ========================================
-            // ВАЖНО! Порядок параметров строго по документации:
-            // MNT_ID + MNT_TRANSACTION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + 
-            // MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE
+            // AUTH
             // ========================================
-            
-            const signatureString = 
-                params.MNT_ID +
-                params.MNT_TRANSACTION_ID +
-                params.MNT_AMOUNT +
-                params.MNT_CURRENCY_CODE +
-                params.MNT_SUBSCRIBER_ID +
-                params.MNT_TEST_MODE +
-                params.MNT_INTEGRITY_CODE;
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
 
-            debugLog('Строка для подписи (конкатенация):', {
-                full: signatureString,
-                parts: {
-                    MNT_ID: params.MNT_ID,
-                    MNT_TRANSACTION_ID: params.MNT_TRANSACTION_ID,
-                    MNT_AMOUNT: params.MNT_AMOUNT,
-                    MNT_CURRENCY_CODE: params.MNT_CURRENCY_CODE,
-                    MNT_SUBSCRIBER_ID: params.MNT_SUBSCRIBER_ID,
-                    MNT_TEST_MODE: params.MNT_TEST_MODE,
-                    MNT_INTEGRITY_CODE: params.MNT_INTEGRITY_CODE
+                const doc = await db.collection("users").doc(user.uid).get();
+                userData = doc.data() || {};
+
+                if (currentBalance) {
+                    currentBalance.textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+                }
+
+                if (headerActions) {
+                    headerActions.innerHTML = `
+                            <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                            <div class="header-user" onclick="window.location.href='profile/index.html'">
+                                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                            </div>
+                        `;
                 }
             });
 
-            // Используем CryptoJS для MD5
-            const signature = CryptoJS.MD5(signatureString).toString();
-            debugLog('Сгенерированная подпись (MD5):', signature);
-            
-            return signature;
-        }
-
-        // ========================================
-        // PAYMENT
-        // ========================================
-        payBtn.onclick = async () => {
-            const amount = selectedAmount || parseInt(customAmount.value);
-
-            if (!amount || amount < 10) {
-                alert('Минимальная сумма пополнения 10 ₽');
-                return;
-            }
-
-            const user = auth.currentUser;
-            if (!user) {
-                alert('Войдите в аккаунт');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            payBtn.disabled = true;
-            payBtn.textContent = '⏳ Перенаправление...';
-            debugLog('🚀 Начинаем процесс оплаты', { amount, user: user.email });
-
-            try {
-                // Формируем ID заказа
-                const transactionId = `${Date.now()}|${user.uid.substring(0, 8)}|${amount}`;
-                debugLog('Сгенерирован MNT_TRANSACTION_ID', transactionId);
-
-                // Формируем параметры для подписи
-                const params = {
-                    MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
-                    MNT_TRANSACTION_ID: transactionId,
-                    MNT_AMOUNT: amount.toFixed(2),
-                    MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
-                    MNT_SUBSCRIBER_ID: user.email,
-                    MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
-                    MNT_INTEGRITY_CODE: PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE
+            // ========================================
+            // PRESET AMOUNTS
+            // ========================================
+            document.querySelectorAll('#presetAmounts button').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if (customAmount) customAmount.value = '';
+                    selectedAmount = parseInt(btn.dataset.amount);
+                    debugLog('Выбран пресет', { amount: selectedAmount });
                 };
+            });
 
-                // Генерируем подпись
-                const signature = generateSignature(params);
-                
-                // Проверяем подпись (должна быть 32 символа)
-                if (signature.length !== 32) {
-                    throw new Error(`Неверная длина подписи: ${signature.length} (должно быть 32)`);
-                }
-                debugLog('✅ Подпись валидна (32 символа)', signature);
-
-                // Сохраняем платёж в Firestore
-                await db.collection("payments").add({
-                    userId: user.uid,
-                    userEmail: user.email,
-                    amount: amount,
-                    transactionId: transactionId,
-                    signature: signature,
-                    status: 'pending',
-                    createdAt: new Date().toISOString()
+            if (customAmount) {
+                customAmount.addEventListener('input', () => {
+                    document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
+                    selectedAmount = parseInt(customAmount.value) || 0;
                 });
-                debugLog('✅ Платёж сохранён в Firestore');
-
-                // Формируем URL для перехода
-                const urlParams = new URLSearchParams({
-                    MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
-                    MNT_TRANSACTION_ID: transactionId,
-                    MNT_AMOUNT: amount.toFixed(2),
-                    MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
-                    MNT_SUBSCRIBER_ID: user.email,
-                    MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
-                    MNT_DESCRIPTION: `Пополнение баланса Куки (${user.email})`,
-                    MNT_SUCCESS_URL: PAYANYWAY_CONFIG.SUCCESS_URL,
-                    MNT_FAIL_URL: PAYANYWAY_CONFIG.FAIL_URL,
-                    MNT_SIGNATURE: signature
-                });
-
-                const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${urlParams.toString()}`;
-                debugLog('🔗 Сгенерирован Pay URL:', payUrl);
-
-                // Перенаправляем
-                debugLog('🔄 Перенаправление на PayAnyWay...');
-                window.location.href = payUrl;
-
-            } catch (error) {
-                console.error('Payment error:', error);
-                debugLog('❌ ОШИБКА:', { message: error.message, stack: error.stack });
-                alert('❌ Ошибка при создании платежа: ' + error.message);
-                payBtn.disabled = false;
-                payBtn.textContent = '💳 Перейти к оплате';
             }
-        };
 
-        // ========================================
-        // ENTER KEY
-        // ========================================
-        customAmount.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') payBtn.click();
+            // ========================================
+            // ГЕНЕРАЦИЯ ПОДПИСИ
+            // ========================================
+            function generateSignature(params) {
+                const signatureString =
+                    params.MNT_ID +
+                    params.MNT_TRANSACTION_ID +
+                    params.MNT_AMOUNT +
+                    params.MNT_CURRENCY_CODE +
+                    params.MNT_SUBSCRIBER_ID +
+                    params.MNT_TEST_MODE +
+                    params.MNT_INTEGRITY_CODE;
+
+                debugLog('Строка для подписи:', {
+                    full: signatureString,
+                    parts: params
+                });
+
+                const signature = CryptoJS.MD5(signatureString).toString();
+                debugLog('Подпись (MD5):', signature);
+                return signature;
+            }
+
+            // ========================================
+            // PAYMENT
+            // ========================================
+            if (payBtn) {
+                payBtn.onclick = async () => {
+                    const amount = selectedAmount || parseInt(customAmount ? customAmount.value : 0);
+
+                    if (!amount || amount < 10) {
+                        alert('Минимальная сумма пополнения 10 ₽');
+                        return;
+                    }
+
+                    const user = auth.currentUser;
+                    if (!user) {
+                        alert('Войдите в аккаунт');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    payBtn.disabled = true;
+                    payBtn.textContent = '⏳ Перенаправление...';
+                    debugLog('🚀 Начинаем процесс оплаты', { amount, user: user.email });
+
+                    try {
+                        const transactionId = `${Date.now()}|${user.uid.substring(0, 8)}|${amount}`;
+                        debugLog('MNT_TRANSACTION_ID', transactionId);
+
+                        const params = {
+                            MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
+                            MNT_TRANSACTION_ID: transactionId,
+                            MNT_AMOUNT: amount.toFixed(2),
+                            MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
+                            MNT_SUBSCRIBER_ID: user.email,
+                            MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
+                            MNT_INTEGRITY_CODE: PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE
+                        };
+
+                        const signature = generateSignature(params);
+
+                        if (signature.length !== 32) {
+                            throw new Error(`Неверная длина подписи: ${signature.length}`);
+                        }
+
+                        await db.collection("payments").add({
+                            userId: user.uid,
+                            userEmail: user.email,
+                            amount: amount,
+                            transactionId: transactionId,
+                            signature: signature,
+                            status: 'pending',
+                            createdAt: new Date().toISOString()
+                        });
+                        debugLog('✅ Платёж сохранён');
+
+                        const urlParams = new URLSearchParams({
+                            MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
+                            MNT_TRANSACTION_ID: transactionId,
+                            MNT_AMOUNT: amount.toFixed(2),
+                            MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
+                            MNT_SUBSCRIBER_ID: user.email,
+                            MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
+                            MNT_DESCRIPTION: `Пополнение баланса Куки (${user.email})`,
+                            MNT_SUCCESS_URL: PAYANYWAY_CONFIG.SUCCESS_URL,
+                            MNT_FAIL_URL: PAYANYWAY_CONFIG.FAIL_URL,
+                            MNT_SIGNATURE: signature
+                        });
+
+                        const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${urlParams.toString()}`;
+                        debugLog('🔗 Pay URL:', payUrl);
+
+                        window.location.href = payUrl;
+
+                    } catch (error) {
+                        console.error('Payment error:', error);
+                        debugLog('❌ ОШИБКА:', { message: error.message, stack: error.stack });
+                        alert('❌ Ошибка при создании платежа: ' + error.message);
+                        payBtn.disabled = false;
+                        payBtn.textContent = '💳 Перейти к оплате';
+                    }
+                };
+            }
+
+            // ========================================
+            // ENTER KEY
+            // ========================================
+            if (customAmount) {
+                customAmount.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && payBtn) payBtn.click();
+                });
+            }
+
+            console.log('✅ Платёжная форма загружена (БОЕВОЙ РЕЖИМ)');
+            console.log('📌 Бизнес-счёт:', PAYANYWAY_CONFIG.MNT_ID);
+            console.log('⚠️ ВНИМАНИЕ: Реальные деньги будут списаны с карты!');
         });
-
-        console.log('✅ Платёжная форма загружена (БОЕВОЙ РЕЖИМ)');
-        console.log('📌 Бизнес-счёт:', PAYANYWAY_CONFIG.MNT_ID);
-        console.log('📌 Код проверки:', PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE);
-        console.log('⚠️ ВНИМАНИЕ: Реальные деньги будут списаны с карты!');
     </script>
 </body>
 </html>
