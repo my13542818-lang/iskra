@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Подключаем библиотеку для MD5 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         .payment-page { max-width: 520px; margin: 30px auto; padding: 0 20px; }
         .payment-card {
@@ -143,6 +145,29 @@
             font-weight: 600;
             margin-left: 8px;
         }
+        .debug-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: monospace;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .debug-box.show { display: block; }
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
         @media (max-width: 480px) {
             .amount-presets { grid-template-columns: repeat(2, 1fr); }
             .payment-card { padding: 20px; }
@@ -191,6 +216,9 @@
 
             <button class="btn-pay" id="payBtn">💳 Перейти к оплате</button>
 
+            <button class="debug-toggle" id="debugToggle">🔧 Показать отладку</button>
+            <div class="debug-box" id="debugBox"></div>
+
             <div class="secure-badge">
                 <span class="lock">🔒</span> Защищённое соединение. Данные шифруются.
             </div>
@@ -218,19 +246,17 @@
         const db = firebase.firestore();
 
         // ========================================
-        // ПАРАМЕТРЫ PAYANYWAY — БОЕВОЙ РЕЖИМ
+        // ПАРАМЕТРЫ PAYANYWAY
         // ========================================
         const PAYANYWAY_CONFIG = {
             MNT_ID: '99389874',
             MNT_INTEGRITY_CODE: '12345',
             MNT_CURRENCY_CODE: 'RUB',
-            MNT_TEST_MODE: '0',          // 🔥 БОЕВОЙ РЕЖИМ!
+            MNT_TEST_MODE: '0',          // 0 = боевой
             PAY_URL: 'https://payanyway.ru/assistant.htm',
             SUCCESS_URL: 'https://iskrakor.ru/payment-success.html',
             FAIL_URL: 'https://iskrakor.ru/payment-fail.html'
         };
-
-        console.log('🚀 БОЕВОЙ РЕЖИМ ВКЛЮЧЕН!');
 
         // ========================================
         // DOM REFS
@@ -239,9 +265,26 @@
         const currentBalance = document.getElementById('currentBalance');
         const customAmount = document.getElementById('customAmount');
         const payBtn = document.getElementById('payBtn');
+        const debugBox = document.getElementById('debugBox');
+        const debugToggle = document.getElementById('debugToggle');
 
         let selectedAmount = 0;
         let userData = {};
+
+        // ========================================
+        // DEBUG
+        // ========================================
+        function debugLog(message, data) {
+            const entry = `[${new Date().toLocaleTimeString()}] ${message}\n${data ? JSON.stringify(data, null, 2) : ''}\n---\n`;
+            debugBox.textContent += entry;
+            debugBox.scrollTop = debugBox.scrollHeight;
+            console.log(message, data || '');
+        }
+
+        debugToggle.onclick = () => {
+            debugBox.classList.toggle('show');
+            debugToggle.textContent = debugBox.classList.contains('show') ? '🔧 Скрыть отладку' : '🔧 Показать отладку';
+        };
 
         // ========================================
         // AUTH
@@ -275,6 +318,7 @@
                 btn.classList.add('active');
                 customAmount.value = '';
                 selectedAmount = parseInt(btn.dataset.amount);
+                debugLog('Выбран пресет', { amount: selectedAmount });
             };
         });
 
@@ -284,13 +328,42 @@
         });
 
         // ========================================
-        // ФУНКЦИЯ MD5
+        // ГЕНЕРАЦИЯ ПОДПИСИ — ПРАВИЛЬНЫЙ ПОРЯДОК
         // ========================================
-        async function md5(string) {
-            const msgBuffer = new TextEncoder().encode(string);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+        function generateSignature(params) {
+            // ========================================
+            // ВАЖНО! Порядок параметров строго по документации:
+            // MNT_ID + MNT_TRANSACTION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + 
+            // MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE
+            // ========================================
+            
+            const signatureString = 
+                params.MNT_ID +
+                params.MNT_TRANSACTION_ID +
+                params.MNT_AMOUNT +
+                params.MNT_CURRENCY_CODE +
+                params.MNT_SUBSCRIBER_ID +
+                params.MNT_TEST_MODE +
+                params.MNT_INTEGRITY_CODE;
+
+            debugLog('Строка для подписи (конкатенация):', {
+                full: signatureString,
+                parts: {
+                    MNT_ID: params.MNT_ID,
+                    MNT_TRANSACTION_ID: params.MNT_TRANSACTION_ID,
+                    MNT_AMOUNT: params.MNT_AMOUNT,
+                    MNT_CURRENCY_CODE: params.MNT_CURRENCY_CODE,
+                    MNT_SUBSCRIBER_ID: params.MNT_SUBSCRIBER_ID,
+                    MNT_TEST_MODE: params.MNT_TEST_MODE,
+                    MNT_INTEGRITY_CODE: params.MNT_INTEGRITY_CODE
+                }
+            });
+
+            // Используем CryptoJS для MD5
+            const signature = CryptoJS.MD5(signatureString).toString();
+            debugLog('Сгенерированная подпись (MD5):', signature);
+            
+            return signature;
         }
 
         // ========================================
@@ -313,34 +386,47 @@
 
             payBtn.disabled = true;
             payBtn.textContent = '⏳ Перенаправление...';
+            debugLog('🚀 Начинаем процесс оплаты', { amount, user: user.email });
 
             try {
+                // Формируем ID заказа
                 const transactionId = `${Date.now()}|${user.uid.substring(0, 8)}|${amount}`;
+                debugLog('Сгенерирован MNT_TRANSACTION_ID', transactionId);
 
-                // Формируем подпись
-                const signatureData = 
-                    PAYANYWAY_CONFIG.MNT_ID +
-                    transactionId +
-                    amount.toFixed(2) +
-                    PAYANYWAY_CONFIG.MNT_CURRENCY_CODE +
-                    user.email +
-                    PAYANYWAY_CONFIG.MNT_TEST_MODE +
-                    PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE;
+                // Формируем параметры для подписи
+                const params = {
+                    MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
+                    MNT_TRANSACTION_ID: transactionId,
+                    MNT_AMOUNT: amount.toFixed(2),
+                    MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
+                    MNT_SUBSCRIBER_ID: user.email,
+                    MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
+                    MNT_INTEGRITY_CODE: PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE
+                };
 
-                const signature = await md5(signatureData);
+                // Генерируем подпись
+                const signature = generateSignature(params);
+                
+                // Проверяем подпись (должна быть 32 символа)
+                if (signature.length !== 32) {
+                    throw new Error(`Неверная длина подписи: ${signature.length} (должно быть 32)`);
+                }
+                debugLog('✅ Подпись валидна (32 символа)', signature);
 
-                // Сохраняем платёж
+                // Сохраняем платёж в Firestore
                 await db.collection("payments").add({
                     userId: user.uid,
                     userEmail: user.email,
                     amount: amount,
                     transactionId: transactionId,
+                    signature: signature,
                     status: 'pending',
                     createdAt: new Date().toISOString()
                 });
+                debugLog('✅ Платёж сохранён в Firestore');
 
-                // Формируем URL
-                const params = new URLSearchParams({
+                // Формируем URL для перехода
+                const urlParams = new URLSearchParams({
                     MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
                     MNT_TRANSACTION_ID: transactionId,
                     MNT_AMOUNT: amount.toFixed(2),
@@ -353,24 +439,32 @@
                     MNT_SIGNATURE: signature
                 });
 
-                const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${params.toString()}`;
+                const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${urlParams.toString()}`;
+                debugLog('🔗 Сгенерирован Pay URL:', payUrl);
 
+                // Перенаправляем
+                debugLog('🔄 Перенаправление на PayAnyWay...');
                 window.location.href = payUrl;
 
             } catch (error) {
                 console.error('Payment error:', error);
+                debugLog('❌ ОШИБКА:', { message: error.message, stack: error.stack });
                 alert('❌ Ошибка при создании платежа: ' + error.message);
                 payBtn.disabled = false;
                 payBtn.textContent = '💳 Перейти к оплате';
             }
         };
 
+        // ========================================
+        // ENTER KEY
+        // ========================================
         customAmount.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') payBtn.click();
         });
 
         console.log('✅ Платёжная форма загружена (БОЕВОЙ РЕЖИМ)');
         console.log('📌 Бизнес-счёт:', PAYANYWAY_CONFIG.MNT_ID);
+        console.log('📌 Код проверки:', PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE);
         console.log('⚠️ ВНИМАНИЕ: Реальные деньги будут списаны с карты!');
     </script>
 </body>
