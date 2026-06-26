@@ -9,121 +9,54 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #6C3B8E;
-            --secondary: #E84393;
-            --gradient-main: linear-gradient(135deg, #6C3B8E 0%, #E84393 50%, #FF6B35 100%);
-            --bg-dark: #0D0B14;
-            --bg-card: #15121E;
-            --bg-input: #1A1625;
-            --border-color: #2D1F3D;
-            --text-primary: #FFFFFF;
-            --text-secondary: #C4B5D8;
-            --text-muted: #7A6B8A;
-            --radius: 16px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --radius-full: 9999px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --shadow-lg: 0 12px 48px rgba(108, 59, 142, 0.5);
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-        }
-        .header {
-            position: sticky; top: 0; z-index: 1000;
-            background: rgba(13, 11, 20, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-        .header-container {
-            max-width: 1400px; margin: 0 auto; padding: 12px 24px;
-            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-        }
-        .logo {
-            font-size: 28px; font-weight: 800;
-            background: var(--gradient-main);
-            -webkit-background-clip: text; background-clip: text;
-            color: transparent; text-decoration: none;
-        }
-        .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .balance-badge {
-            padding: 8px 16px; border-radius: var(--radius-full);
-            background: var(--gradient-main); color: white;
-            font-weight: 700; font-size: 13px; cursor: pointer;
-            transition: var(--transition);
-        }
-        .balance-badge:hover { transform: scale(1.05); }
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 8px; padding: 12px 28px; border-radius: var(--radius-full);
-            font-weight: 600; font-size: 14px; cursor: pointer;
-            transition: var(--transition); text-decoration: none; border: none;
-        }
-        .btn-primary {
-            background: var(--gradient-main); color: white;
-            box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6); }
-        .btn-success {
-            background: linear-gradient(135deg, #2ECC71, #27AE60); color: white;
-        }
-        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(46, 204, 113, 0.4); }
-        .btn-warning {
-            background: linear-gradient(135deg, #F39C12, #E67E22); color: white;
-        }
-        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(243, 156, 18, 0.4); }
-        .btn-secondary {
-            background: var(--bg-card); color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-        .btn-secondary:hover { border-color: var(--secondary); transform: translateY(-2px); }
-        .btn-sm { padding: 6px 16px; font-size: 12px; }
-        .header-user {
-            display: flex; align-items: center; gap: 10px;
-            padding: 6px 12px 6px 6px; border-radius: var(--radius-full);
-            cursor: pointer; background: var(--bg-card);
-            border: 1px solid var(--border-color); transition: var(--transition);
-        }
-        .header-user:hover { border-color: var(--secondary); }
-        .header-user .avatar {
-            width: 36px; height: 36px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--secondary);
-        }
-        .header-user .name { font-size: 14px; font-weight: 500; }
-
         .product-page { max-width: 1200px; margin: 30px auto; padding: 0 24px; }
         .product-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl); overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
         }
         .product-gallery { padding: 30px; background: var(--bg-input); display: flex; flex-direction: column; gap: 16px; }
         .main-image-wrap {
-            position: relative; border-radius: var(--radius-lg); overflow: hidden;
-            background: var(--bg-dark); aspect-ratio: 1;
-            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--bg-dark);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .main-image-wrap img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
         .main-image-wrap img:hover { transform: scale(1.05); }
         .main-image-wrap .placeholder { font-size: 80px; opacity: 0.5; }
         .main-image-wrap .badge-top {
-            position: absolute; top: 16px; left: 16px;
-            display: flex; gap: 8px; flex-wrap: wrap;
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .thumbnail-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 10px;
         }
         .thumbnail {
-            aspect-ratio: 1; border-radius: var(--radius); overflow: hidden;
-            cursor: pointer; border: 2px solid transparent;
-            transition: var(--transition); background: var(--bg-dark);
-            display: flex; align-items: center; justify-content: center;
+            aspect-ratio: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .thumbnail:hover { border-color: var(--border-light); transform: translateY(-2px); }
         .thumbnail.active { border-color: var(--secondary); box-shadow: 0 0 20px rgba(232, 67, 147, 0.3); }
@@ -132,17 +65,23 @@
 
         .product-info { padding: 30px 40px 30px 0; display: flex; flex-direction: column; gap: 16px; }
         .product-info .category-badge {
-            display: inline-block; padding: 4px 14px;
+            display: inline-block;
+            padding: 4px 14px;
             border-radius: var(--radius-full);
             background: rgba(155, 89, 182, 0.2);
-            color: var(--primary-light); font-size: 12px; font-weight: 600;
+            color: var(--primary-light);
+            font-size: 12px;
+            font-weight: 600;
             width: fit-content;
         }
         .product-info .title { font-size: 28px; font-weight: 700; line-height: 1.2; }
         .product-info .price { font-size: 32px; font-weight: 800; color: var(--secondary); }
         .product-info .meta-row {
-            display: flex; gap: 20px; flex-wrap: wrap;
-            font-size: 14px; color: var(--text-muted);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: var(--text-muted);
             padding: 12px 0;
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
@@ -151,12 +90,20 @@
         .product-info .description { color: var(--text-secondary); line-height: 1.7; font-size: 15px; }
 
         .delivery-type-selector {
-            display: flex; gap: 12px; margin: 8px 0; flex-wrap: wrap;
+            display: flex;
+            gap: 12px;
+            margin: 8px 0;
+            flex-wrap: wrap;
         }
         .delivery-type-selector .option {
-            flex: 1; min-width: 140px; padding: 14px 16px;
-            border: 2px solid var(--border-color); border-radius: var(--radius);
-            cursor: pointer; text-align: center; transition: var(--transition);
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
             background: var(--bg-input);
         }
         .delivery-type-selector .option:hover { border-color: var(--border-light); }
@@ -168,34 +115,48 @@
         .delivery-type-selector .option .label { font-size: 13px; font-weight: 500; margin-top: 4px; }
 
         .delivery-info-box {
-            background: var(--bg-input); border-radius: var(--radius);
-            padding: 16px 20px; border: 1px solid var(--border-color);
-            font-size: 14px; color: var(--text-muted);
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-muted);
         }
         .delivery-info-box strong { color: var(--text-secondary); }
 
         .specs-block {
-            background: var(--bg-input); border-radius: var(--radius);
-            padding: 20px 24px; border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
         }
         .specs-block h4 { font-size: 15px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
         .specs-block .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
         .specs-block .spec-item {
-            display: flex; justify-content: space-between;
-            padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             font-size: 14px;
         }
         .specs-block .spec-item .label { color: var(--text-muted); }
         .specs-block .spec-item .value { color: var(--text-primary); font-weight: 500; }
 
         .seller-card {
-            background: var(--bg-input); border-radius: var(--radius);
-            padding: 16px 20px; border: 1px solid var(--border-color);
-            display: flex; align-items: center; gap: 16px;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
         .seller-card .avatar {
-            width: 48px; height: 48px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--secondary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary);
         }
         .seller-card .info { flex: 1; }
         .seller-card .info .name { font-weight: 600; font-size: 16px; }
@@ -203,13 +164,17 @@
         .seller-card .info .stats { font-size: 12px; color: var(--text-muted); }
 
         .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
-        .action-buttons .btn { flex: 1; min-width: 140px; justify-content: center; padding: 14px 24px; font-size: 15px; }
+        .action-buttons .btn { flex: 1; min-width: 120px; justify-content: center; padding: 14px 24px; font-size: 15px; }
         .action-buttons .btn-secondary { flex: 0.5; min-width: 60px; }
 
         .badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 4px 12px; border-radius: var(--radius-full);
-            font-size: 12px; font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
         }
         .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
         .badge-danger { background: rgba(231, 76, 60, 0.2); color: #E74C3C; }
@@ -218,11 +183,17 @@
         .badge-purple { background: rgba(155, 89, 182, 0.2); color: #9B59B6; }
 
         .notification {
-            position: fixed; bottom: 24px; right: 24px;
-            padding: 16px 24px; border-radius: var(--radius);
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            color: var(--text-primary); box-shadow: var(--shadow-lg);
-            z-index: 9999; max-width: 400px;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            max-width: 400px;
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
@@ -235,15 +206,76 @@
         .notification-info { border-left: 4px solid #3498DB; }
 
         .loading-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 80px 20px; gap: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            gap: 16px;
         }
         .loading-state .spinner {
-            width: 48px; height: 48px;
-            border: 3px solid var(--border-color); border-top-color: var(--secondary);
-            border-radius: 50%; animation: spin 0.8s linear infinite;
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== SIMILAR PRODUCTS ===== */
+        .similar-section {
+            margin-top: 30px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border-color);
+        }
+        .similar-section h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .similar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .similar-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .similar-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--secondary);
+        }
+        .similar-item .image {
+            height: 150px;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            overflow: hidden;
+        }
+        .similar-item .image img { width: 100%; height: 100%; object-fit: cover; }
+        .similar-item .info { padding: 12px; }
+        .similar-item .info .title { font-weight: 600; font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .similar-item .info .price { color: var(--secondary); font-weight: 700; font-size: 16px; }
+
+        /* ===== COMPARE BUTTON ===== */
+        .compare-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .compare-actions .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
 
         @media (max-width: 992px) {
             .product-grid { grid-template-columns: 1fr; }
@@ -258,6 +290,10 @@
             .action-buttons .btn-secondary { flex: 1; min-width: 100%; }
             .product-gallery { padding: 16px; }
             .delivery-type-selector .option { min-width: 100px; }
+            .similar-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .similar-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -281,6 +317,7 @@
                 <p style="color:var(--text-muted);">Загрузка товара...</p>
             </div>
         </div>
+        <div id="similarProducts"></div>
     </div>
 
     <script>
@@ -316,6 +353,7 @@
         // ========================================
         const headerActions = document.getElementById('headerActions');
         const productContent = document.getElementById('productContent');
+        const similarContainer = document.getElementById('similarProducts');
 
         // ========================================
         // AUTH
@@ -326,25 +364,25 @@
                 return;
             }
             currentUser = user;
-            
-            // Загружаем данные пользователя (баланс)
+
             const doc = await db.collection("users").doc(user.uid).get();
             userData = doc.data() || {};
-            
+
             setupHeader();
             await loadProduct();
             if (user && listingId) await checkFavorite();
         });
 
         // ========================================
-        // HEADER — ПОКАЗЫВАЕТ БАЛАНС
+        // HEADER
         // ========================================
         function setupHeader() {
             if (currentUser) {
                 headerActions.innerHTML = `
                     <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
                     <a href="cart.html" class="btn btn-secondary btn-sm">🛒</a>
-                    <div class="header-user" onclick="window.location.href='profile.html'">
+                    <a href="history.html" class="btn btn-secondary btn-sm">👁️</a>
+                    <div class="header-user" onclick="window.location.href='profile/index.html'">
                         <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
                         <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
                     </div>
@@ -358,14 +396,26 @@
         }
 
         // ========================================
-        // LOAD
+        // SAVE TO HISTORY
+        // ========================================
+        function saveToHistory(id) {
+            let history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+            history = history.filter(item => item !== id);
+            history.unshift(id);
+            if (history.length > 20) history.pop();
+            localStorage.setItem('viewHistory', JSON.stringify(history));
+        }
+
+        // ========================================
+        // LOAD PRODUCT
         // ========================================
         async function loadProduct() {
             const urlParams = new URLSearchParams(window.location.search);
             listingId = urlParams.get('id');
 
             if (!listingId) {
-                productContent.innerHTML = `
+                productContent.innerHTML =
+                    `
                     <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                         <div style="font-size:64px;margin-bottom:16px;">🔍</div>
                         <h3>Товар не найден</h3>
@@ -375,10 +425,14 @@
                 return;
             }
 
+            // Сохраняем в историю
+            saveToHistory(listingId);
+
             try {
                 const doc = await db.collection("listings").doc(listingId).get();
                 if (!doc.exists) {
-                    productContent.innerHTML = `
+                    productContent.innerHTML =
+                        `
                         <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                             <div style="font-size:64px;margin-bottom:16px;">📭</div>
                             <h3>Объявление удалено</h3>
@@ -389,9 +443,10 @@
                 }
 
                 listing = { id: doc.id, ...doc.data() };
-                
+
                 if (listing.status === 'sold' || listing.status === 'archived') {
-                    productContent.innerHTML = `
+                    productContent.innerHTML =
+                        `
                         <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                             <div style="font-size:64px;margin-bottom:16px;">✅</div>
                             <h3>Товар продан</h3>
@@ -406,10 +461,12 @@
                     views: (listing.views || 0) + 1
                 });
                 renderProduct();
+                loadSimilarProducts();
 
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
-                productContent.innerHTML = `
+                productContent.innerHTML =
+                    `
                     <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
                         <div style="font-size:64px;margin-bottom:16px;">❌</div>
                         <h3>Ошибка загрузки</h3>
@@ -420,7 +477,7 @@
         }
 
         // ========================================
-        // FAVORITE
+        // CHECK FAVORITE
         // ========================================
         async function checkFavorite() {
             if (!currentUser || !listingId) return;
@@ -435,7 +492,7 @@
         }
 
         // ========================================
-        // RENDER
+        // RENDER PRODUCT
         // ========================================
         function renderProduct() {
             if (!listing) return;
@@ -447,130 +504,133 @@
             const deliveryType = listing.deliveryType || 'both';
 
             const specsHtml = listing.specs ? Object.entries(listing.specs).map(([key, val]) => `
-                <div class="spec-item">
-                    <span class="label">${escapeHtml(key)}</span>
-                    <span class="value">${escapeHtml(val)}</span>
-                </div>
-            `).join('') : '';
+                    <div class="spec-item">
+                        <span class="label">${escapeHtml(key)}</span>
+                        <span class="value">${escapeHtml(val)}</span>
+                    </div>
+                `).join('') : '';
 
             const conditionLabel = listing.condition === 'new' ? 'Новое' : 'Б/У';
 
             productContent.innerHTML = `
-                <div class="product-grid">
-                    <!-- ===== GALLERY ===== -->
-                    <div class="product-gallery">
-                        <div class="main-image-wrap">
-                            ${mainImage ? `<img src="${mainImage}" alt="${escapeHtml(listing.title)}" id="mainImage">` : `<div class="placeholder">📦</div>`}
-                            <div class="badge-top">
-                                ${listing.status === 'active' ? '<span class="badge badge-success">Активно</span>' : '<span class="badge badge-danger">Снято</span>'}
-                                ${listing.condition === 'new' ? '<span class="badge badge-success">Новое</span>' : ''}
-                                ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
+                    <div class="product-grid">
+                        <!-- ===== GALLERY ===== -->
+                        <div class="product-gallery">
+                            <div class="main-image-wrap">
+                                ${mainImage ? `<img src="${mainImage}" alt="${escapeHtml(listing.title)}" id="mainImage">` : `<div class="placeholder">📦</div>`}
+                                <div class="badge-top">
+                                    ${listing.status === 'active' ? '<span class="badge badge-success">Активно</span>' : '<span class="badge badge-danger">Снято</span>'}
+                                    ${listing.condition === 'new' ? '<span class="badge badge-success">Новое</span>' : ''}
+                                    ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
+                                </div>
                             </div>
+                            ${hasMultiple ? `
+                                <div class="thumbnail-grid" id="thumbnailGrid">
+                                    ${mediaFiles.map((file, i) => `
+                                        <div class="thumbnail ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="changeImage(${i})">
+                                            ${file.url ? `<img src="${file.url}" alt="Фото ${i+1}" loading="lazy">` : `<div class="thumb-placeholder">📷</div>`}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
-                        ${hasMultiple ? `
-                            <div class="thumbnail-grid" id="thumbnailGrid">
-                                ${mediaFiles.map((file, i) => `
-                                    <div class="thumbnail ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="changeImage(${i})">
-                                        ${file.url ? `<img src="${file.url}" alt="Фото ${i+1}" loading="lazy">` : `<div class="thumb-placeholder">📷</div>`}
-                                    </div>
-                                `).join('')}
+
+                        <!-- ===== INFO ===== -->
+                        <div class="product-info">
+                            <span class="category-badge">${escapeHtml(listing.category || 'Без категории')}</span>
+                            <h1 class="title">${escapeHtml(listing.title)}</h1>
+                            <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
+
+                            <div class="meta-row">
+                                <span>📍 ${escapeHtml(listing.location || 'Не указан')}</span>
+                                <span>📦 ${conditionLabel}</span>
+                                <span>👁️ ${listing.views || 0} просмотров</span>
+                                <span>📅 ${listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : ''}</span>
                             </div>
-                        ` : ''}
+
+                            ${listing.description ? `
+                                <div class="description">
+                                    <strong>Описание:</strong><br>
+                                    ${escapeHtml(listing.description)}
+                                </div>
+                            ` : ''}
+
+                            <!-- ===== ВЫБОР ТИПА СДЕЛКИ ===== -->
+                            ${!isOwner && listing.status === 'active' ? `
+                                <div class="delivery-type-selector" id="deliverySelector">
+                                    ${deliveryType === 'delivery' || deliveryType === 'both' ? `
+                                        <div class="option active" data-type="delivery">
+                                            <span class="icon">🚚</span>
+                                            <div class="label">С доставкой</div>
+                                            <div style="font-size:11px;color:var(--text-muted);">Ozon ПВЗ</div>
+                                        </div>
+                                    ` : ''}
+                                    ${deliveryType === 'meeting' || deliveryType === 'both' ? `
+                                        <div class="option" data-type="meeting">
+                                            <span class="icon">🤝</span>
+                                            <div class="label">Без доставки</div>
+                                            <div style="font-size:11px;color:var(--text-muted);">Встреча/договор</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+
+                            ${!isOwner && listing.status === 'active' && deliveryType === 'delivery' ? `
+                                <div class="delivery-info-box" id="deliveryInfo">
+                                    <strong>🚚 Доставка через Ozon</strong>
+                                    <p style="margin-top:4px;">Выберите пункт выдачи Ozon при оформлении заказа.</p>
+                                </div>
+                            ` : ''}
+
+                            ${!isOwner && listing.status === 'active' && deliveryType === 'meeting' ? `
+                                <div class="delivery-info-box" id="deliveryInfo">
+                                    <strong>🤝 Встреча/договор</strong>
+                                    <p style="margin-top:4px;">Свяжитесь с продавцом через чат и договоритесь о встрече.</p>
+                                </div>
+                            ` : ''}
+
+                            ${specsHtml ? `
+                                <div class="specs-block">
+                                    <h4>📋 Характеристики</h4>
+                                    <div class="spec-grid">${specsHtml}</div>
+                                </div>
+                            ` : ''}
+
+                            <!-- ===== ПРОДАВЕЦ ===== -->
+                            <div class="seller-card">
+                                <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'Продавец') + '&background=6C3B8E&color=fff'}" class="avatar" alt="Продавец">
+                                <div class="info">
+                                    <div class="name">${escapeHtml(listing.sellerName || 'Продавец')}</div>
+                                    <div class="rating">⭐ ${listing.sellerRating || 0}% рейтинг</div>
+                                    <div class="stats">📦 ${listing.sellerDeals || 0} сделок</div>
+                                </div>
+                                ${!isOwner ? `<button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>` : ''}
+                            </div>
+
+                            <!-- ===== ДЕЙСТВИЯ ===== -->
+                            ${isOwner ? `
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning" onclick="promoteListing()">🚀 Продвинуть</button>
+                                    <button class="btn btn-success" onclick="markAsSold()">✅ Продано</button>
+                                    <button class="btn btn-secondary" onclick="editListing()">✏️ Редактировать</button>
+                                </div>
+                            ` : listing.status === 'active' ? `
+                                <div class="action-buttons">
+                                    ${selectedDelivery === 'delivery' ? `
+                                        <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
+                                    ` : `
+                                        <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
+                                    `}
+                                    <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                    <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                                    <div class="compare-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="addToCompare()">📊 Сравнить</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-
-                    <!-- ===== INFO ===== -->
-                    <div class="product-info">
-                        <span class="category-badge">${escapeHtml(listing.category || 'Без категории')}</span>
-                        <h1 class="title">${escapeHtml(listing.title)}</h1>
-                        <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
-
-                        <div class="meta-row">
-                            <span>📍 ${escapeHtml(listing.location || 'Не указан')}</span>
-                            <span>📦 ${conditionLabel}</span>
-                            <span>👁️ ${listing.views || 0} просмотров</span>
-                            <span>📅 ${listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : ''}</span>
-                        </div>
-
-                        ${listing.description ? `
-                            <div class="description">
-                                <strong>Описание:</strong><br>
-                                ${escapeHtml(listing.description)}
-                            </div>
-                        ` : ''}
-
-                        <!-- ===== ВЫБОР ТИПА СДЕЛКИ ===== -->
-                        ${!isOwner && listing.status === 'active' ? `
-                            <div class="delivery-type-selector" id="deliverySelector">
-                                ${deliveryType === 'delivery' || deliveryType === 'both' ? `
-                                    <div class="option active" data-type="delivery">
-                                        <span class="icon">🚚</span>
-                                        <div class="label">С доставкой</div>
-                                        <div style="font-size:11px;color:var(--text-muted);">Ozon ПВЗ</div>
-                                    </div>
-                                ` : ''}
-                                ${deliveryType === 'meeting' || deliveryType === 'both' ? `
-                                    <div class="option" data-type="meeting">
-                                        <span class="icon">🤝</span>
-                                        <div class="label">Без доставки</div>
-                                        <div style="font-size:11px;color:var(--text-muted);">Встреча/договор</div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        ` : ''}
-
-                        ${!isOwner && listing.status === 'active' && deliveryType === 'delivery' ? `
-                            <div class="delivery-info-box" id="deliveryInfo">
-                                <strong>🚚 Доставка через Ozon</strong>
-                                <p style="margin-top:4px;">Выберите пункт выдачи Ozon при оформлении заказа.</p>
-                            </div>
-                        ` : ''}
-
-                        ${!isOwner && listing.status === 'active' && deliveryType === 'meeting' ? `
-                            <div class="delivery-info-box" id="deliveryInfo">
-                                <strong>🤝 Встреча/договор</strong>
-                                <p style="margin-top:4px;">Свяжитесь с продавцом через чат и договоритесь о встрече.</p>
-                            </div>
-                        ` : ''}
-
-                        ${specsHtml ? `
-                            <div class="specs-block">
-                                <h4>📋 Характеристики</h4>
-                                <div class="spec-grid">${specsHtml}</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- ===== ПРОДАВЕЦ ===== -->
-                        <div class="seller-card">
-                            <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'Продавец') + '&background=6C3B8E&color=fff'}" class="avatar" alt="Продавец">
-                            <div class="info">
-                                <div class="name">${escapeHtml(listing.sellerName || 'Продавец')}</div>
-                                <div class="rating">⭐ ${listing.sellerRating || 0}% рейтинг</div>
-                                <div class="stats">📦 ${listing.sellerDeals || 0} сделок</div>
-                            </div>
-                            ${!isOwner ? `<button class="btn btn-secondary btn-sm" onclick="openChat()">💬</button>` : ''}
-                        </div>
-
-                        <!-- ===== ДЕЙСТВИЯ ===== -->
-                        ${isOwner ? `
-                            <div class="action-buttons">
-                                <button class="btn btn-warning" onclick="promoteListing()">🚀 Продвинуть</button>
-                                <button class="btn btn-success" onclick="markAsSold()">✅ Продано</button>
-                                <button class="btn btn-secondary" onclick="editListing()">✏️ Редактировать</button>
-                            </div>
-                        ` : listing.status === 'active' ? `
-                            <div class="action-buttons">
-                                ${selectedDelivery === 'delivery' ? `
-                                    <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
-                                ` : `
-                                    <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
-                                `}
-                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
-                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
+                `;
 
             // ===== EVENTS =====
             document.getElementById('cartBtn')?.addEventListener('click', addToCart);
@@ -581,27 +641,34 @@
             // ===== ВЫБОР ТИПА ДОСТАВКИ =====
             document.querySelectorAll('.delivery-type-selector .option').forEach(el => {
                 el.onclick = () => {
-                    document.querySelectorAll('.delivery-type-selector .option').forEach(o => o.classList.remove('active'));
+                    document.querySelectorAll('.delivery-type-selector .option').forEach(o => o.classList.remove(
+                    'active'));
                     el.classList.add('active');
                     selectedDelivery = el.dataset.type;
-                    
+
                     const actionButtons = document.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (selectedDelivery === 'delivery') {
                             actionButtons.innerHTML = `
-                                <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
-                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
-                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
-                            `;
+                                    <button class="btn btn-primary" id="cartBtn">🛒 В корзину (доставка)</button>
+                                    <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                    <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                                    <div class="compare-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="addToCompare()">📊 Сравнить</button>
+                                    </div>
+                                `;
                             document.getElementById('cartBtn')?.addEventListener('click', addToCart);
                             document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
                             document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
                         } else {
                             actionButtons.innerHTML = `
-                                <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
-                                <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
-                                <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
-                            `;
+                                    <button class="btn btn-success" id="chatBtn">💬 Перейти в чат</button>
+                                    <button class="btn btn-secondary" id="favoriteBtn">🤍</button>
+                                    <button class="btn btn-secondary btn-sm" id="shareBtn">📤</button>
+                                    <div class="compare-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="addToCompare()">📊 Сравнить</button>
+                                    </div>
+                                `;
                             document.getElementById('chatBtn')?.addEventListener('click', () => openChat());
                             document.getElementById('favoriteBtn')?.addEventListener('click', toggleFavorite);
                             document.getElementById('shareBtn')?.addEventListener('click', shareProduct);
@@ -627,6 +694,68 @@
         };
 
         // ========================================
+        // ADD TO COMPARE
+        // ========================================
+        window.addToCompare = function() {
+            let compare = JSON.parse(localStorage.getItem('compare') || '[]');
+            if (compare.length >= 3) {
+                showNotification('Максимум 3 товара для сравнения', 'warning');
+                return;
+            }
+            if (compare.includes(listingId)) {
+                showNotification('Товар уже в сравнении', 'info');
+                return;
+            }
+            compare.push(listingId);
+            localStorage.setItem('compare', JSON.stringify(compare));
+            showNotification('✅ Добавлено в сравнение', 'success');
+        };
+
+        // ========================================
+        // SIMILAR PRODUCTS
+        // ========================================
+        async function loadSimilarProducts() {
+            if (!listing) return;
+
+            try {
+                const category = listing.category;
+                const snapshot = await db.collection("listings")
+                    .where("category", "==", category)
+                    .where("status", "==", "active")
+                    .limit(6)
+                    .get();
+
+                let items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                items = items.filter(item => item.id !== listingId);
+
+                if (items.length === 0) {
+                    similarContainer.innerHTML = '';
+                    return;
+                }
+
+                similarContainer.innerHTML = `
+                        <div class="similar-section">
+                            <h3>🔄 Похожие товары</h3>
+                            <div class="similar-grid">
+                                ${items.map(item => `
+                                    <div class="similar-item" onclick="window.location.href='product.html?id=${item.id}'">
+                                        <div class="image">${item.image || '📦'}</div>
+                                        <div class="info">
+                                            <div class="title">${escapeHtml(item.title)}</div>
+                                            <div class="price">${Number(item.price).toLocaleString()} ₽</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+            } catch (error) {
+                console.error('Error loading similar products:', error);
+            }
+        }
+
+        // ========================================
         // ACTIONS
         // ========================================
         async function addToCart() {
@@ -646,8 +775,8 @@
                 return;
             }
 
-            cart.push({ 
-                id: listingId, 
+            cart.push({
+                id: listingId,
                 qty: 1,
                 deliveryType: selectedDelivery || 'delivery'
             });
@@ -725,7 +854,8 @@
                 showNotification('Это ваш товар', 'info');
                 return;
             }
-            window.location.href = `chat.html?sellerId=${listing.sellerId}&listingId=${listingId}&title=${encodeURIComponent(listing.title)}`;
+            window.location.href =
+                `chat.html?sellerId=${listing.sellerId}&listingId=${listingId}&title=${encodeURIComponent(listing.title)}`;
         }
 
         function editListing() {
@@ -733,7 +863,7 @@
         }
 
         // ========================================
-        // PROMOTE LISTING — СПИСЫВАЕТ ДЕНЬГИ
+        // PROMOTE LISTING
         // ========================================
         async function promoteListing() {
             if (!currentUser || currentUser.uid !== listing.sellerId) {
@@ -753,14 +883,12 @@
             if (!confirm(`Поднять объявление "${listing.title}" в ТОП за ${price} ₽?`)) return;
 
             try {
-                // Списываем деньги
                 const newBalance = balance - price;
                 await db.collection("users").doc(currentUser.uid).update({
                     balance: newBalance
                 });
                 userData.balance = newBalance;
 
-                // Записываем транзакцию
                 await db.collection("transactions").add({
                     userId: currentUser.uid,
                     amount: -price,
@@ -769,17 +897,12 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // Обновляем время объявления (поднимаем в ТОП)
                 await db.collection("listings").doc(listingId).update({
                     promotedAt: new Date().toISOString()
                 });
 
-                // Обновляем баланс в шапке
                 setupHeader();
-
                 showNotification(`✅ Объявление поднято в ТОП! Списано ${price} ₽`, 'success');
-                
-                // Перезагружаем страницу
                 setTimeout(() => location.reload(), 1000);
 
             } catch (error) {
@@ -813,7 +936,7 @@
                 });
 
                 showNotification('✅ Товар отмечен как проданный!', 'success');
-                setTimeout(() => window.location.href = 'profile.html', 1500);
+                setTimeout(() => window.location.href = 'profile/index.html', 1500);
 
             } catch (error) {
                 console.error('Error marking as sold:', error);
