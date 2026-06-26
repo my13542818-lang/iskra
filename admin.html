@@ -326,6 +326,24 @@
             margin-bottom: 4px;
         }
 
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 16px 24px; border-radius: var(--radius);
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-primary); box-shadow: var(--shadow-lg);
+            z-index: 9999; max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success { border-left: 4px solid #2ECC71; }
+        .notification-error { border-left: 4px solid #E74C3C; }
+        .notification-warning { border-left: 4px solid #F39C12; }
+        .notification-info { border-left: 4px solid #3498DB; }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .admin-layout {
@@ -829,9 +847,7 @@
 
             setupHeader();
             await loadAllData();
-            setupEvents();
             setupTabs();
-            updateBadges();
 
             // Обновление времени
             document.getElementById('lastUpdated').textContent = new Date().toLocaleString('ru-RU');
@@ -870,6 +886,13 @@
                     Object.values(panels).forEach(p => p.classList.remove('active'));
                     const panel = document.getElementById(`tab-${tab}`);
                     if (panel) panel.classList.add('active');
+
+                    // Обновляем данные при переключении вкладок
+                    if (tab === 'users') loadUsers();
+                    if (tab === 'listings') loadListings();
+                    if (tab === 'orders') loadOrders();
+                    if (tab === 'withdrawals') loadWithdrawals();
+                    if (tab === 'promo') loadPromos();
                 };
             });
         }
@@ -883,10 +906,15 @@
             const ordersBadge = document.getElementById('ordersBadge');
             const withdrawalsBadge = document.getElementById('withdrawalsBadge');
 
-            if (usersBadge) usersBadge.textContent = document.querySelectorAll('#usersTable tr:not(.empty-state)').length - 1 || 0;
-            if (listingsBadge) listingsBadge.textContent = document.querySelectorAll('#listingsTable tr:not(.empty-state)').length - 1 || 0;
-            if (ordersBadge) ordersBadge.textContent = document.querySelectorAll('#ordersTable tr:not(.empty-state)').length - 1 || 0;
-            if (withdrawalsBadge) withdrawalsBadge.textContent = document.querySelectorAll('#withdrawalsTable tr:not(.empty-state)').length - 1 || 0;
+            const userRows = document.querySelectorAll('#usersTable tr:not(.empty-state)');
+            const listingRows = document.querySelectorAll('#listingsTable tr:not(.empty-state)');
+            const orderRows = document.querySelectorAll('#ordersTable tr:not(.empty-state)');
+            const withdrawalRows = document.querySelectorAll('#withdrawalsTable tr:not(.empty-state)');
+
+            if (usersBadge) usersBadge.textContent = userRows.length || 0;
+            if (listingsBadge) listingsBadge.textContent = listingRows.length || 0;
+            if (ordersBadge) ordersBadge.textContent = orderRows.length || 0;
+            if (withdrawalsBadge) withdrawalsBadge.textContent = withdrawalRows.length || 0;
         }
 
         // ========================================
@@ -969,6 +997,7 @@
                 const tbody = document.getElementById('usersTable');
                 if (users.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Нет пользователей</td></tr>`;
+                    updateBadges();
                     return;
                 }
 
@@ -1030,6 +1059,7 @@
                 const tbody = document.getElementById('listingsTable');
                 if (listings.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Нет объявлений</td></tr>`;
+                    updateBadges();
                     return;
                 }
 
@@ -1066,6 +1096,7 @@
                 const tbody = document.getElementById('ordersTable');
                 if (orders.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Нет заказов</td></tr>`;
+                    updateBadges();
                     return;
                 }
 
@@ -1116,6 +1147,7 @@
                 const tbody = document.getElementById('withdrawalsTable');
                 if (withdrawals.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Нет заявок на вывод</td></tr>`;
+                    updateBadges();
                     return;
                 }
 
@@ -1197,7 +1229,7 @@
         }
 
         // ========================================
-        // ACTIONS
+        // ACTIONS (глобальные функции для onclick)
         // ========================================
 
         // ===== EDIT BALANCE =====
@@ -1236,6 +1268,7 @@
                 showNotification('✅ Баланс обновлён', 'success');
                 await loadUsers();
                 await loadStats();
+                updateBadges();
 
             } catch (error) {
                 console.error('Error editing balance:', error);
@@ -1309,8 +1342,6 @@
                 const data = doc.data();
 
                 await doc.ref.update({ status: 'completed' });
-
-                // Обновляем баланс пользователя (уже списан)
                 showNotification('✅ Вывод одобрен', 'success');
                 await loadWithdrawals();
                 await loadStats();
@@ -1347,7 +1378,7 @@
             }
         };
 
-        // ===== PROMO ACTIONS =====
+        // ===== CREATE PROMO =====
         document.getElementById('createPromoBtn').onclick = async () => {
             const code = document.getElementById('promoCode').value.trim().toUpperCase();
             const type = document.getElementById('promoType').value;
@@ -1381,6 +1412,7 @@
             }
         };
 
+        // ===== TOGGLE PROMO =====
         window.togglePromo = async (id, active) => {
             try {
                 await db.collection("promocodes").doc(id).update({ active });
@@ -1391,6 +1423,7 @@
             }
         };
 
+        // ===== DELETE PROMO =====
         window.deletePromo = async (id) => {
             if (!confirm('Удалить промокод?')) return;
             try {
@@ -1420,41 +1453,8 @@
         };
 
         // ========================================
-        // UTILITY
+        // SEARCH/FILTER
         // ========================================
-        function getStatusText(status) {
-            const map = {
-                'pending': '⏳ Ожидает',
-                'paid': '✅ Оплачен',
-                'shipped': '🚚 Отправлен',
-                'delivered': '📦 Доставлен',
-                'completed': '🎉 Завершён',
-                'cancelled': '❌ Отменён'
-            };
-            return map[status] || status;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-        }
-
-        function showNotification(message, type = 'info') {
-            document.querySelectorAll('.notification').forEach(el => el.remove());
-
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100px)';
-                setTimeout(() => notification.remove(), 300);
-            }, 3500);
-        }
-
-        // ===== SEARCH/FILTER =====
         document.getElementById('userSearch')?.addEventListener('input', filterUsers);
         document.getElementById('userRoleFilter')?.addEventListener('change', filterUsers);
 
@@ -1547,6 +1547,41 @@
                 row.style.display = show ? '' : 'none';
             });
         });
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function getStatusText(status) {
+            const map = {
+                'pending': '⏳ Ожидает',
+                'paid': '✅ Оплачен',
+                'shipped': '🚚 Отправлен',
+                'delivered': '📦 Доставлен',
+                'completed': '🎉 Завершён',
+                'cancelled': '❌ Отменён'
+            };
+            return map[status] || status;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
 
         console.log('✅ Admin panel loaded');
     </script>
