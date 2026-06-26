@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пополнение баланса — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        .payment-page {
+            max-width: 520px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+        }
+        .payment-card .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .payment-card .logo h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .payment-card .logo p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .payment-card .balance-display {
+            background: var(--bg-input);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .payment-card .balance-display .label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .payment-card .balance-display .amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .amount-presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .amount-presets button {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .amount-presets button:hover {
+            border-color: var(--secondary);
+            background: var(--bg-card-hover);
+        }
+        .amount-presets button.active {
+            border-color: var(--secondary);
+            background: rgba(232, 67, 147, 0.15);
+            color: var(--secondary);
+        }
+        .custom-amount {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .custom-amount input {
+            flex: 1;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .custom-amount input:focus {
+            border-color: var(--secondary);
+        }
+        .custom-amount input::placeholder {
+            color: var(--text-muted);
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .payment-method {
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+        }
+        .payment-method:hover {
+            border-color: var(--border-light);
+        }
+        .payment-method.active {
+            border-color: var(--secondary);
+            background: rgba(232, 67, 147, 0.1);
+            color: var(--text-primary);
+        }
+        .payment-method .icon {
+            font-size: 28px;
+            display: block;
+        }
+        .payment-method .name {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .btn-pay {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            background: var(--gradient-main);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(232, 67, 147, 0.4);
+        }
+        .btn-pay:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .secure-badge {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .secure-badge .lock {
+            color: #2ECC71;
+        }
+        .payment-info {
+            background: rgba(52, 152, 219, 0.08);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .payment-info .icon {
+            font-size: 20px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .back-link:hover {
+            color: var(--secondary);
+        }
+        @media (max-width: 480px) {
+            .amount-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .payment-methods {
+                grid-template-columns: 1fr 1fr;
+            }
+            .payment-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="payment-page">
+        <div class="payment-card">
+            <div class="logo">
+                <h1>💰 Пополнение баланса</h1>
+                <p>Выберите сумму и способ оплаты</p>
+            </div>
+
+            <div class="balance-display">
+                <span class="label">Текущий баланс</span>
+                <span class="amount" id="currentBalance">0 ₽</span>
+            </div>
+
+            <div class="payment-info">
+                <span class="icon">ℹ️</span>
+                <span>Деньги поступят на ваш баланс сразу после подтверждения оплаты</span>
+            </div>
+
+            <label style="font-size:13px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:8px;">Сумма пополнения</label>
+            <div class="amount-presets" id="presetAmounts">
+                <button data-amount="100">100 ₽</button>
+                <button data-amount="500">500 ₽</button>
+                <button data-amount="1000">1 000 ₽</button>
+                <button data-amount="2000">2 000 ₽</button>
+            </div>
+
+            <div class="custom-amount">
+                <input type="number" id="customAmount" placeholder="Своя сумма" min="10">
+            </div>
+
+            <label style="font-size:13px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:8px;">Способ оплаты</label>
+            <div class="payment-methods" id="paymentMethods">
+                <div class="payment-method active" data-method="card">
+                    <span class="icon">💳</span>
+                    <span class="name">Банковская карта</span>
+                </div>
+                <div class="payment-method" data-method="sbp">
+                    <span class="icon">📲</span>
+                    <span class="name">СБП</span>
+                </div>
+                <div class="payment-method" data-method="phone">
+                    <span class="icon">📱</span>
+                    <span class="name">По номеру телефона</span>
+                </div>
+                <div class="payment-method" data-method="qr">
+                    <span class="icon">📷</span>
+                    <span class="name">QR-код</span>
+                </div>
+            </div>
+
+            <button class="btn-pay" id="payBtn">💳 Пополнить</button>
+
+            <div class="secure-badge">
+                <span class="lock">🔒</span> Все платежи защищены. Данные шифруются.
+            </div>
+
+            <a href="wallet.html" class="back-link">← Вернуться в кошелёк</a>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // ПАРАМЕТРЫ ПЛАТЕЖА
+        // ========================================
+        const PAYMENT_CONFIG = {
+            businessAccount: '99389874',
+            secretKey: '12345',
+            payUrl: '', // ВСТАВЬ СЮДА PAY URL ОТ ПРОВАЙДЕРА!
+            returnUrl: 'https://iskrakor.ru/payment-success.html',
+            failUrl: 'https://iskrakor.ru/payment-fail.html'
+        };
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const currentBalance = document.getElementById('currentBalance');
+        const customAmount = document.getElementById('customAmount');
+        const payBtn = document.getElementById('payBtn');
+
+        let selectedAmount = 0;
+        let selectedMethod = 'card';
+        let userData = {};
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const doc = await db.collection("users").doc(user.uid).get();
+            userData = doc.data() || {};
+
+            // Обновляем баланс
+            currentBalance.textContent = (userData.balance || 0).toLocaleString() + ' ₽';
+
+            // Хедер
+            headerActions.innerHTML = `
+                <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                <div class="header-user" onclick="window.location.href='profile/index.html'">
+                    <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                    <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                </div>
+            `;
+        });
+
+        // ========================================
+        // PRESET AMOUNTS
+        // ========================================
+        document.querySelectorAll('#presetAmounts button').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                customAmount.value = '';
+                selectedAmount = parseInt(btn.dataset.amount);
+            };
+        });
+
+        customAmount.addEventListener('input', () => {
+            document.querySelectorAll('#presetAmounts button').forEach(b => b.classList.remove('active'));
+            selectedAmount = parseInt(customAmount.value) || 0;
+        });
+
+        // ========================================
+        // PAYMENT METHOD
+        // ========================================
+        document.querySelectorAll('.payment-method').forEach(el => {
+            el.onclick = () => {
+                document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+                el.classList.add('active');
+                selectedMethod = el.dataset.method;
+            };
+        });
+
+        // ========================================
+        // PAYMENT
+        // ========================================
+        payBtn.onclick = async () => {
+            const amount = selectedAmount || parseInt(customAmount.value);
+
+            if (!amount || amount < 10) {
+                alert('Минимальная сумма пополнения 10 ₽');
+                return;
+            }
+
+            if (!PAYMENT_CONFIG.payUrl) {
+                alert('⚠️ Pay URL не настроен! Пожалуйста, обратитесь к администратору.');
+                return;
+            }
+
+            payBtn.disabled = true;
+            payBtn.textContent = '⏳ Обработка...';
+
+            try {
+                const paymentData = {
+                    account: PAYMENT_CONFIG.businessAccount,
+                    amount: amount,
+                    purpose: 'Пополнение баланса Куки',
+                    userId: auth.currentUser.uid,
+                    userEmail: auth.currentUser.email,
+                    method: selectedMethod,
+                    returnUrl: PAYMENT_CONFIG.returnUrl,
+                    failUrl: PAYMENT_CONFIG.failUrl,
+                    signature: generateSignature(amount, auth.currentUser.uid)
+                };
+
+                // Отправка на Pay URL
+                const response = await fetch(PAYMENT_CONFIG.payUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.paymentUrl) {
+                    window.location.href = result.paymentUrl;
+                } else {
+                    alert('❌ Ошибка: ' + (result.error || 'Не удалось создать платёж'));
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('❌ Ошибка при оплате. Попробуйте позже.');
+            } finally {
+                payBtn.disabled = false;
+                payBtn.textContent = '💳 Пополнить';
+            }
+        };
+
+        // ========================================
+        // GENERATE SIGNATURE
+        // ========================================
+        function generateSignature(amount, userId) {
+            const data = `${PAYMENT_CONFIG.businessAccount}|${amount}|${userId}|${PAYMENT_CONFIG.secretKey}`;
+            return btoa(data).substring(0, 32);
+        }
+
+        // ========================================
+        // ENTER KEY
+        // ========================================
+        customAmount.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') payBtn.click();
+        });
+
+        console.log('✅ Платёжная форма загружена');
+        console.log('📌 Бизнес-счёт:', PAYMENT_CONFIG.businessAccount);
+        console.log('⚠️ Pay URL:', PAYMENT_CONFIG.payUrl || 'НЕ УСТАНОВЛЕН!');
+    </script>
+</body>
+</html>

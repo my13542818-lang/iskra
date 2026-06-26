@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата успешна — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .success-page {
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 0 24px;
+            text-align: center;
+        }
+        .success-icon { font-size: 80px; margin-bottom: 16px; }
+        .success-page h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #2ECC71; }
+        .success-page p { color: var(--text-muted); font-size: 16px; margin-bottom: 24px; }
+        .btn { padding: 14px 40px; border-radius: 50px; border: none; background: var(--gradient-main); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); text-decoration: none; display: inline-block; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232, 67, 147, 0.4); }
+        .back-link { display: block; margin-top: 16px; color: var(--text-muted); font-size: 14px; }
+        .back-link:hover { color: var(--secondary); }
+        .loader { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--secondary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+        </div>
+    </header>
+
+    <div class="success-page">
+        <div id="statusContent">
+            <div class="loader"></div>
+            <p style="color:var(--text-muted);">Подтверждение оплаты...</p>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const amount = urlParams.get('amount');
+        const orderId = urlParams.get('order_id');
+        const status = urlParams.get('status');
+
+        async function processPayment() {
+            const user = auth.currentUser;
+            if (!user) {
+                document.getElementById('statusContent').innerHTML = `
+                    <div class="success-icon">🔑</div>
+                    <h1>Войдите в аккаунт</h1>
+                    <p>Для зачисления средств необходимо войти</p>
+                    <a href="login.html" class="btn">Войти</a>
+                `;
+                return;
+            }
+
+            if (status === 'success' || status === 'paid') {
+                const sum = parseInt(amount) || 0;
+
+                if (sum > 0) {
+                    const userRef = db.collection("users").doc(user.uid);
+                    const userDoc = await userRef.get();
+                    const currentBalance = userDoc.data()?.balance || 0;
+
+                    await userRef.update({
+                        balance: currentBalance + sum
+                    });
+
+                    await db.collection("transactions").add({
+                        userId: user.uid,
+                        amount: sum,
+                        description: `Пополнение баланса (заказ ${orderId || '#'})`,
+                        status: 'completed',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+
+                document.getElementById('statusContent').innerHTML = `
+                    <div class="success-icon">✅</div>
+                    <h1>Оплата прошла успешно!</h1>
+                    <p>Баланс пополнен на <strong>${sum.toLocaleString()} ₽</strong></p>
+                    <a href="wallet.html" class="btn">💰 Перейти в кошелёк</a>
+                    <a href="index.html" class="back-link">← Вернуться на главную</a>
+                `;
+
+            } else {
+                document.getElementById('statusContent').innerHTML = `
+                    <div class="success-icon" style="color:#E74C3C;">❌</div>
+                    <h1 style="color:#E74C3C;">Ошибка оплаты</h1>
+                    <p>Платеж не был завершён. Попробуйте снова.</p>
+                    <a href="payment-form.html" class="btn">🔄 Попробовать снова</a>
+                    <a href="index.html" class="back-link">← Вернуться на главную</a>
+                `;
+            }
+        }
+
+        processPayment();
+    </script>
+</body>
+</html>

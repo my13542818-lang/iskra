@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка оплаты — Куки</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .fail-page {
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 0 24px;
+            text-align: center;
+        }
+        .fail-icon { font-size: 80px; margin-bottom: 16px; }
+        .fail-page h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #E74C3C; }
+        .fail-page p { color: var(--text-muted); font-size: 16px; margin-bottom: 24px; }
+        .btn { padding: 14px 40px; border-radius: 50px; border: none; background: var(--gradient-main); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); text-decoration: none; display: inline-block; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232, 67, 147, 0.4); }
+        .back-link { display: block; margin-top: 16px; color: var(--text-muted); font-size: 14px; }
+        .back-link:hover { color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
+        </div>
+    </header>
+
+    <div class="fail-page">
+        <div class="fail-icon">❌</div>
+        <h1>Ошибка оплаты</h1>
+        <p>Что-то пошло не так. Пожалуйста, попробуйте ещё раз.</p>
+        <a href="payment-form.html" class="btn">🔄 Попробовать снова</a>
+        <a href="index.html" class="back-link">← Вернуться на главную</a>
+    </div>
+</body>
+</html>
