@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обработка платежа</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js">
+    </script>
+</head>
+<body>
+    <h1>Обработка платежа</h1>
+    <pre id="log"></pre>
+
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+
+        // ========================================
+        // КОНФИГУРАЦИЯ
+        // ========================================
+        const MNT_ID = '99389874';
+        const MNT_INTEGRITY_CODE = '12345';
+
+        const logEl = document.getElementById('log');
+
+        function addLog(message) {
+            logEl.textContent += message + '\n';
+            console.log(message);
+        }
+
+        // ========================================
+        // ПОЛУЧАЕМ ДАННЫЕ ИЗ URL (GET-запрос)
+        // ========================================
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const transactionId = urlParams.get('MNT_TRANSACTION_ID') || '';
+        const amount = urlParams.get('MNT_AMOUNT') || '0';
+        const operationId = urlParams.get('MNT_OPERATION_ID') || '';
+        const subscriberId = urlParams.get('MNT_SUBSCRIBER_ID') || '';
+        const testMode = urlParams.get('MNT_TEST_MODE') || '0';
+        const signature = urlParams.get('MNT_SIGNATURE') || '';
+        const currencyCode = urlParams.get('MNT_CURRENCY_CODE') || 'RUB';
+
+        // ========================================
+        // ЛОГИРУЕМ ВСЁ
+        // ========================================
+        addLog('📥 Получен запрос от PayAnyWay');
+        addLog('📌 Параметры:');
+        addLog(`  MNT_TRANSACTION_ID: ${transactionId}`);
+        addLog(`  MNT_AMOUNT: ${amount}`);
+        addLog(`  MNT_OPERATION_ID: ${operationId}`);
+        addLog(`  MNT_SUBSCRIBER_ID: ${subscriberId}`);
+        addLog(`  MNT_TEST_MODE: ${testMode}`);
+        addLog(`  MNT_SIGNATURE: ${signature}`);
+        addLog(`  MNT_CURRENCY_CODE: ${currencyCode}`);
+
+        // ========================================
+        // ПРОВЕРЯЕМ ПОДПИСЬ
+        // ========================================
+        // Правильный порядок по документации PayAnyWay:
+        // MNT_ID + MNT_TRANSACTION_ID + MNT_OPERATION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE
+        const signatureData =
+            MNT_ID +
+            transactionId +
+            operationId +
+            amount +
+            currencyCode +
+            subscriberId +
+            testMode +
+            MNT_INTEGRITY_CODE;
+
+        const expectedSignature = CryptoJS.MD5(signatureData).toString();
+
+        addLog(`🔐 Данные для подписи: ${signatureData}`);
+        addLog(`🔐 Ожидаемая подпись: ${expectedSignature}`);
+        addLog(`🔐 Полученная подпись: ${signature}`);
+
+        // ========================================
+        // ЕСЛИ ПОДПИСЬ НЕ СОВПАДАЕТ
+        // ========================================
+        if (signature !== expectedSignature) {
+            addLog('❌ ПОДПИСЬ НЕ СОВПАДАЕТ!');
+            document.body.innerHTML = `
+                    <h1 style="color:red;">❌ Ошибка подписи</h1>
+                    <p>Подпись не совпадает. Запрос не обработан.</p>
+                    <pre>${logEl.textContent}</pre>
+                `;
+            return;
+        }
+
+        addLog('✅ ПОДПИСЬ ВЕРНА!');
+
+        // ========================================
+        // РАЗБИРАЕМ MNT_TRANSACTION_ID
+        // ========================================
+        const parts = transactionId.split('|');
+        const timestamp = parts[0] || '';
+        const userId = parts[1] || '';
+        const orderAmount = parseFloat(parts[2] || '0');
+        const parsedAmount = parseFloat(amount);
+
+        addLog(`📦 Разбор transactionId:`);
+        addLog(`  timestamp: ${timestamp}`);
+        addLog(`  userId: ${userId}`);
+        addLog(`  orderAmount: ${orderAmount}`);
+        addLog(`  parsedAmount: ${parsedAmount}`);
+
+        // ========================================
+        // ПРОВЕРЯЕМ СУММУ
+        // ========================================
+        if (Math.abs(parsedAmount - orderAmount) > 0.01) {
+            addLog('❌ Сумма не совпадает!');
+            document.body.innerHTML = `
+                    <h1 style="color:red;">❌ Ошибка суммы</h1>
+                    <p>Сумма не совпадает: ${parsedAmount} != ${orderAmount}</p>
+                    <pre>${logEl.textContent}</pre>
+                `;
+            return;
+        }
+
+        addLog('✅ Сумма совпадает!');
+
+        // ========================================
+        // ОБНОВЛЯЕМ БАЛАНС
+        // ========================================
+        if (userId && parsedAmount > 0) {
+            addLog(`🔄 Обновляем баланс пользователя: ${userId}`);
+
+            db.collection("users").doc(userId).get()
+                .then(doc => {
+                    const currentBalance = doc.exists ? doc.data().balance || 0 : 0;
+                    const newBalance = currentBalance + parsedAmount;
+                    addLog(`  Текущий баланс: ${currentBalance}`);
+                    addLog(`  Новый баланс: ${newBalance}`);
+
+                    return db.collection("users").doc(userId).update({
+                        balance: newBalance
+                    });
+                })
+                .then(() => {
+                    addLog('✅ Баланс обновлён!');
+
+                    // Сохраняем транзакцию
+                    return db.collection("transactions").add({
+                        userId: userId,
+                        amount: parsedAmount,
+                        description: 'Пополнение баланса через PayAnyWay',
+                        status: 'completed',
+                        transactionId: transactionId,
+                        operationId: operationId,
+                        createdAt: new Date().toISOString()
+                    });
+                })
+                .then(() => {
+                    addLog('✅ Транзакция сохранена!');
+                    showSuccess();
+                })
+                .catch(err => {
+                    addLog(`❌ Ошибка: ${err.message}`);
+                    showError(err.message);
+                });
+        } else {
+            addLog('⚠️ ID пользователя не найден или сумма равна 0');
+            showError('ID пользователя не найден');
+        }
+
+        // ========================================
+        // ПОКАЗЫВАЕМ РЕЗУЛЬТАТ
+        // ========================================
+        function showSuccess() {
+            document.body.innerHTML = `
+                    <h1 style="color:green;">✅ Успешно!</h1>
+                    <p>Баланс пополнен на ${parsedAmount} ₽</p>
+                    <p>Пользователь: ${userId}</p>
+                    <p>Операция: ${operationId}</p>
+                    <pre>${logEl.textContent}</pre>
+                `;
+        }
+
+        function showError(msg) {
+            document.body.innerHTML = `
+                    <h1 style="color:red;">❌ Ошибка</h1>
+                    <p>${msg}</p>
+                    <pre>${logEl.textContent}</pre>
+                `;
+        }
+
+        addLog('✅ Обработка завершена');
+    </script>
+</body>
+</html>
