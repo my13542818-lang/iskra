@@ -102,38 +102,6 @@
         .custom-amount input::placeholder {
             color: var(--text-muted);
         }
-        .payment-methods {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .payment-method {
-            padding: 14px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--bg-input);
-            color: var(--text-secondary);
-        }
-        .payment-method:hover {
-            border-color: var(--border-light);
-        }
-        .payment-method.active {
-            border-color: var(--secondary);
-            background: rgba(232, 67, 147, 0.1);
-            color: var(--text-primary);
-        }
-        .payment-method .icon {
-            font-size: 28px;
-            display: block;
-        }
-        .payment-method .name {
-            font-size: 12px;
-            margin-top: 4px;
-        }
         .btn-pay {
             width: 100%;
             padding: 16px;
@@ -195,9 +163,6 @@
             .amount-presets {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .payment-methods {
-                grid-template-columns: 1fr 1fr;
-            }
             .payment-card {
                 padding: 20px;
             }
@@ -219,7 +184,7 @@
         <div class="payment-card">
             <div class="logo">
                 <h1>💰 Пополнение баланса</h1>
-                <p>Выберите сумму и способ оплаты</p>
+                <p>Выберите сумму и перейдите к оплате</p>
             </div>
 
             <div class="balance-display">
@@ -229,7 +194,7 @@
 
             <div class="payment-info">
                 <span class="icon">ℹ️</span>
-                <span>Деньги поступят на ваш баланс сразу после подтверждения оплаты</span>
+                <span>Оплата через систему PayAnyWay (Монета). Деньги поступят сразу после оплаты.</span>
             </div>
 
             <label style="font-size:13px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:8px;">Сумма пополнения</label>
@@ -244,30 +209,10 @@
                 <input type="number" id="customAmount" placeholder="Своя сумма" min="10">
             </div>
 
-            <label style="font-size:13px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:8px;">Способ оплаты</label>
-            <div class="payment-methods" id="paymentMethods">
-                <div class="payment-method active" data-method="card">
-                    <span class="icon">💳</span>
-                    <span class="name">Банковская карта</span>
-                </div>
-                <div class="payment-method" data-method="sbp">
-                    <span class="icon">📲</span>
-                    <span class="name">СБП</span>
-                </div>
-                <div class="payment-method" data-method="phone">
-                    <span class="icon">📱</span>
-                    <span class="name">По номеру телефона</span>
-                </div>
-                <div class="payment-method" data-method="qr">
-                    <span class="icon">📷</span>
-                    <span class="name">QR-код</span>
-                </div>
-            </div>
-
-            <button class="btn-pay" id="payBtn">💳 Пополнить</button>
+            <button class="btn-pay" id="payBtn">💳 Перейти к оплате</button>
 
             <div class="secure-badge">
-                <span class="lock">🔒</span> Все платежи защищены. Данные шифруются.
+                <span class="lock">🔒</span> Защищённое соединение. Данные шифруются.
             </div>
 
             <a href="wallet.html" class="back-link">← Вернуться в кошелёк</a>
@@ -293,14 +238,16 @@
         const db = firebase.firestore();
 
         // ========================================
-        // ПАРАМЕТРЫ ПЛАТЕЖА
+        // ПАРАМЕТРЫ PAYANYWAY
         // ========================================
-        const PAYMENT_CONFIG = {
-            businessAccount: '99389874',
-            secretKey: '12345',
-            payUrl: '', // ВСТАВЬ СЮДА PAY URL ОТ ПРОВАЙДЕРА!
-            returnUrl: 'https://iskrakor.ru/payment-success.html',
-            failUrl: 'https://iskrakor.ru/payment-fail.html'
+        const PAYANYWAY_CONFIG = {
+            MNT_ID: '99389874',                    // Бизнес-счёт
+            MNT_INTEGRITY_CODE: '12345',          // Код проверки целостности
+            MNT_CURRENCY_CODE: 'RUB',
+            MNT_TEST_MODE: '1',                   // 1 - тестовый режим, 0 - боевой
+            PAY_URL: 'https://payanyway.ru/assistant.htm',
+            SUCCESS_URL: 'https://iskrakor.ru/payment-success.html',
+            FAIL_URL: 'https://iskrakor.ru/payment-fail.html'
         };
 
         // ========================================
@@ -312,7 +259,6 @@
         const payBtn = document.getElementById('payBtn');
 
         let selectedAmount = 0;
-        let selectedMethod = 'card';
         let userData = {};
 
         // ========================================
@@ -327,10 +273,8 @@
             const doc = await db.collection("users").doc(user.uid).get();
             userData = doc.data() || {};
 
-            // Обновляем баланс
             currentBalance.textContent = (userData.balance || 0).toLocaleString() + ' ₽';
 
-            // Хедер
             headerActions.innerHTML = `
                 <div class="balance-badge" onclick="window.location.href='wallet.html'">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
                 <div class="header-user" onclick="window.location.href='profile/index.html'">
@@ -358,18 +302,7 @@
         });
 
         // ========================================
-        // PAYMENT METHOD
-        // ========================================
-        document.querySelectorAll('.payment-method').forEach(el => {
-            el.onclick = () => {
-                document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
-                el.classList.add('active');
-                selectedMethod = el.dataset.method;
-            };
-        });
-
-        // ========================================
-        // PAYMENT
+        // PAYMENT — ПЕРЕХОД НА PAYANYWAY
         // ========================================
         payBtn.onclick = async () => {
             const amount = selectedAmount || parseInt(customAmount.value);
@@ -379,59 +312,77 @@
                 return;
             }
 
-            if (!PAYMENT_CONFIG.payUrl) {
-                alert('⚠️ Pay URL не настроен! Пожалуйста, обратитесь к администратору.');
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Войдите в аккаунт');
+                window.location.href = 'login.html';
                 return;
             }
 
             payBtn.disabled = true;
-            payBtn.textContent = '⏳ Обработка...';
+            payBtn.textContent = '⏳ Перенаправление...';
 
             try {
-                const paymentData = {
-                    account: PAYMENT_CONFIG.businessAccount,
-                    amount: amount,
-                    purpose: 'Пополнение баланса Куки',
-                    userId: auth.currentUser.uid,
-                    userEmail: auth.currentUser.email,
-                    method: selectedMethod,
-                    returnUrl: PAYMENT_CONFIG.returnUrl,
-                    failUrl: PAYMENT_CONFIG.failUrl,
-                    signature: generateSignature(amount, auth.currentUser.uid)
-                };
+                // Формируем уникальный ID заказа
+                const transactionId = `${Date.now()}|${user.uid.substring(0, 8)}|${amount}`;
 
-                // Отправка на Pay URL
-                const response = await fetch(PAYMENT_CONFIG.payUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(paymentData)
+                // Создаём сигнатуру по документации PayAnyWay
+                // MNT_SIGNATURE = md5(MNT_ID + MNT_TRANSACTION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE)
+                const signatureData = PAYANYWAY_CONFIG.MNT_ID +
+                    transactionId +
+                    amount.toFixed(2) +
+                    PAYANYWAY_CONFIG.MNT_CURRENCY_CODE +
+                    user.email +
+                    PAYANYWAY_CONFIG.MNT_TEST_MODE +
+                    PAYANYWAY_CONFIG.MNT_INTEGRITY_CODE;
+
+                const signature = await md5(signatureData);
+
+                // Сохраняем платёж в Firestore
+                await db.collection("payments").add({
+                    userId: user.uid,
+                    userEmail: user.email,
+                    amount: amount,
+                    transactionId: transactionId,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
                 });
 
-                const result = await response.json();
+                // Формируем URL для перехода на PayAnyWay
+                const params = new URLSearchParams({
+                    MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
+                    MNT_TRANSACTION_ID: transactionId,
+                    MNT_AMOUNT: amount.toFixed(2),
+                    MNT_CURRENCY_CODE: PAYANYWAY_CONFIG.MNT_CURRENCY_CODE,
+                    MNT_SUBSCRIBER_ID: user.email,
+                    MNT_TEST_MODE: PAYANYWAY_CONFIG.MNT_TEST_MODE,
+                    MNT_DESCRIPTION: `Пополнение баланса Куки (${user.email})`,
+                    MNT_SUCCESS_URL: PAYANYWAY_CONFIG.SUCCESS_URL,
+                    MNT_FAIL_URL: PAYANYWAY_CONFIG.FAIL_URL,
+                    MNT_SIGNATURE: signature
+                });
 
-                if (result.success && result.paymentUrl) {
-                    window.location.href = result.paymentUrl;
-                } else {
-                    alert('❌ Ошибка: ' + (result.error || 'Не удалось создать платёж'));
-                }
+                const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${params.toString()}`;
+
+                // Перенаправляем на PayAnyWay
+                window.location.href = payUrl;
 
             } catch (error) {
                 console.error('Payment error:', error);
-                alert('❌ Ошибка при оплате. Попробуйте позже.');
-            } finally {
+                alert('❌ Ошибка при создании платежа. Попробуйте позже.');
                 payBtn.disabled = false;
-                payBtn.textContent = '💳 Пополнить';
+                payBtn.textContent = '💳 Перейти к оплате';
             }
         };
 
         // ========================================
-        // GENERATE SIGNATURE
+        // MD5 ХЕШ (простая реализация для браузера)
         // ========================================
-        function generateSignature(amount, userId) {
-            const data = `${PAYMENT_CONFIG.businessAccount}|${amount}|${userId}|${PAYMENT_CONFIG.secretKey}`;
-            return btoa(data).substring(0, 32);
+        async function md5(string) {
+            const msgBuffer = new TextEncoder().encode(string);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
         }
 
         // ========================================
@@ -441,9 +392,9 @@
             if (e.key === 'Enter') payBtn.click();
         });
 
-        console.log('✅ Платёжная форма загружена');
-        console.log('📌 Бизнес-счёт:', PAYMENT_CONFIG.businessAccount);
-        console.log('⚠️ Pay URL:', PAYMENT_CONFIG.payUrl || 'НЕ УСТАНОВЛЕН!');
+        console.log('✅ Платёжная форма PayAnyWay загружена');
+        console.log('📌 Бизнес-счёт:', PAYANYWAY_CONFIG.MNT_ID);
+        console.log('📌 Pay URL:', PAYANYWAY_CONFIG.PAY_URL);
     </script>
 </body>
 </html>
