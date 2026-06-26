@@ -2,11 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Вход — Куки</title>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
+    </script>
     <style>
         * {
             margin: 0;
@@ -16,10 +19,7 @@
 
         :root {
             --primary: #6C3B8E;
-            --primary-dark: #4A1A6B;
-            --primary-light: #9B59B6;
             --accent: #6C3FC5;
-            --accent-hover: #5A2FB0;
             --bg-base: #0D0B14;
             --bg-surface: #15121E;
             --bg-hover: #1E1A2E;
@@ -28,7 +28,6 @@
             --text-muted: #7A6B8A;
             --border-color: #2D1F3D;
             --radius: 16px;
-            --radius-full: 9999px;
             --shadow: 0 8px 32px rgba(108, 59, 142, 0.3);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -69,7 +68,7 @@
 
         .auth-logo {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
         .auth-logo .icon {
             font-size: 48px;
@@ -121,7 +120,7 @@
             border: 2px solid var(--border-color);
             border-radius: var(--radius);
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             transition: var(--transition);
         }
@@ -131,35 +130,6 @@
         }
         .form-group input::placeholder {
             color: var(--text-muted);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 16px 0;
-            cursor: pointer;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-top: 2px;
-            accent-color: var(--accent);
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .checkbox-group label {
-            font-size: 12px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            cursor: pointer;
-        }
-        .checkbox-group label a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-        .checkbox-group label a:hover {
-            text-decoration: underline;
         }
 
         .btn {
@@ -180,29 +150,15 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+
         .btn-primary {
-            background: linear-gradient(135deg, #21A038, #1B8A30);
+            background: linear-gradient(135deg, #6C3B8E, #E84393);
             color: white;
+            box-shadow: 0 4px 20px rgba(108, 59, 142, 0.4);
         }
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(33, 160, 56, 0.4);
-        }
-        .btn-primary:active:not(:disabled) {
-            transform: scale(0.97);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: var(--bg-hover);
-            border-color: var(--accent);
-        }
-        .btn-secondary:active:not(:disabled) {
-            transform: scale(0.97);
+            box-shadow: 0 8px 30px rgba(108, 59, 142, 0.6);
         }
 
         .btn-google {
@@ -217,6 +173,17 @@
         .btn-google img {
             width: 20px;
             height: 20px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--text-primary);
         }
 
         .divider {
@@ -235,19 +202,41 @@
             background: var(--border-color);
         }
 
-        .auth-footer {
+        .switch-link {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 16px;
             font-size: 14px;
             color: var(--text-muted);
         }
-        .auth-footer a {
+        .switch-link a {
             color: var(--accent);
             text-decoration: none;
             font-weight: 600;
+            cursor: pointer;
         }
-        .auth-footer a:hover {
+        .switch-link a:hover {
             text-decoration: underline;
+        }
+
+        .error-msg {
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid #E74C3C;
+            color: #E74C3C;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .success-msg {
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ECC71;
+            color: #2ECC71;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
         }
 
         .notification {
@@ -264,14 +253,28 @@
             max-width: 400px;
             animation: slideIn 0.3s ease;
         }
-        .notification-success { border-left: 4px solid #2ECC71; }
-        .notification-error { border-left: 4px solid #E74C3C; }
-        .notification-warning { border-left: 4px solid #F39C12; }
-        .notification-info { border-left: 4px solid #3498DB; }
+        .notification-success {
+            border-left: 4px solid #2ECC71;
+        }
+        .notification-error {
+            border-left: 4px solid #E74C3C;
+        }
+        .notification-warning {
+            border-left: 4px solid #F39C12;
+        }
+        .notification-info {
+            border-left: 4px solid #3498DB;
+        }
 
         @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @media (max-width: 480px) {
@@ -289,64 +292,109 @@
                 padding: 12px;
             }
         }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
     <div class="auth-container">
+        <!-- ===== LOGO ===== -->
         <div class="auth-logo">
             <span class="icon">🍪</span>
             <h1>Куки</h1>
             <p>Покупай и продавай с удовольствием</p>
         </div>
 
-        <div class="auth-title">
-            <h2>Вход по номеру телефона</h2>
-            <p>Введите номер телефона. Вы получите СМС с кодом</p>
+        <!-- ===== MESSAGES ===== -->
+        <div id="errorMsg" class="error-msg"></div>
+        <div id="successMsg" class="success-msg"></div>
+
+        <!-- ===== LOGIN FORM ===== -->
+        <div id="loginForm">
+            <div class="auth-title">
+                <h2>Войти в аккаунт</h2>
+                <p>Используйте email или Google аккаунт</p>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+
+            <button class="btn btn-primary" id="loginBtn">Войти</button>
+
+            <div class="switch-link">
+                <a id="showRegisterBtn">Нет аккаунта? Зарегистрироваться</a>
+            </div>
+            <div class="switch-link">
+                <a id="forgotPasswordBtn">Забыли пароль?</a>
+            </div>
+
+            <div class="divider"><span>или</span></div>
+
+            <button class="btn btn-google" id="googleBtn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Войти через Google
+            </button>
         </div>
 
-        <div class="form-group">
-            <label>Номер телефона</label>
-            <input type="tel" id="phoneInput" placeholder="+7 (999) 123-45-67" value="+7 999 1234567">
+        <!-- ===== REGISTER FORM ===== -->
+        <div id="registerForm" class="hidden">
+            <div class="auth-title">
+                <h2>Регистрация</h2>
+                <p>Создайте аккаунт за 1 минуту</p>
+            </div>
+
+            <div class="form-group">
+                <label>Email <span class="required">*</span></label>
+                <input type="email" id="regEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Пароль <span class="required">*</span></label>
+                <input type="password" id="regPassword" placeholder="Минимум 6 символов">
+            </div>
+            <div class="form-group">
+                <label>Подтвердите пароль <span class="required">*</span></label>
+                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
+            </div>
+
+            <button class="btn btn-primary" id="registerBtn">Зарегистрироваться</button>
+
+            <div class="switch-link">
+                <a id="showLoginBtn">Уже есть аккаунт? Войти</a>
+            </div>
         </div>
 
-        <div class="checkbox-group">
-            <input type="checkbox" id="consent" checked>
-            <label for="consent">
-                Я даю согласие на обработку персональных данных в соответствии с
-                <a href="#" target="_blank">политикой конфиденциальности</a>
-            </label>
-        </div>
+        <!-- ===== RESET FORM ===== -->
+        <div id="resetForm" class="hidden">
+            <div class="auth-title">
+                <h2>Восстановление пароля</h2>
+                <p>Мы отправим ссылку на ваш email</p>
+            </div>
 
-        <button class="btn btn-primary" id="smsBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-            </svg>
-            Получить код по СМС
-        </button>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="resetEmail" placeholder="your@email.com">
+            </div>
 
-        <button class="btn btn-secondary" id="callBtn" style="margin-top:10px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-            </svg>
-            Получить звонок с кодом
-        </button>
+            <button class="btn btn-primary" id="resetBtn">Отправить письмо</button>
 
-        <div class="divider"><span>или</span></div>
-
-        <button class="btn btn-google" id="googleBtn">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-            Войти через Google
-        </button>
-
-        <div class="auth-footer">
-            Уже есть аккаунт? <a href="#">Войти</a>
+            <div class="switch-link">
+                <a id="backToLoginBtn">← Вернуться ко входу</a>
+            </div>
         </div>
     </div>
 
     <script>
         // ========================================
-        // FIREBASE — ВСЁ ВНУТРИ, firebase ГЛОБАЛЬНЫЙ
+        // FIREBASE
         // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
@@ -358,7 +406,6 @@
             measurementId: "G-ETWXCGL9HK"
         };
 
-        // Инициализация Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -369,14 +416,26 @@
         // ========================================
         // DOM REFS
         // ========================================
-        const phoneInput = document.getElementById('phoneInput');
-        const smsBtn = document.getElementById('smsBtn');
-        const callBtn = document.getElementById('callBtn');
-        const googleBtn = document.getElementById('googleBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
 
         // ========================================
-        // ФУНКЦИИ
+        // SHOW ERROR/SUCCESS
         // ========================================
+        function showError(text) {
+            errorMsg.textContent = text;
+            errorMsg.style.display = 'block';
+            successMsg.style.display = 'none';
+            setTimeout(() => errorMsg.style.display = 'none', 5000);
+        }
+
+        function showSuccess(text) {
+            successMsg.textContent = text;
+            successMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
+            setTimeout(() => successMsg.style.display = 'none', 3000);
+        }
+
         function showNotification(message, type = 'info') {
             document.querySelectorAll('.notification').forEach(el => el.remove());
 
@@ -392,99 +451,123 @@
             }, 3500);
         }
 
-        function formatPhone(phone) {
-            let cleaned = phone.replace(/\D/g, '');
-            if (cleaned.length === 11 && cleaned.startsWith('7')) {
-                cleaned = '+' + cleaned;
-            } else if (cleaned.length === 10) {
-                cleaned = '+7' + cleaned;
-            } else if (!cleaned.startsWith('+')) {
-                cleaned = '+' + cleaned;
-            }
-            return cleaned;
-        }
+        // ========================================
+        // SWITCH FORMS
+        // ========================================
+        document.getElementById('showRegisterBtn').onclick = () => {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('resetForm').classList.add('hidden');
+        };
+
+        document.getElementById('showLoginBtn').onclick = () => {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('resetForm').classList.add('hidden');
+        };
+
+        document.getElementById('forgotPasswordBtn').onclick = () => {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('resetForm').classList.remove('hidden');
+        };
+
+        document.getElementById('backToLoginBtn').onclick = () => {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('resetForm').classList.add('hidden');
+        };
 
         // ========================================
-        // SMS BUTTON
+        // REGISTER
         // ========================================
-        smsBtn.onclick = async () => {
-            const phone = formatPhone(phoneInput.value);
-            if (phone.length < 10) {
-                showNotification('Введите корректный номер телефона', 'error');
+        document.getElementById('registerBtn').onclick = async () => {
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+
+            if (!email || !password) {
+                showError('Заполните все поля');
+                return;
+            }
+            if (password !== confirm) {
+                showError('Пароли не совпадают');
+                return;
+            }
+            if (password.length < 6) {
+                showError('Пароль должен быть минимум 6 символов');
                 return;
             }
 
-            smsBtn.disabled = true;
-            smsBtn.textContent = '⏳ Отправка...';
-
             try {
-                // Здесь будет отправка SMS через ваш сервис
+                const result = await auth.createUserWithEmailAndPassword(email, password);
+                const user = result.user;
+
+                await db.collection("users").doc(user.uid).set({
+                    uid: user.uid,
+                    name: '',
+                    email: user.email,
+                    photoURL: '',
+                    phone: '',
+                    role: 'user',
+                    balance: 0,
+                    rating: 0,
+                    completedDeals: 0,
+                    createdAt: new Date().toISOString()
+                });
+
+                showSuccess('✅ Регистрация успешна!');
                 setTimeout(() => {
-                    showNotification(`✅ Код отправлен на ${phone}`, 'success');
-                    smsBtn.disabled = false;
-                    smsBtn.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                        </svg>
-                        Получить код по СМС
-                    `;
+                    window.location.href = 'profile/complete-profile.html';
                 }, 1500);
 
             } catch (error) {
-                console.error('SMS error:', error);
-                showNotification('❌ Ошибка отправки SMS', 'error');
-                smsBtn.disabled = false;
-                smsBtn.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                    </svg>
-                    Получить код по СМС
-                `;
+                console.error('Register error:', error);
+                showError('❌ ' + error.message);
             }
         };
 
         // ========================================
-        // CALL BUTTON
+        // LOGIN
         // ========================================
-        callBtn.onclick = async () => {
-            const phone = formatPhone(phoneInput.value);
-            if (phone.length < 10) {
-                showNotification('Введите корректный номер телефона', 'error');
+        document.getElementById('loginBtn').onclick = async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('Заполните все поля');
                 return;
             }
 
-            callBtn.disabled = true;
-            callBtn.textContent = '⏳ Звонок...';
-
             try {
+                const result = await auth.signInWithEmailAndPassword(email, password);
+                const user = result.user;
+
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                const userData = userDoc.data() || {};
+
+                localStorage.setItem('userData', JSON.stringify({
+                    uid: user.uid,
+                    name: userData.name || user.displayName,
+                    email: user.email,
+                    photoURL: userData.photoURL || user.photoURL
+                }));
+
+                showSuccess('✅ Вход выполнен!');
                 setTimeout(() => {
-                    showNotification(`📞 Звонок на ${phone} выполнен`, 'success');
-                    callBtn.disabled = false;
-                    callBtn.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-                        </svg>
-                        Получить звонок с кодом
-                    `;
-                }, 1500);
+                    window.location.href = 'index.html';
+                }, 1000);
 
             } catch (error) {
-                console.error('Call error:', error);
-                showNotification('❌ Ошибка звонка', 'error');
-                callBtn.disabled = false;
-                callBtn.innerHTML = `
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-                    </svg>
-                    Получить звонок с кодом
-                `;
+                console.error('Login error:', error);
+                showError('❌ Неверный email или пароль');
             }
         };
 
         // ========================================
-        // GOOGLE BUTTON
+        // GOOGLE LOGIN
         // ========================================
-        googleBtn.onclick = async () => {
+        document.getElementById('googleBtn').onclick = async () => {
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 const result = await auth.signInWithPopup(provider);
@@ -508,53 +591,59 @@
                     });
                 }
 
-                showNotification('✅ Вход выполнен!', 'success');
+                localStorage.setItem('userData', JSON.stringify({
+                    uid: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL
+                }));
+
+                showSuccess('✅ Вход через Google выполнен!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
 
             } catch (error) {
                 console.error('Google login error:', error);
-                showNotification('❌ Ошибка входа через Google: ' + error.message, 'error');
+                showError('❌ ' + error.message);
+            }
+        };
+
+        // ========================================
+        // RESET PASSWORD
+        // ========================================
+        document.getElementById('resetBtn').onclick = async () => {
+            const email = document.getElementById('resetEmail').value.trim();
+
+            if (!email) {
+                showError('Введите email');
+                return;
+            }
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showSuccess('✅ Письмо отправлено на ' + email);
+                setTimeout(() => {
+                    document.getElementById('backToLoginBtn').click();
+                }, 2000);
+
+            } catch (error) {
+                console.error('Reset error:', error);
+                showError('❌ ' + error.message);
             }
         };
 
         // ========================================
         // ENTER KEY
         // ========================================
-        phoneInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') smsBtn.click();
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
         });
-
-        // ========================================
-        // PHONE FORMAT
-        // ========================================
-        phoneInput.addEventListener('input', function(e) {
-            let value = this.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.slice(0, 11);
-
-            if (value.length === 0) {
-                this.value = '';
-                return;
-            }
-
-            let formatted = '';
-            if (value.startsWith('7') || value.startsWith('8')) {
-                if (value.startsWith('8')) value = '7' + value.slice(1);
-                formatted = '+' + value.slice(0, 1) + ' ';
-                if (value.length > 1) formatted += '(' + value.slice(1, 4);
-                if (value.length > 4) formatted += ') ' + value.slice(4, 7);
-                if (value.length > 7) formatted += '-' + value.slice(7, 9);
-                if (value.length > 9) formatted += '-' + value.slice(9, 11);
-            } else {
-                formatted = '+' + value;
-            }
-
-            this.value = formatted;
+        document.getElementById('regPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('registerBtn').click();
         });
 
         console.log('✅ Страница входа загружена');
-        console.log('✅ Firebase инициализирован');
     </script>
 </body>
 </html>
