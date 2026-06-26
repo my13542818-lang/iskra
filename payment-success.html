@@ -32,85 +32,25 @@
     </header>
 
     <div class="success-page">
-        <div id="statusContent">
-            <div class="loader"></div>
-            <p style="color:var(--text-muted);">Подтверждение оплаты...</p>
-        </div>
+        <div class="success-icon">✅</div>
+        <h1>Оплата прошла успешно!</h1>
+        <p id="successMessage">Ваш баланс пополнен. Средства уже на счету.</p>
+        <a href="wallet.html" class="btn">💰 Перейти в кошелёк</a>
+        <a href="index.html" class="back-link">← Вернуться на главную</a>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
-            authDomain: "kyki-5e91a.firebaseapp.com",
-            projectId: "kyki-5e91a",
-            storageBucket: "kyki-5e91a.firebasestorage.app",
-            messagingSenderId: "315986487804",
-            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
-            measurementId: "G-ETWXCGL9HK"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
+        // Получаем параметры из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const amount = urlParams.get('amount');
-        const orderId = urlParams.get('order_id');
-        const status = urlParams.get('status');
+        const transactionId = urlParams.get('MNT_TRANSACTION_ID') || urlParams.get('transaction_id');
+        const amount = urlParams.get('MNT_AMOUNT') || urlParams.get('amount');
 
-        async function processPayment() {
-            const user = auth.currentUser;
-            if (!user) {
-                document.getElementById('statusContent').innerHTML = `
-                    <div class="success-icon">🔑</div>
-                    <h1>Войдите в аккаунт</h1>
-                    <p>Для зачисления средств необходимо войти</p>
-                    <a href="login.html" class="btn">Войти</a>
-                `;
-                return;
-            }
-
-            if (status === 'success' || status === 'paid') {
-                const sum = parseInt(amount) || 0;
-
-                if (sum > 0) {
-                    const userRef = db.collection("users").doc(user.uid);
-                    const userDoc = await userRef.get();
-                    const currentBalance = userDoc.data()?.balance || 0;
-
-                    await userRef.update({
-                        balance: currentBalance + sum
-                    });
-
-                    await db.collection("transactions").add({
-                        userId: user.uid,
-                        amount: sum,
-                        description: `Пополнение баланса (заказ ${orderId || '#'})`,
-                        status: 'completed',
-                        createdAt: new Date().toISOString()
-                    });
-                }
-
-                document.getElementById('statusContent').innerHTML = `
-                    <div class="success-icon">✅</div>
-                    <h1>Оплата прошла успешно!</h1>
-                    <p>Баланс пополнен на <strong>${sum.toLocaleString()} ₽</strong></p>
-                    <a href="wallet.html" class="btn">💰 Перейти в кошелёк</a>
-                    <a href="index.html" class="back-link">← Вернуться на главную</a>
-                `;
-
-            } else {
-                document.getElementById('statusContent').innerHTML = `
-                    <div class="success-icon" style="color:#E74C3C;">❌</div>
-                    <h1 style="color:#E74C3C;">Ошибка оплаты</h1>
-                    <p>Платеж не был завершён. Попробуйте снова.</p>
-                    <a href="payment-form.html" class="btn">🔄 Попробовать снова</a>
-                    <a href="index.html" class="back-link">← Вернуться на главную</a>
-                `;
-            }
+        if (amount) {
+            document.getElementById('successMessage').textContent = 
+                `Ваш баланс пополнен на ${Number(amount).toLocaleString()} ₽. Средства уже на счету.`;
         }
 
-        processPayment();
+        console.log('✅ Оплата успешна. Transaction ID:', transactionId);
     </script>
 </body>
 </html>
