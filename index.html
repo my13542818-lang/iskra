@@ -26,7 +26,10 @@
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 1; }
         }
-        .hero-content { position: relative; z-index: 1; }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
         .hero h1 {
             font-size: 48px;
             font-weight: 800;
@@ -52,8 +55,13 @@
             flex-wrap: wrap;
         }
 
-        .categories-section { padding: 40px 0; }
-        .categories-section h2 { font-size: 24px; margin-bottom: 24px; }
+        .categories-section {
+            padding: 40px 0;
+        }
+        .categories-section h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -79,9 +87,18 @@
             transform: translateY(-4px);
             box-shadow: var(--shadow-md);
         }
-        .category-card .icon { font-size: 32px; }
-        .category-card .name { font-size: 13px; font-weight: 500; text-align: center; }
-        .category-card .count { font-size: 11px; color: var(--text-muted); }
+        .category-card .icon {
+            font-size: 32px;
+        }
+        .category-card .name {
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .category-card .count {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
         .category-card .subscribe-btn {
             position: absolute;
             top: 6px;
@@ -93,10 +110,15 @@
             opacity: 0.5;
             transition: var(--transition);
         }
-        .category-card .subscribe-btn:hover { opacity: 1; transform: scale(1.2); }
-        .category-card .subscribe-btn.active { opacity: 1; color: var(--secondary); }
+        .category-card .subscribe-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        .category-card .subscribe-btn.active {
+            opacity: 1;
+            color: var(--secondary);
+        }
 
-        /* ===== FILTERS ===== */
         .filters-bar {
             display: flex;
             gap: 10px;
@@ -125,7 +147,9 @@
             border-color: var(--secondary);
             box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
         }
-        .filters-bar select option { background: var(--bg-card); }
+        .filters-bar select option {
+            background: var(--bg-card);
+        }
         .filters-bar .btn-reset {
             padding: 8px 20px;
             border-radius: var(--radius-full);
@@ -141,8 +165,9 @@
             color: var(--text-primary);
         }
 
-        /* ===== LISTINGS ===== */
-        .listings-section { padding: 40px 0; }
+        .listings-section {
+            padding: 40px 0;
+        }
         .listings-header {
             display: flex;
             justify-content: space-between;
@@ -151,7 +176,9 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .listings-header h2 { font-size: 24px; }
+        .listings-header h2 {
+            font-size: 24px;
+        }
 
         .listing-card {
             background: var(--bg-card);
@@ -186,7 +213,9 @@
             top: 12px;
             left: 12px;
         }
-        .listing-card .body { padding: 16px 20px 20px; }
+        .listing-card .body {
+            padding: 16px 20px 20px;
+        }
         .listing-card .title {
             font-size: 17px;
             font-weight: 600;
@@ -241,9 +270,18 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
-        .badge-purple { background: rgba(155, 89, 182, 0.2); color: #9B59B6; }
-        .badge-free { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .badge-success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ECC71;
+        }
+        .badge-purple {
+            background: rgba(155, 89, 182, 0.2);
+            color: #9B59B6;
+        }
+        .badge-free {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ECC71;
+        }
 
         .fab {
             position: fixed;
@@ -287,31 +325,65 @@
             padding: 60px 20px;
             grid-column: 1/-1;
         }
-        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
-        .empty-state h3 { font-size: 22px; margin-bottom: 8px; }
-        .empty-state p { color: var(--text-muted); }
+        .empty-state .icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+        }
+        .empty-state h3 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+        }
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 34px; }
-            .hero p { font-size: 16px; }
-            .filters-bar { flex-direction: column; align-items: stretch; }
+            .hero h1 {
+                font-size: 34px;
+            }
+            .hero p {
+                font-size: 16px;
+            }
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
             .filters-bar select,
-            .filters-bar input { width: 100%; }
-            .categories-grid { grid-template-columns: repeat(4, 1fr); }
+            .filters-bar input {
+                width: 100%;
+            }
+            .categories-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
         @media (max-width: 480px) {
-            .hero h1 { font-size: 28px; }
-            .categories-grid { grid-template-columns: repeat(3, 1fr); }
-            .fab .btn { width: 52px; height: 52px; font-size: 24px; }
-            .quick-links a { font-size: 11px; padding: 6px 14px; }
+            .hero h1 {
+                font-size: 28px;
+            }
+            .categories-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .fab .btn {
+                width: 52px;
+                height: 52px;
+                font-size: 24px;
+            }
+            .quick-links a {
+                font-size: 11px;
+                padding: 6px 14px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="header">
         <div class="header-container">
             <a href="index.html" class="logo">🍪 Куки</a>
@@ -325,7 +397,6 @@
         </div>
     </header>
 
-    <!-- ===== QUICK LINKS ===== -->
     <div class="container quick-links">
         <a href="history.html">👁️ История</a>
         <a href="compare.html">📊 Сравнение</a>
@@ -333,7 +404,6 @@
         <a href="cart.html">🛒 Корзина</a>
     </div>
 
-    <!-- ===== HERO ===== -->
     <section class="hero">
         <div class="container hero-content">
             <h1>Покупайте и продавайте <span>с удовольствием</span></h1>
@@ -345,7 +415,6 @@
         </div>
     </section>
 
-    <!-- ===== CATEGORIES ===== -->
     <section class="categories-section">
         <div class="container">
             <h2>📂 Категории</h2>
@@ -355,7 +424,6 @@
         </div>
     </section>
 
-    <!-- ===== FILTERS ===== -->
     <div class="container">
         <div class="filters-bar" id="filtersBar">
             <select id="categoryFilter">
@@ -408,7 +476,6 @@
         </div>
     </div>
 
-    <!-- ===== LISTINGS ===== -->
     <section class="listings-section" id="listings">
         <div class="container">
             <div class="listings-header">
@@ -424,12 +491,10 @@
         </div>
     </section>
 
-    <!-- ===== FAB ===== -->
     <div class="fab">
         <button class="btn btn-primary" id="fabBtn" title="Создать объявление">➕</button>
     </div>
 
-    <!-- ===== FOOTER ===== -->
     <footer style="padding:40px 0; border-top:1px solid var(--border-color); margin-top:40px;">
         <div class="container">
             <div class="grid-4">
@@ -463,13 +528,7 @@
         </div>
     </footer>
 
-    <!-- ======================================== -->
-    <!-- SCRIPTS -->
-    <!-- ======================================== -->
     <script>
-        // ========================================
-        // FIREBASE
-        // ========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
             authDomain: "kyki-5e91a.firebaseapp.com",
@@ -484,9 +543,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // ========================================
-        // STATE
-        // ========================================
         let currentUser = null;
         let userData = {};
         let allListings = [];
@@ -494,9 +550,6 @@
         let displayedCount = 9;
         const loadMoreStep = 9;
 
-        // ========================================
-        // DOM REFS
-        // ========================================
         const headerActions = document.getElementById('headerActions');
         const categoriesGrid = document.getElementById('categoriesGrid');
         const listingsGrid = document.getElementById('listingsGrid');
@@ -507,9 +560,6 @@
         const listingsCount = document.getElementById('listingsCount');
         const resetFiltersBtn = document.getElementById('resetFiltersBtn');
 
-        // ========================================
-        // AUTH
-        // ========================================
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
@@ -517,30 +567,30 @@
                 userData = doc.data() || {};
 
                 headerActions.innerHTML = `
-                    <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
-                    <a href="cart.html" class="btn btn-secondary btn-sm" title="Корзина">🛒</a>
-                    <a href="history.html" class="btn btn-secondary btn-sm" title="История">👁️</a>
-                    <a href="compare.html" class="btn btn-secondary btn-sm" title="Сравнение">📊</a>
-                    <div class="dropdown">
-                        <div class="header-user" id="userMenuBtn">
-                            <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
-                            <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
-                            <span style="font-size:10px; color:var(--text-muted);">▼</span>
+                        <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                        <a href="cart.html" class="btn btn-secondary btn-sm" title="Корзина">🛒</a>
+                        <a href="history.html" class="btn btn-secondary btn-sm" title="История">👁️</a>
+                        <a href="compare.html" class="btn btn-secondary btn-sm" title="Сравнение">📊</a>
+                        <div class="dropdown">
+                            <div class="header-user" id="userMenuBtn">
+                                <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                                <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                                <span style="font-size:10px; color:var(--text-muted);">▼</span>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="profile/index.html">👤 Мой профиль</a>
+                                <a href="profile/listings.html">📋 Мои объявления</a>
+                                <a href="orders.html">📦 Заказы</a>
+                                <a href="favorites.html">❤️ Избранное</a>
+                                <a href="chat.html">💬 Чаты</a>
+                                <a href="wallet.html">💳 Кошелёк</a>
+                                <a href="history.html">👁️ История</a>
+                                <a href="compare.html">📊 Сравнение</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" id="logoutBtn">🚪 Выйти</a>
+                            </div>
                         </div>
-                        <div class="dropdown-menu">
-                            <a href="profile/index.html">👤 Мой профиль</a>
-                            <a href="profile/listings.html">📋 Мои объявления</a>
-                            <a href="orders.html">📦 Заказы</a>
-                            <a href="favorites.html">❤️ Избранное</a>
-                            <a href="chat.html">💬 Чаты</a>
-                            <a href="wallet.html">💳 Кошелёк</a>
-                            <a href="history.html">👁️ История</a>
-                            <a href="compare.html">📊 Сравнение</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" id="logoutBtn">🚪 Выйти</a>
-                        </div>
-                    </div>
-                `;
+                    `;
 
                 document.getElementById('balanceBtn').onclick = () => window.location.href = 'wallet.html';
                 document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.reload());
@@ -549,17 +599,14 @@
             } else {
                 currentUser = null;
                 headerActions.innerHTML = `
-                    <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
-                    <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
-                `;
+                        <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
+                        <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
+                    `;
             }
             await loadCategories();
             await loadListings();
         });
 
-        // ========================================
-        // CATEGORIES
-        // ========================================
         async function loadCategories() {
             const snapshot = await db.collection("listings").where("status", "==", "active").get();
             const allListingsData = snapshot.docs.map(doc => doc.data());
@@ -582,12 +629,12 @@
                     allListingsData.length :
                     allListingsData.filter(l => l.category === cat.id).length;
                 return `
-                    <div class="category-card" data-category="${cat.id}">
-                        <span class="icon">${cat.icon}</span>
-                        <span class="name">${cat.name}</span>
-                        <span class="count">${count}</span>
-                    </div>
-                `;
+                        <div class="category-card" data-category="${cat.id}">
+                            <span class="icon">${cat.icon}</span>
+                            <span class="name">${cat.name}</span>
+                            <span class="count">${count}</span>
+                        </div>
+                    `;
             }).join('');
 
             categoriesGrid.querySelectorAll('.category-card').forEach(el => {
@@ -599,33 +646,25 @@
             });
         }
 
-        // ========================================
-        // LOAD LISTINGS
-        // ========================================
         async function loadListings() {
             try {
                 const snapshot = await db.collection("listings").where("status", "==", "active").get();
                 allListings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 applyFilters();
-
             } catch (error) {
                 console.error('Error loading listings:', error);
                 listingsGrid.innerHTML = `
-                    <div class="empty-state" style="grid-column:1/-1;">
-                        <span class="icon">❌</span>
-                        <h3>Ошибка загрузки</h3>
-                        <p>${error.message}</p>
-                        <button class="btn btn-primary" onclick="location.reload()">🔄 Обновить</button>
-                    </div>
-                `;
+                        <div class="empty-state" style="grid-column:1/-1;">
+                            <span class="icon">❌</span>
+                            <h3>Ошибка загрузки</h3>
+                            <p>${error.message}</p>
+                            <button class="btn btn-primary" onclick="location.reload()">🔄 Обновить</button>
+                        </div>
+                    `;
                 loadMoreBtn.style.display = 'none';
             }
         }
 
-        // ========================================
-        // APPLY FILTERS
-        // ========================================
         function applyFilters() {
             const category = document.getElementById('categoryFilter').value;
             const priceRange = document.getElementById('priceFilter').value;
@@ -636,7 +675,6 @@
 
             let results = [...allListings];
 
-            // Поиск
             if (search) {
                 results = results.filter(l =>
                     l.title.toLowerCase().includes(search) ||
@@ -644,12 +682,10 @@
                 );
             }
 
-            // Категория
             if (category !== 'all') {
                 results = results.filter(l => l.category === category);
             }
 
-            // Цена
             if (priceRange !== 'all') {
                 if (priceRange === 'free') {
                     results = results.filter(l => l.price === 0 || l.price === null);
@@ -664,17 +700,14 @@
                 }
             }
 
-            // Район
             if (district !== 'all') {
                 results = results.filter(l => l.district === district);
             }
 
-            // Состояние
             if (condition !== 'all') {
                 results = results.filter(l => l.condition === condition);
             }
 
-            // Сортировка
             switch (sort) {
                 case 'newest':
                     results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -699,22 +732,19 @@
             renderListings();
         }
 
-        // ========================================
-        // RENDER LISTINGS
-        // ========================================
         function renderListings() {
             const toShow = filteredListings.slice(0, displayedCount);
             listingsCount.textContent = `${filteredListings.length} объявлений`;
 
             if (toShow.length === 0) {
                 listingsGrid.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <span class="icon">🔍</span>
-                        <h3>Ничего не найдено</h3>
-                        <p>Попробуйте изменить параметры поиска или фильтры</p>
-                        <button class="btn btn-secondary" onclick="resetAllFilters()">🔄 Сбросить</button>
-                    </div>
-                `;
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <span class="icon">🔍</span>
+                            <h3>Ничего не найдено</h3>
+                            <p>Попробуйте изменить параметры поиска или фильтры</p>
+                            <button class="btn btn-secondary" onclick="resetAllFilters()">🔄 Сбросить</button>
+                        </div>
+                    `;
                 loadMoreBtn.style.display = 'none';
                 return;
             }
@@ -725,47 +755,44 @@
                 const priceLabel = isFree ? '🎁 Бесплатно' : Number(listing.price).toLocaleString() + ' ₽';
 
                 return `
-                    <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
-                        <div class="image">
-                            ${listing.mediaFiles && listing.mediaFiles.length > 0
-                                ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
-                                : listing.image && listing.image.startsWith('http')
-                                    ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
-                                    : '📦'
-                            }
-                            <div class="badge-top">
-                                ${listing.condition === 'new' ? '<span class="badge badge-success">✨ Новое</span>' : ''}
-                                ${isFree ? '<span class="badge badge-free">🎁 Бесплатно</span>' : ''}
-                                ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="body">
-                            <div class="title">${escapeHtml(listing.title)}</div>
-                            <div class="price ${priceClass}">${priceLabel}</div>
-                            <div class="meta">
-                                <span>📍 ${listing.location || 'Не указан'}</span>
-                                <span>👁️ ${listing.views || 0}</span>
-                                ${listing.district ? `<span>🏙️ ${escapeHtml(listing.district)}</span>` : ''}
-                            </div>
-                            <div class="footer">
-                                <div class="seller">
-                                    <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
-                                    <span>${listing.sellerName || 'Продавец'}</span>
-                                    ${listing.sellerVerified ? '✅' : ''}
+                        <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
+                            <div class="image">
+                                ${listing.mediaFiles && listing.mediaFiles.length > 0
+                                    ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
+                                    : listing.image && listing.image.startsWith('http')
+                                        ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
+                                        : '📦'
+                                }
+                                <div class="badge-top">
+                                    ${listing.condition === 'new' ? '<span class="badge badge-success">✨ Новое</span>' : ''}
+                                    ${isFree ? '<span class="badge badge-free">🎁 Бесплатно</span>' : ''}
+                                    ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
                                 </div>
-                                <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div class="body">
+                                <div class="title">${escapeHtml(listing.title)}</div>
+                                <div class="price ${priceClass}">${priceLabel}</div>
+                                <div class="meta">
+                                    <span>📍 ${listing.location || 'Не указан'}</span>
+                                    <span>👁️ ${listing.views || 0}</span>
+                                    ${listing.district ? `<span>🏙️ ${escapeHtml(listing.district)}</span>` : ''}
+                                </div>
+                                <div class="footer">
+                                    <div class="seller">
+                                        <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
+                                        <span>${listing.sellerName || 'Продавец'}</span>
+                                        ${listing.sellerVerified ? '✅' : ''}
+                                    </div>
+                                    <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
             }).join('');
 
             loadMoreBtn.style.display = displayedCount < filteredListings.length ? 'block' : 'none';
         }
 
-        // ========================================
-        // RESET ALL FILTERS
-        // ========================================
         function resetAllFilters() {
             document.getElementById('categoryFilter').value = 'all';
             document.getElementById('priceFilter').value = 'all';
@@ -777,17 +804,11 @@
             applyFilters();
         }
 
-        // ========================================
-        // LOAD MORE
-        // ========================================
         loadMoreBtn.onclick = () => {
             displayedCount += loadMoreStep;
             renderListings();
         };
 
-        // ========================================
-        // EVENTS
-        // ========================================
         document.getElementById('categoryFilter').onchange = () => { displayedCount = loadMoreStep;
             applyFilters(); };
         document.getElementById('priceFilter').onchange = () => { displayedCount = loadMoreStep;
@@ -804,9 +825,6 @@
                 applyFilters(); } };
         resetFiltersBtn.onclick = resetAllFilters;
 
-        // ========================================
-        // FAB
-        // ========================================
         fabBtn.onclick = () => {
             if (!currentUser) {
                 showNotification('Войдите в аккаунт', 'warning');
@@ -816,9 +834,6 @@
             window.location.href = 'post-ad.html';
         };
 
-        // ========================================
-        // NOTIFICATION
-        // ========================================
         function showNotification(message, type = 'info') {
             document.querySelectorAll('.notification').forEach(el => el.remove());
 
@@ -834,9 +849,6 @@
             }, 3500);
         }
 
-        // ========================================
-        // UTILITY
-        // ========================================
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
