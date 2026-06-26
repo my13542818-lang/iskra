@@ -8,8 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ===== ADMIN LAYOUT ===== */
         .admin-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -19,7 +19,6 @@
             margin: 0 auto;
         }
 
-        /* ===== SIDEBAR ===== */
         .admin-sidebar {
             background: var(--bg-card);
             border-right: 1px solid var(--border-color);
@@ -77,7 +76,6 @@
             color: var(--secondary);
         }
 
-        /* ===== CONTENT ===== */
         .admin-content {
             padding: 30px 32px;
             background: var(--bg-dark);
@@ -100,7 +98,6 @@
             margin-top: 2px;
         }
 
-        /* ===== STATS GRID ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -135,7 +132,6 @@
             opacity: 0.3;
         }
 
-        /* ===== TAB CONTENT ===== */
         .tab-panel {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -148,7 +144,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== TABLE ===== */
         .table-wrapper {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -211,18 +206,12 @@
             vertical-align: middle;
         }
         .table tr:hover td {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
         }
         .table tr:last-child td {
             border-bottom: none;
         }
 
-        .table .avatar-mini {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
         .table .status-badge {
             display: inline-block;
             padding: 2px 12px;
@@ -236,18 +225,6 @@
         .status-completed { background: rgba(46, 204, 113, 0.15); color: #2ECC71; }
         .status-rejected { background: rgba(231, 76, 60, 0.15); color: #E74C3C; }
         .status-archived { background: rgba(155, 89, 182, 0.15); color: #9B59B6; }
-
-        .table .role-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: var(--radius-full);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .role-admin { background: rgba(232, 67, 147, 0.15); color: #E84393; }
-        .role-moderator { background: rgba(52, 152, 219, 0.15); color: #3498DB; }
-        .role-user { background: rgba(155, 89, 182, 0.15); color: #9B59B6; }
-        .role-banned { background: rgba(231, 76, 60, 0.15); color: #E74C3C; }
 
         .table .btn-icon {
             width: 32px;
@@ -276,12 +253,6 @@
             color: #2ECC71;
         }
 
-        /* ===== SETTINGS ===== */
-        .settings-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
         .settings-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -309,7 +280,6 @@
             margin-top: 4px;
         }
 
-        /* ===== EMPTY ===== */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -326,13 +296,18 @@
             margin-bottom: 4px;
         }
 
-        /* ===== NOTIFICATION ===== */
         .notification {
-            position: fixed; bottom: 24px; right: 24px;
-            padding: 16px 24px; border-radius: var(--radius);
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            color: var(--text-primary); box-shadow: var(--shadow-lg);
-            z-index: 9999; max-width: 400px;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            max-width: 400px;
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
@@ -344,7 +319,88 @@
         .notification-warning { border-left: 4px solid #F39C12; }
         .notification-info { border-left: 4px solid #3498DB; }
 
-        /* ===== RESPONSIVE ===== */
+        /* ===== CHARTS ===== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        .chart-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .chart-card canvas {
+            max-height: 250px;
+        }
+
+        /* ===== BAD WORDS ===== */
+        .bad-words-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .bad-word-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: var(--radius-full);
+            color: #E74C3C;
+            font-size: 13px;
+        }
+        .bad-word-tag .remove {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+        .bad-word-tag .remove:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        /* ===== MODERATION ===== */
+        .moderation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .moderation-item:hover {
+            background: var(--bg-input);
+        }
+        .moderation-item:last-child {
+            border-bottom: none;
+        }
+        .moderation-item .left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .moderation-item .left .title {
+            font-weight: 500;
+        }
+        .moderation-item .left .meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .moderation-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+
         @media (max-width: 1024px) {
             .admin-layout {
                 grid-template-columns: 1fr;
@@ -373,7 +429,7 @@
             .admin-content {
                 padding: 20px 16px;
             }
-            .settings-grid {
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -408,12 +464,19 @@
                 font-size: 14px;
                 width: 20px;
             }
+            .moderation-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .moderation-item .actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="header">
         <div class="header-container">
             <a href="index.html" class="logo">🍪 Куки Admin</a>
@@ -423,87 +486,53 @@
         </div>
     </header>
 
-    <!-- ===== ADMIN LAYOUT ===== -->
     <div class="admin-layout">
 
-        <!-- ===== SIDEBAR ===== -->
         <aside class="admin-sidebar">
             <div class="brand">🍪 Куки Admin</div>
-            <button class="menu-item active" data-tab="dashboard">
-                <span class="icon">📊</span> Панель
-            </button>
-            <button class="menu-item" data-tab="users">
-                <span class="icon">👥</span> Пользователи
-                <span class="badge" id="usersBadge">0</span>
-            </button>
-            <button class="menu-item" data-tab="listings">
-                <span class="icon">📦</span> Объявления
-                <span class="badge" id="listingsBadge">0</span>
-            </button>
-            <button class="menu-item" data-tab="orders">
-                <span class="icon">🛒</span> Заказы
-                <span class="badge" id="ordersBadge">0</span>
-            </button>
-            <button class="menu-item" data-tab="withdrawals">
-                <span class="icon">💳</span> Выводы
-                <span class="badge" id="withdrawalsBadge">0</span>
-            </button>
-            <button class="menu-item" data-tab="promo">
-                <span class="icon">🎁</span> Промокоды
-            </button>
-            <button class="menu-item" data-tab="settings">
-                <span class="icon">⚙️</span> Настройки
-            </button>
-            <button class="menu-item" onclick="window.location.href='index.html'">
-                <span class="icon">🏠</span> На сайт
-            </button>
+            <button class="menu-item active" data-tab="dashboard"><span class="icon">📊</span> Панель</button>
+            <button class="menu-item" data-tab="users"><span class="icon">👥</span> Пользователи <span class="badge" id="usersBadge">0</span></button>
+            <button class="menu-item" data-tab="listings"><span class="icon">📦</span> Объявления <span class="badge" id="listingsBadge">0</span></button>
+            <button class="menu-item" data-tab="orders"><span class="icon">🛒</span> Заказы <span class="badge" id="ordersBadge">0</span></button>
+            <button class="menu-item" data-tab="withdrawals"><span class="icon">💳</span> Выводы <span class="badge" id="withdrawalsBadge">0</span></button>
+            <button class="menu-item" data-tab="moderation"><span class="icon">🛡️</span> Модерация <span class="badge" id="moderationBadge">0</span></button>
+            <button class="menu-item" data-tab="logs"><span class="icon">📜</span> Логи действий</button>
+            <button class="menu-item" data-tab="badwords"><span class="icon">🚫</span> Чёрный список слов</button>
+            <button class="menu-item" data-tab="mailing"><span class="icon">📧</span> Массовая рассылка</button>
+            <button class="menu-item" data-tab="promo"><span class="icon">🎁</span> Промокоды</button>
+            <button class="menu-item" data-tab="settings"><span class="icon">⚙️</span> Настройки</button>
+            <button class="menu-item" onclick="window.location.href='index.html'"><span class="icon">🏠</span> На сайт</button>
         </aside>
 
-        <!-- ===== CONTENT ===== -->
         <main class="admin-content">
 
-            <!-- ===== TAB: DASHBOARD ===== -->
+            <!-- ===== DASHBOARD ===== -->
             <div class="tab-panel active" id="tab-dashboard">
                 <div class="page-header">
                     <div>
                         <h1>📊 Панель управления</h1>
                         <div class="subtitle">Общая статистика платформы</div>
                     </div>
-                    <span style="color:var(--text-muted);font-size:14px;">
-                        🕐 Обновлено: <span id="lastUpdated">только что</span>
-                    </span>
+                    <span style="color:var(--text-muted);font-size:14px;">🕐 Обновлено: <span id="lastUpdated">только что</span></span>
                 </div>
 
                 <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card">
-                        <span class="icon">👥</span>
-                        <div class="value" id="statUsers">0</div>
-                        <div class="label">Пользователей</div>
+                    <div class="stat-card"><span class="icon">👥</span><div class="value" id="statUsers">0</div><div class="label">Пользователей</div></div>
+                    <div class="stat-card"><span class="icon">📦</span><div class="value" id="statListings">0</div><div class="label">Объявлений</div></div>
+                    <div class="stat-card"><span class="icon">🛒</span><div class="value" id="statOrders">0</div><div class="label">Заказов</div></div>
+                    <div class="stat-card"><span class="icon">💳</span><div class="value" id="statWithdrawals">0</div><div class="label">Заявок на вывод</div></div>
+                    <div class="stat-card"><span class="icon">💰</span><div class="value" id="statRevenue">0 ₽</div><div class="label">Выручка</div></div>
+                    <div class="stat-card"><span class="icon">⭐</span><div class="value" id="statAvgRating">0%</div><div class="label">Средний рейтинг</div></div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h4>📈 Заказы по дням</h4>
+                        <canvas id="ordersChart"></canvas>
                     </div>
-                    <div class="stat-card">
-                        <span class="icon">📦</span>
-                        <div class="value" id="statListings">0</div>
-                        <div class="label">Объявлений</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="icon">🛒</span>
-                        <div class="value" id="statOrders">0</div>
-                        <div class="label">Заказов</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="icon">💳</span>
-                        <div class="value" id="statWithdrawals">0</div>
-                        <div class="label">Заявок на вывод</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="icon">💰</span>
-                        <div class="value" id="statRevenue">0 ₽</div>
-                        <div class="label">Выручка</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="icon">⭐</span>
-                        <div class="value" id="statAvgRating">0%</div>
-                        <div class="label">Средний рейтинг</div>
+                    <div class="chart-card">
+                        <h4>📊 Категории объявлений</h4>
+                        <canvas id="categoriesChart"></canvas>
                     </div>
                 </div>
 
@@ -519,13 +548,10 @@
                 </div>
             </div>
 
-            <!-- ===== TAB: USERS ===== -->
+            <!-- ===== USERS ===== -->
             <div class="tab-panel" id="tab-users">
                 <div class="page-header">
-                    <div>
-                        <h1>👥 Пользователи</h1>
-                        <div class="subtitle">Управление пользователями платформы</div>
-                    </div>
+                    <div><h1>👥 Пользователи</h1><div class="subtitle">Управление пользователями платформы</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -543,31 +569,17 @@
                     </div>
                     <div class="table-scroll">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Пользователь</th>
-                                    <th>Email</th>
-                                    <th>Баланс</th>
-                                    <th>Роль</th>
-                                    <th>Дата</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTable">
-                                <tr><td colspan="6" class="empty-state">Загрузка...</td></tr>
-                            </tbody>
+                            <thead><tr><th>Пользователь</th><th>Email</th><th>Баланс</th><th>Роль</th><th>Дата</th><th>Действия</th></tr></thead>
+                            <tbody id="usersTable"><tr><td colspan="6" class="empty-state">Загрузка...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== TAB: LISTINGS ===== -->
+            <!-- ===== LISTINGS ===== -->
             <div class="tab-panel" id="tab-listings">
                 <div class="page-header">
-                    <div>
-                        <h1>📦 Объявления</h1>
-                        <div class="subtitle">Управление объявлениями</div>
-                    </div>
+                    <div><h1>📦 Объявления</h1><div class="subtitle">Управление объявлениями</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -579,36 +591,23 @@
                                 <option value="active">Активные</option>
                                 <option value="inactive">Неактивные</option>
                                 <option value="archived">Архив</option>
+                                <option value="pending">На модерации</option>
                             </select>
                         </div>
                     </div>
                     <div class="table-scroll">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Название</th>
-                                    <th>Продавец</th>
-                                    <th>Цена</th>
-                                    <th>Статус</th>
-                                    <th>Просмотры</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="listingsTable">
-                                <tr><td colspan="6" class="empty-state">Загрузка...</td></tr>
-                            </tbody>
+                            <thead><tr><th>Название</th><th>Продавец</th><th>Цена</th><th>Статус</th><th>Просмотры</th><th>Действия</th></tr></thead>
+                            <tbody id="listingsTable"><tr><td colspan="6" class="empty-state">Загрузка...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== TAB: ORDERS ===== -->
+            <!-- ===== ORDERS ===== -->
             <div class="tab-panel" id="tab-orders">
                 <div class="page-header">
-                    <div>
-                        <h1>🛒 Заказы</h1>
-                        <div class="subtitle">Управление заказами</div>
-                    </div>
+                    <div><h1>🛒 Заказы</h1><div class="subtitle">Управление заказами</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -627,32 +626,17 @@
                     </div>
                     <div class="table-scroll">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Товар</th>
-                                    <th>Покупатель</th>
-                                    <th>Сумма</th>
-                                    <th>Тип</th>
-                                    <th>Статус</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTable">
-                                <tr><td colspan="7" class="empty-state">Загрузка...</td></tr>
-                            </tbody>
+                            <thead><tr><th>ID</th><th>Товар</th><th>Покупатель</th><th>Сумма</th><th>Тип</th><th>Статус</th><th>Действия</th></tr></thead>
+                            <tbody id="ordersTable"><tr><td colspan="7" class="empty-state">Загрузка...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== TAB: WITHDRAWALS ===== -->
+            <!-- ===== WITHDRAWALS ===== -->
             <div class="tab-panel" id="tab-withdrawals">
                 <div class="page-header">
-                    <div>
-                        <h1>💳 Заявки на вывод</h1>
-                        <div class="subtitle">Управление заявками на вывод средств</div>
-                    </div>
+                    <div><h1>💳 Заявки на вывод</h1><div class="subtitle">Управление заявками на вывод средств</div></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-header">
@@ -668,41 +652,113 @@
                     </div>
                     <div class="table-scroll">
                         <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Пользователь</th>
-                                    <th>Сумма</th>
-                                    <th>Метод</th>
-                                    <th>Реквизиты</th>
-                                    <th>Статус</th>
-                                    <th>Дата</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="withdrawalsTable">
-                                <tr><td colspan="8" class="empty-state">Загрузка...</td></tr>
-                            </tbody>
+                            <thead><tr><th>ID</th><th>Пользователь</th><th>Сумма</th><th>Метод</th><th>Реквизиты</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+                            <tbody id="withdrawalsTable"><tr><td colspan="8" class="empty-state">Загрузка...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== TAB: PROMO ===== -->
+            <!-- ===== MODERATION ===== -->
+            <div class="tab-panel" id="tab-moderation">
+                <div class="page-header">
+                    <div><h1>🛡️ Модерация объявлений</h1><div class="subtitle">Одобрение или отклонение новых объявлений</div></div>
+                </div>
+                <div class="table-wrapper">
+                    <div class="table-header">
+                        <h3>Объявления на модерации</h3>
+                        <div class="actions">
+                            <input type="text" id="moderationSearch" placeholder="🔍 Поиск..." style="width:200px;">
+                        </div>
+                    </div>
+                    <div id="moderationList">
+                        <div class="empty-state"><span class="icon">✅</span><h3>Нет объявлений на модерации</h3></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== LOGS ===== -->
+            <div class="tab-panel" id="tab-logs">
+                <div class="page-header">
+                    <div><h1>📜 Логи действий</h1><div class="subtitle">История действий на платформе</div></div>
+                    <button class="btn btn-danger btn-sm" id="clearLogsBtn">🗑️ Очистить логи</button>
+                </div>
+                <div class="table-wrapper">
+                    <div class="table-header">
+                        <h3>Список действий</h3>
+                        <div class="actions">
+                            <input type="text" id="logSearch" placeholder="🔍 Поиск..." style="width:200px;">
+                            <select id="logTypeFilter">
+                                <option value="all">Все типы</option>
+                                <option value="user">👤 Пользователи</option>
+                                <option value="listing">📦 Объявления</option>
+                                <option value="order">🛒 Заказы</option>
+                                <option value="admin">👑 Админ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead><tr><th>Время</th><th>Пользователь</th><th>Действие</th><th>Тип</th></tr></thead>
+                            <tbody id="logsTable"><tr><td colspan="4" class="empty-state">Загрузка...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== BAD WORDS ===== -->
+            <div class="tab-panel" id="tab-badwords">
+                <div class="page-header">
+                    <div><h1>🚫 Чёрный список слов</h1><div class="subtitle">Автоматическая фильтрация плохих слов</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
+                    <div class="settings-card">
+                        <h4>➕ Добавить слово</h4>
+                        <div class="form-group">
+                            <label>Слово или фраза</label>
+                            <input type="text" class="form-control" id="badWordInput" placeholder="Например: спам">
+                        </div>
+                        <button class="btn btn-primary" id="addBadWordBtn">✅ Добавить</button>
+                    </div>
+                    <div class="settings-card">
+                        <h4>📋 Список запрещённых слов</h4>
+                        <div class="bad-words-list" id="badWordsList">
+                            <div class="empty-state" style="padding:20px;"><p>Нет запрещённых слов</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== MAILING ===== -->
+            <div class="tab-panel" id="tab-mailing">
+                <div class="page-header">
+                    <div><h1>📧 Массовая рассылка</h1><div class="subtitle">Отправить письмо всем пользователям</div></div>
+                </div>
+                <div class="settings-card">
+                    <div class="form-group">
+                        <label>Тема письма</label>
+                        <input type="text" class="form-control" id="mailSubject" placeholder="Важное объявление">
+                    </div>
+                    <div class="form-group">
+                        <label>Текст письма</label>
+                        <textarea class="form-control" id="mailBody" rows="6" placeholder="Напишите текст письма..."></textarea>
+                    </div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <button class="btn btn-primary" id="sendMailBtn">📧 Отправить всем</button>
+                        <span style="color:var(--text-muted);font-size:13px;align-self:center;" id="mailCount">Всего пользователей: 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PROMO ===== -->
             <div class="tab-panel" id="tab-promo">
                 <div class="page-header">
-                    <div>
-                        <h1>🎁 Промокоды</h1>
-                        <div class="subtitle">Управление промокодами</div>
-                    </div>
+                    <div><h1>🎁 Промокоды</h1><div class="subtitle">Управление промокодами</div></div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
                     <div class="settings-card">
                         <h4>➕ Создать промокод</h4>
-                        <div class="form-group">
-                            <label>Код</label>
-                            <input type="text" class="form-control" id="promoCode" placeholder="SUMMER2024">
-                        </div>
+                        <div class="form-group"><label>Код</label><input type="text" class="form-control" id="promoCode" placeholder="SUMMER2024"></div>
                         <div class="form-group">
                             <label>Тип скидки</label>
                             <select class="form-control" id="promoType">
@@ -710,77 +766,38 @@
                                 <option value="fixed">₽ Фиксированная</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Значение</label>
-                            <input type="number" class="form-control" id="promoValue" placeholder="10">
-                        </div>
-                        <div class="form-group">
-                            <label>Бонус на баланс</label>
-                            <input type="number" class="form-control" id="promoBonus" placeholder="100">
-                        </div>
+                        <div class="form-group"><label>Значение</label><input type="number" class="form-control" id="promoValue" placeholder="10"></div>
+                        <div class="form-group"><label>Бонус на баланс</label><input type="number" class="form-control" id="promoBonus" placeholder="100"></div>
                         <button class="btn btn-primary" id="createPromoBtn">✅ Создать</button>
                     </div>
                     <div class="table-wrapper" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden;">
-                        <div class="table-header">
-                            <h3>Активные промокоды</h3>
-                        </div>
+                        <div class="table-header"><h3>Активные промокоды</h3></div>
                         <div class="table-scroll">
                             <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Код</th>
-                                        <th>Скидка</th>
-                                        <th>Бонус</th>
-                                        <th>Статус</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="promosTable">
-                                    <tr><td colspan="5" class="empty-state">Нет промокодов</td></tr>
-                                </tbody>
+                                <thead><tr><th>Код</th><th>Скидка</th><th>Бонус</th><th>Статус</th><th>Действия</th></tr></thead>
+                                <tbody id="promosTable"><tr><td colspan="5" class="empty-state">Нет промокодов</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== TAB: SETTINGS ===== -->
+            <!-- ===== SETTINGS ===== -->
             <div class="tab-panel" id="tab-settings">
                 <div class="page-header">
-                    <div>
-                        <h1>⚙️ Настройки</h1>
-                        <div class="subtitle">Настройки платформы</div>
-                    </div>
+                    <div><h1>⚙️ Настройки</h1><div class="subtitle">Настройки платформы</div></div>
                 </div>
-                <div class="settings-grid">
+                <div class="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
                     <div class="settings-card">
                         <h4>💰 Финансы</h4>
-                        <div class="form-group">
-                            <label>Комиссия платформы (%)</label>
-                            <input type="number" class="form-control" id="siteCommission" value="5">
-                            <div class="hint">Процент от каждой сделки</div>
-                        </div>
-                        <div class="form-group">
-                            <label>Минимальная сумма вывода</label>
-                            <input type="number" class="form-control" id="minWithdrawal" value="500">
-                            <div class="hint">Минимальная сумма для вывода средств</div>
-                        </div>
+                        <div class="form-group"><label>Комиссия платформы (%)</label><input type="number" class="form-control" id="siteCommission" value="5"><div class="hint">Процент от каждой сделки</div></div>
+                        <div class="form-group"><label>Минимальная сумма вывода</label><input type="number" class="form-control" id="minWithdrawal" value="500"><div class="hint">Минимальная сумма для вывода средств</div></div>
                     </div>
                     <div class="settings-card">
                         <h4>📋 Общие</h4>
-                        <div class="form-group">
-                            <label>Название платформы</label>
-                            <input type="text" class="form-control" id="siteName" value="Куки">
-                        </div>
-                        <div class="form-group">
-                            <label>Время модерации (часов)</label>
-                            <input type="number" class="form-control" id="moderationHours" value="24">
-                            <div class="hint">Время проверки объявлений</div>
-                        </div>
-                        <div class="form-group">
-                            <label>Максимум фото в объявлении</label>
-                            <input type="number" class="form-control" id="maxPhotos" value="10">
-                        </div>
+                        <div class="form-group"><label>Название платформы</label><input type="text" class="form-control" id="siteName" value="Куки"></div>
+                        <div class="form-group"><label>Время модерации (часов)</label><input type="number" class="form-control" id="moderationHours" value="24"><div class="hint">Время проверки объявлений</div></div>
+                        <div class="form-group"><label>Максимум фото в объявлении</label><input type="number" class="form-control" id="maxPhotos" value="10"></div>
                     </div>
                 </div>
                 <button class="btn btn-primary" id="saveSettingsBtn" style="margin-top:20px;">💾 Сохранить настройки</button>
@@ -812,6 +829,9 @@
         // ========================================
         let currentUser = null;
         let userData = {};
+        let badWords = [];
+        let logs = [];
+        let moderationList = [];
 
         // ========================================
         // DOM REFS
@@ -822,24 +842,18 @@
         // AUTH
         // ========================================
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!user) { window.location.href = 'login.html'; return; }
 
             const doc = await db.collection("users").doc(user.uid).get();
             userData = doc.data() || {};
 
-            // Проверка прав администратора
             if (userData.role !== 'admin') {
                 document.body.innerHTML = `
                     <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-dark);color:var(--text-primary);text-align:center;padding:20px;">
-                        <div>
-                            <div style="font-size:64px;margin-bottom:16px;">⛔</div>
-                            <h1 style="font-size:28px;margin-bottom:8px;">Доступ запрещён</h1>
-                            <p style="color:var(--text-muted);margin-bottom:20px;">У вас нет прав администратора</p>
-                            <a href="index.html" class="btn btn-primary">На главную</a>
-                        </div>
+                        <div><div style="font-size:64px;margin-bottom:16px;">⛔</div>
+                        <h1 style="font-size:28px;margin-bottom:8px;">Доступ запрещён</h1>
+                        <p style="color:var(--text-muted);margin-bottom:20px;">У вас нет прав администратора</p>
+                        <a href="index.html" class="btn btn-primary">На главную</a></div>
                     </div>
                 `;
                 return;
@@ -848,8 +862,8 @@
             setupHeader();
             await loadAllData();
             setupTabs();
+            setupCharts();
 
-            // Обновление времени
             document.getElementById('lastUpdated').textContent = new Date().toLocaleString('ru-RU');
         });
 
@@ -873,10 +887,7 @@
         function setupTabs() {
             const menuItems = document.querySelectorAll('.admin-sidebar .menu-item');
             const panels = {};
-
-            document.querySelectorAll('.tab-panel').forEach(p => {
-                panels[p.id] = p;
-            });
+            document.querySelectorAll('.tab-panel').forEach(p => { panels[p.id] = p; });
 
             menuItems.forEach(item => {
                 item.onclick = () => {
@@ -886,35 +897,12 @@
                     Object.values(panels).forEach(p => p.classList.remove('active'));
                     const panel = document.getElementById(`tab-${tab}`);
                     if (panel) panel.classList.add('active');
-
-                    // Обновляем данные при переключении вкладок
-                    if (tab === 'users') loadUsers();
-                    if (tab === 'listings') loadListings();
-                    if (tab === 'orders') loadOrders();
-                    if (tab === 'withdrawals') loadWithdrawals();
-                    if (tab === 'promo') loadPromos();
+                    if (tab === 'moderation') loadModeration();
+                    if (tab === 'logs') loadLogs();
+                    if (tab === 'badwords') loadBadWords();
+                    if (tab === 'mailing') loadMailCount();
                 };
             });
-        }
-
-        // ========================================
-        // UPDATE BADGES
-        // ========================================
-        function updateBadges() {
-            const usersBadge = document.getElementById('usersBadge');
-            const listingsBadge = document.getElementById('listingsBadge');
-            const ordersBadge = document.getElementById('ordersBadge');
-            const withdrawalsBadge = document.getElementById('withdrawalsBadge');
-
-            const userRows = document.querySelectorAll('#usersTable tr:not(.empty-state)');
-            const listingRows = document.querySelectorAll('#listingsTable tr:not(.empty-state)');
-            const orderRows = document.querySelectorAll('#ordersTable tr:not(.empty-state)');
-            const withdrawalRows = document.querySelectorAll('#withdrawalsTable tr:not(.empty-state)');
-
-            if (usersBadge) usersBadge.textContent = userRows.length || 0;
-            if (listingsBadge) listingsBadge.textContent = listingRows.length || 0;
-            if (ordersBadge) ordersBadge.textContent = orderRows.length || 0;
-            if (withdrawalsBadge) withdrawalsBadge.textContent = withdrawalRows.length || 0;
         }
 
         // ========================================
@@ -926,8 +914,13 @@
             await loadListings();
             await loadOrders();
             await loadWithdrawals();
+            await loadModeration();
+            await loadLogs();
+            await loadBadWords();
             await loadPromos();
             await loadSettings();
+            await loadMailCount();
+            updateBadges();
         }
 
         // ========================================
@@ -945,45 +938,32 @@
                 document.getElementById('statOrders').textContent = orders.size;
                 document.getElementById('statWithdrawals').textContent = withdrawals.size;
 
-                // Выручка
-                let revenue = 0;
-                let completed = 0;
-                let active = 0;
-                let totalRating = 0;
-                let ratingCount = 0;
+                let revenue = 0,
+                    completed = 0,
+                    active = 0,
+                    totalRating = 0,
+                    ratingCount = 0;
 
                 orders.forEach(doc => {
                     const data = doc.data();
-                    if (data.status === 'completed') {
-                        revenue += data.total || 0;
-                        completed++;
-                    }
+                    if (data.status === 'completed') { revenue += data.total || 0;
+                        completed++; }
                 });
 
-                listings.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status === 'active') active++;
-                });
+                listings.forEach(doc => { if (doc.data().status === 'active') active++; });
 
-                // Рейтинг
                 users.forEach(doc => {
                     const data = doc.data();
-                    if (data.rating && data.rating > 0) {
-                        totalRating += data.rating;
-                        ratingCount++;
-                    }
+                    if (data.rating && data.rating > 0) { totalRating += data.rating;
+                        ratingCount++; }
                 });
-
-                const avgRating = ratingCount > 0 ? Math.round(totalRating / ratingCount) : 0;
 
                 document.getElementById('statRevenue').textContent = revenue.toLocaleString() + ' ₽';
                 document.getElementById('statCompleted').textContent = completed;
                 document.getElementById('statActive').textContent = active;
-                document.getElementById('statAvgRating').textContent = avgRating + '%';
+                document.getElementById('statAvgRating').textContent = (ratingCount > 0 ? Math.round(totalRating / ratingCount) : 0) + '%';
 
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+            } catch (error) { console.error('Error loading stats:', error); }
         }
 
         // ========================================
@@ -993,22 +973,19 @@
             try {
                 const snapshot = await db.collection("users").orderBy("createdAt", "desc").get();
                 const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 const tbody = document.getElementById('usersTable');
+
                 if (users.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Нет пользователей</td></tr>`;
-                    updateBadges();
                     return;
                 }
 
                 tbody.innerHTML = users.map(u => `
                     <tr>
-                        <td>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <img src="${u.photoURL || 'https://ui-avatars.com/api/?name=' + (u.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar-mini">
-                                <span>${escapeHtml(u.name || 'Без имени')}</span>
-                            </div>
-                        </td>
+                        <td><div style="display:flex;align-items:center;gap:10px;">
+                            <img src="${u.photoURL || 'https://ui-avatars.com/api/?name=' + (u.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar-mini" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                            <span>${escapeHtml(u.name || 'Без имени')}</span>
+                        </div></td>
                         <td>${escapeHtml(u.email || '-')}</td>
                         <td>${(u.balance || 0).toLocaleString()} ₽</td>
                         <td>
@@ -1023,20 +1000,19 @@
                         <td>
                             <button class="btn-icon success" onclick="editBalance('${u.id}')" title="Изменить баланс">💰</button>
                             <button class="btn-icon danger" onclick="deleteUser('${u.id}')" title="Удалить">🗑️</button>
+                            <button class="btn-icon" onclick="resetUserPassword('${u.id}')" title="Сбросить пароль">🔑</button>
                         </td>
                     </tr>
                 `).join('');
 
-                // Обработка изменения роли
                 tbody.querySelectorAll('.role-select').forEach(select => {
                     select.onchange = async () => {
                         try {
                             await db.collection("users").doc(select.dataset.id).update({ role: select.value });
+                            await addLog('admin', `Изменил роль пользователя ${select.dataset.id} на ${select.value}`);
                             showNotification('✅ Роль обновлена', 'success');
                             updateBadges();
-                        } catch (error) {
-                            showNotification('❌ Ошибка', 'error');
-                        }
+                        } catch (error) { showNotification('❌ Ошибка', 'error'); }
                     };
                 });
 
@@ -1055,11 +1031,10 @@
             try {
                 const snapshot = await db.collection("listings").orderBy("createdAt", "desc").get();
                 const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 const tbody = document.getElementById('listingsTable');
+
                 if (listings.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Нет объявлений</td></tr>`;
-                    updateBadges();
                     return;
                 }
 
@@ -1068,10 +1043,14 @@
                         <td>${escapeHtml(l.title || 'Без названия')}</td>
                         <td>${escapeHtml(l.sellerName || l.sellerId?.substring(0,8) || '-')}</td>
                         <td>${(l.price || 0).toLocaleString()} ₽</td>
-                        <td><span class="status-badge ${l.status === 'active' ? 'status-active' : l.status === 'archived' ? 'status-archived' : 'status-inactive'}">${l.status || 'active'}</span></td>
+                        <td><span class="status-badge ${l.status === 'active' ? 'status-active' : l.status === 'archived' ? 'status-archived' : l.status === 'pending' ? 'status-pending' : 'status-inactive'}">${l.status || 'active'}</span></td>
                         <td>${l.views || 0}</td>
                         <td>
                             <button class="btn-icon success" onclick="toggleListingStatus('${l.id}', '${l.status || 'active'}')" title="Сменить статус">🔄</button>
+                            ${l.status === 'pending' ? `
+                                <button class="btn-icon success" onclick="approveListing('${l.id}')" title="Одобрить">✅</button>
+                                <button class="btn-icon danger" onclick="rejectListing('${l.id}')" title="Отклонить">❌</button>
+                            ` : ''}
                             <button class="btn-icon danger" onclick="deleteListing('${l.id}')" title="Удалить">🗑️</button>
                         </td>
                     </tr>
@@ -1092,11 +1071,10 @@
             try {
                 const snapshot = await db.collection("orders").orderBy("createdAt", "desc").get();
                 const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 const tbody = document.getElementById('ordersTable');
+
                 if (orders.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Нет заказов</td></tr>`;
-                    updateBadges();
                     return;
                 }
 
@@ -1109,21 +1087,11 @@
                         <td>${o.deliveryType === 'delivery' ? '🚚 Доставка' : '🤝 Встреча'}</td>
                         <td><span class="status-badge status-${o.status || 'pending'}">${getStatusText(o.status)}</span></td>
                         <td>
-                            ${o.status === 'pending' ? `
-                                <button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'paid')" title="Оплачен">✅</button>
-                            ` : ''}
-                            ${o.status === 'paid' ? `
-                                <button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'shipped')" title="Отправлен">🚚</button>
-                            ` : ''}
-                            ${o.status === 'shipped' ? `
-                                <button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'delivered')" title="Доставлен">📦</button>
-                            ` : ''}
-                            ${o.status === 'delivered' ? `
-                                <button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'completed')" title="Завершён">🎉</button>
-                            ` : ''}
-                            ${o.status !== 'completed' && o.status !== 'cancelled' ? `
-                                <button class="btn-icon danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" title="Отменить">❌</button>
-                            ` : ''}
+                            ${o.status === 'pending' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'paid')" title="Оплачен">✅</button>` : ''}
+                            ${o.status === 'paid' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'shipped')" title="Отправлен">🚚</button>` : ''}
+                            ${o.status === 'shipped' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'delivered')" title="Доставлен">📦</button>` : ''}
+                            ${o.status === 'delivered' ? `<button class="btn-icon success" onclick="updateOrderStatus('${o.id}', 'completed')" title="Завершён">🎉</button>` : ''}
+                            ${o.status !== 'completed' && o.status !== 'cancelled' ? `<button class="btn-icon danger" onclick="updateOrderStatus('${o.id}', 'cancelled')" title="Отменить">❌</button>` : ''}
                         </td>
                     </tr>
                 `).join('');
@@ -1143,11 +1111,10 @@
             try {
                 const snapshot = await db.collection("withdrawals").orderBy("createdAt", "desc").get();
                 const withdrawals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 const tbody = document.getElementById('withdrawalsTable');
+
                 if (withdrawals.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Нет заявок на вывод</td></tr>`;
-                    updateBadges();
                     return;
                 }
 
@@ -1178,14 +1145,200 @@
         }
 
         // ========================================
+        // MODERATION
+        // ========================================
+        async function loadModeration() {
+            try {
+                const snapshot = await db.collection("listings")
+                    .where("status", "==", "pending")
+                    .orderBy("createdAt", "desc")
+                    .get();
+
+                moderationList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const container = document.getElementById('moderationList');
+
+                if (moderationList.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><span class="icon">✅</span><h3>Нет объявлений на модерации</h3></div>`;
+                    document.getElementById('moderationBadge').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('moderationBadge').textContent = moderationList.length;
+
+                container.innerHTML = moderationList.map(item => `
+                    <div class="moderation-item">
+                        <div class="left">
+                            <div class="title">${escapeHtml(item.title)}</div>
+                            <div class="meta">
+                                👤 ${escapeHtml(item.sellerName || 'Продавец')} • 
+                                💰 ${Number(item.price).toLocaleString()} ₽ • 
+                                📅 ${item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-success btn-sm" onclick="approveListing('${item.id}')">✅ Одобрить</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectListing('${item.id}')">❌ Отклонить</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.open('product.html?id=${item.id}','_blank')">👁️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading moderation:', error);
+                document.getElementById('moderationList').innerHTML = `<div class="empty-state"><p>Ошибка загрузки</p></div>`;
+            }
+        }
+
+        // ========================================
+        // LOGS
+        // ========================================
+        async function loadLogs() {
+            try {
+                const snapshot = await db.collection("logs")
+                    .orderBy("timestamp", "desc")
+                    .limit(100)
+                    .get();
+
+                logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const tbody = document.getElementById('logsTable');
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Нет записей</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td style="white-space:nowrap;">${log.timestamp ? new Date(log.timestamp).toLocaleString() : '-'}</td>
+                        <td>${escapeHtml(log.userName || log.userId || 'Система')}</td>
+                        <td>${escapeHtml(log.action)}</td>
+                        <td><span class="status-badge status-${log.type || 'info'}">${log.type || 'info'}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                document.getElementById('logsTable').innerHTML = `<tr><td colspan="4" class="empty-state">Ошибка загрузки</td></tr>`;
+            }
+        }
+
+        // ========================================
+        // ADD LOG
+        // ========================================
+        async function addLog(userId, action, type = 'admin') {
+            try {
+                const userDoc = await db.collection("users").doc(userId).get();
+                const userName = userDoc.exists ? userDoc.data().name || userId : userId;
+
+                await db.collection("logs").add({
+                    userId: userId,
+                    userName: userName,
+                    action: action,
+                    type: type,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) { console.error('Error adding log:', error); }
+        }
+
+        // ========================================
+        // BAD WORDS
+        // ========================================
+        async function loadBadWords() {
+            try {
+                const doc = await db.collection("settings").doc("badwords").get();
+                badWords = doc.exists ? doc.data().words || [] : [];
+                renderBadWords();
+            } catch (error) { console.error('Error loading bad words:', error); }
+        }
+
+        function renderBadWords() {
+            const container = document.getElementById('badWordsList');
+            if (badWords.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding:20px;"><p>Нет запрещённых слов</p></div>`;
+                return;
+            }
+            container.innerHTML = badWords.map(word => `
+                <span class="bad-word-tag">
+                    ${escapeHtml(word)}
+                    <span class="remove" onclick="removeBadWord('${escapeHtml(word)}')">✕</span>
+                </span>
+            `).join('');
+        }
+
+        async function removeBadWord(word) {
+            badWords = badWords.filter(w => w !== word);
+            await db.collection("settings").doc("badwords").set({ words: badWords });
+            renderBadWords();
+            showNotification('✅ Слово удалено', 'success');
+        }
+
+        document.getElementById('addBadWordBtn').onclick = async () => {
+            const input = document.getElementById('badWordInput');
+            const word = input.value.trim().toLowerCase();
+            if (!word) { showNotification('Введите слово', 'error'); return; }
+            if (badWords.includes(word)) { showNotification('Слово уже есть', 'warning'); return; }
+
+            badWords.push(word);
+            await db.collection("settings").doc("badwords").set({ words: badWords });
+            input.value = '';
+            renderBadWords();
+            showNotification('✅ Слово добавлено', 'success');
+        };
+
+        // ========================================
+        // MAILING
+        // ========================================
+        async function loadMailCount() {
+            try {
+                const snapshot = await db.collection("users").get();
+                document.getElementById('mailCount').textContent = `Всего пользователей: ${snapshot.size}`;
+            } catch (error) { console.error('Error loading mail count:', error); }
+        }
+
+        document.getElementById('sendMailBtn').onclick = async () => {
+            const subject = document.getElementById('mailSubject').value.trim();
+            const body = document.getElementById('mailBody').value.trim();
+
+            if (!subject || !body) {
+                showNotification('Заполните тему и текст письма', 'error');
+                return;
+            }
+
+            if (!confirm(`Отправить письмо всем ${document.getElementById('mailCount').textContent}?`)) return;
+
+            try {
+                const snapshot = await db.collection("users").get();
+                const users = snapshot.docs.map(doc => doc.data().email).filter(email => email);
+
+                // Сохраняем рассылку в Firestore
+                await db.collection("mailings").add({
+                    subject: subject,
+                    body: body,
+                    recipients: users.length,
+                    sentAt: new Date().toISOString()
+                });
+
+                await addLog(currentUser.uid, `Отправил массовую рассылку (${users.length} пользователей)`);
+
+                showNotification(`✅ Письмо отправлено ${users.length} пользователям!`, 'success');
+                document.getElementById('mailSubject').value = '';
+                document.getElementById('mailBody').value = '';
+
+            } catch (error) {
+                console.error('Error sending mail:', error);
+                showNotification('❌ Ошибка отправки', 'error');
+            }
+        };
+
+        // ========================================
         // LOAD PROMOS
         // ========================================
         async function loadPromos() {
             try {
                 const snapshot = await db.collection("promocodes").orderBy("createdAt", "desc").get();
                 const promos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
                 const tbody = document.getElementById('promosTable');
+
                 if (promos.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Нет промокодов</td></tr>`;
                     return;
@@ -1204,9 +1357,7 @@
                     </tr>
                 `).join('');
 
-            } catch (error) {
-                console.error('Error loading promos:', error);
-            }
+            } catch (error) { console.error('Error loading promos:', error); }
         }
 
         // ========================================
@@ -1223,25 +1374,33 @@
                     document.getElementById('moderationHours').value = data.moderationHours || 24;
                     document.getElementById('maxPhotos').value = data.maxPhotos || 10;
                 }
-            } catch (error) {
-                console.error('Error loading settings:', error);
-            }
+            } catch (error) { console.error('Error loading settings:', error); }
         }
 
         // ========================================
-        // ACTIONS (глобальные функции для onclick)
+        // UPDATE BADGES
+        // ========================================
+        function updateBadges() {
+            const userRows = document.querySelectorAll('#usersTable tr:not(.empty-state)');
+            const listingRows = document.querySelectorAll('#listingsTable tr:not(.empty-state)');
+            const orderRows = document.querySelectorAll('#ordersTable tr:not(.empty-state)');
+            const withdrawalRows = document.querySelectorAll('#withdrawalsTable tr:not(.empty-state)');
+
+            document.getElementById('usersBadge').textContent = userRows.length || 0;
+            document.getElementById('listingsBadge').textContent = listingRows.length || 0;
+            document.getElementById('ordersBadge').textContent = orderRows.length || 0;
+            document.getElementById('withdrawalsBadge').textContent = withdrawalRows.length || 0;
+        }
+
+        // ========================================
+        // ACTIONS
         // ========================================
 
-        // ===== EDIT BALANCE =====
         window.editBalance = async (userId) => {
             const action = prompt('Что сделать?\n1 - Добавить\n2 - Вычесть\n3 - Установить');
             if (!action) return;
-
             const amount = parseInt(prompt('Сумма:'));
-            if (!amount || amount <= 0) {
-                showNotification('Введите корректную сумму', 'error');
-                return;
-            }
+            if (!amount || amount <= 0) { showNotification('Введите корректную сумму', 'error'); return; }
 
             try {
                 const userRef = db.collection("users").doc(userId);
@@ -1265,130 +1424,155 @@
                     createdAt: new Date().toISOString()
                 });
 
+                await addLog(currentUser.uid, `Изменил баланс пользователя ${userId} на ${newBalance} ₽`);
                 showNotification('✅ Баланс обновлён', 'success');
                 await loadUsers();
                 await loadStats();
                 updateBadges();
 
-            } catch (error) {
-                console.error('Error editing balance:', error);
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== DELETE USER =====
+        window.resetUserPassword = async (userId) => {
+            try {
+                const userDoc = await db.collection("users").doc(userId).get();
+                const email = userDoc.data()?.email;
+                if (!email) { showNotification('У пользователя нет email', 'error'); return; }
+
+                await auth.sendPasswordResetEmail(email);
+                await addLog(currentUser.uid, `Отправил ссылку на сброс пароля для ${email}`);
+                showNotification('✅ Ссылка на сброс пароля отправлена', 'success');
+
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
         window.deleteUser = async (userId) => {
             if (!confirm('Удалить пользователя навсегда?')) return;
             try {
                 await db.collection("users").doc(userId).delete();
+                await addLog(currentUser.uid, `Удалил пользователя ${userId}`);
                 showNotification('✅ Пользователь удалён', 'success');
                 await loadUsers();
                 await loadStats();
                 updateBadges();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== TOGGLE LISTING STATUS =====
+        window.approveListing = async (id) => {
+            try {
+                await db.collection("listings").doc(id).update({ status: 'active' });
+                await addLog(currentUser.uid, `Одобрил объявление ${id}`);
+                showNotification('✅ Объявление одобрено', 'success');
+                await loadListings();
+                await loadModeration();
+                await loadStats();
+                updateBadges();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
+        window.rejectListing = async (id) => {
+            if (!confirm('Отклонить объявление?')) return;
+            try {
+                await db.collection("listings").doc(id).update({ status: 'rejected' });
+                await addLog(currentUser.uid, `Отклонил объявление ${id}`);
+                showNotification('❌ Объявление отклонено', 'success');
+                await loadListings();
+                await loadModeration();
+                await loadStats();
+                updateBadges();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
         window.toggleListingStatus = async (id, currentStatus) => {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             try {
                 await db.collection("listings").doc(id).update({ status: newStatus });
+                await addLog(currentUser.uid, `Изменил статус объявления ${id} на ${newStatus}`);
                 showNotification(`✅ Статус изменён на ${newStatus}`, 'success');
                 await loadListings();
                 await loadStats();
                 updateBadges();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== DELETE LISTING =====
         window.deleteListing = async (id) => {
             if (!confirm('Удалить объявление навсегда?')) return;
             try {
                 await db.collection("listings").doc(id).delete();
+                await addLog(currentUser.uid, `Удалил объявление ${id}`);
                 showNotification('✅ Объявление удалено', 'success');
                 await loadListings();
                 await loadStats();
                 updateBadges();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== UPDATE ORDER STATUS =====
         window.updateOrderStatus = async (orderId, status) => {
             try {
-                await db.collection("orders").doc(orderId).update({
-                    status: status,
-                    updatedAt: new Date().toISOString()
-                });
+                await db.collection("orders").doc(orderId).update({ status: status, updatedAt: new Date().toISOString() });
+                await addLog(currentUser.uid, `Изменил статус заказа ${orderId} на ${status}`);
                 showNotification(`✅ Статус изменён на "${getStatusText(status)}"`, 'success');
                 await loadOrders();
                 await loadStats();
                 updateBadges();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== APPROVE WITHDRAWAL =====
         window.approveWithdrawal = async (id) => {
             if (!confirm('Одобрить вывод средств?')) return;
             try {
-                const doc = await db.collection("withdrawals").doc(id).get();
-                const data = doc.data();
-
-                await doc.ref.update({ status: 'completed' });
+                await db.collection("withdrawals").doc(id).update({ status: 'completed' });
+                await addLog(currentUser.uid, `Одобрил вывод ${id}`);
                 showNotification('✅ Вывод одобрен', 'success');
                 await loadWithdrawals();
                 await loadStats();
                 updateBadges();
-
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== REJECT WITHDRAWAL =====
         window.rejectWithdrawal = async (id) => {
             if (!confirm('Отклонить вывод? Средства вернутся пользователю.')) return;
             try {
                 const doc = await db.collection("withdrawals").doc(id).get();
                 const data = doc.data();
-
                 await doc.ref.update({ status: 'rejected' });
-
-                // Возвращаем деньги
                 const userRef = db.collection("users").doc(data.userId);
                 const userDoc = await userRef.get();
-                await userRef.update({
-                    balance: (userDoc.data()?.balance || 0) + data.amount
-                });
-
+                await userRef.update({ balance: (userDoc.data()?.balance || 0) + data.amount });
+                await addLog(currentUser.uid, `Отклонил вывод ${id}, средства возвращены`);
                 showNotification('❌ Вывод отклонён, средства возвращены', 'success');
                 await loadWithdrawals();
                 await loadStats();
                 updateBadges();
-
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== CREATE PROMO =====
+        window.togglePromo = async (id, active) => {
+            try {
+                await db.collection("promocodes").doc(id).update({ active });
+                await addLog(currentUser.uid, `Изменил статус промокода ${id}`);
+                showNotification('✅ Статус изменён', 'success');
+                await loadPromos();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
+        window.deletePromo = async (id) => {
+            if (!confirm('Удалить промокод?')) return;
+            try {
+                await db.collection("promocodes").doc(id).delete();
+                await addLog(currentUser.uid, `Удалил промокод ${id}`);
+                showNotification('✅ Промокод удалён', 'success');
+                await loadPromos();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
+        };
+
         document.getElementById('createPromoBtn').onclick = async () => {
             const code = document.getElementById('promoCode').value.trim().toUpperCase();
             const type = document.getElementById('promoType').value;
             const value = parseInt(document.getElementById('promoValue').value);
             const bonus = parseInt(document.getElementById('promoBonus').value) || 0;
 
-            if (!code || !value) {
-                showNotification('Заполните все поля', 'error');
-                return;
-            }
+            if (!code || !value) { showNotification('Заполните все поля', 'error'); return; }
 
             try {
                 await db.collection("promocodes").add({
@@ -1399,43 +1583,26 @@
                     active: true,
                     createdAt: new Date().toISOString()
                 });
-
                 document.getElementById('promoCode').value = '';
                 document.getElementById('promoValue').value = '';
                 document.getElementById('promoBonus').value = '';
-
+                await addLog(currentUser.uid, `Создал промокод ${code}`);
                 showNotification('✅ Промокод создан', 'success');
                 await loadPromos();
-
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== TOGGLE PROMO =====
-        window.togglePromo = async (id, active) => {
+        document.getElementById('clearLogsBtn').onclick = async () => {
+            if (!confirm('Очистить все логи?')) return;
             try {
-                await db.collection("promocodes").doc(id).update({ active });
-                showNotification('✅ Статус изменён', 'success');
-                await loadPromos();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
+                const snapshot = await db.collection("logs").get();
+                snapshot.forEach(doc => doc.ref.delete());
+                await addLog(currentUser.uid, 'Очистил логи');
+                showNotification('✅ Логи очищены', 'success');
+                await loadLogs();
+            } catch (error) { showNotification('❌ Ошибка', 'error'); }
         };
 
-        // ===== DELETE PROMO =====
-        window.deletePromo = async (id) => {
-            if (!confirm('Удалить промокод?')) return;
-            try {
-                await db.collection("promocodes").doc(id).delete();
-                showNotification('✅ Промокод удалён', 'success');
-                await loadPromos();
-            } catch (error) {
-                showNotification('❌ Ошибка', 'error');
-            }
-        };
-
-        // ===== SAVE SETTINGS =====
         document.getElementById('saveSettingsBtn').onclick = async () => {
             try {
                 await db.collection("settings").doc("platform").set({
@@ -1446,107 +1613,64 @@
                     maxPhotos: parseInt(document.getElementById('maxPhotos').value) || 10,
                     updatedAt: new Date().toISOString()
                 });
+                await addLog(currentUser.uid, 'Обновил настройки платформы');
                 showNotification('✅ Настройки сохранены', 'success');
-            } catch (error) {
-                showNotification('❌ Ошибка сохранения', 'error');
-            }
+            } catch (error) { showNotification('❌ Ошибка сохранения', 'error'); }
         };
 
         // ========================================
-        // SEARCH/FILTER
+        // CHARTS
         // ========================================
-        document.getElementById('userSearch')?.addEventListener('input', filterUsers);
-        document.getElementById('userRoleFilter')?.addEventListener('change', filterUsers);
+        function setupCharts() {
+            // График заказов
+            const ctx1 = document.getElementById('ordersChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    datasets: [{
+                        label: 'Заказы',
+                        data: [12, 19, 15, 22, 28, 18, 14],
+                        borderColor: '#E84393',
+                        backgroundColor: 'rgba(232,67,147,0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
 
-        function filterUsers() {
-            const search = document.getElementById('userSearch').value.toLowerCase();
-            const role = document.getElementById('userRoleFilter').value;
-            const rows = document.querySelectorAll('#usersTable tr');
-
-            rows.forEach(row => {
-                if (row.querySelector('.empty-state')) return;
-                const text = row.textContent.toLowerCase();
-                const roleSelect = row.querySelector('.role-select');
-                const rowRole = roleSelect ? roleSelect.value : '';
-
-                let show = true;
-                if (search && !text.includes(search)) show = false;
-                if (role !== 'all' && rowRole !== role) show = false;
-
-                row.style.display = show ? '' : 'none';
+            // График категорий
+            const ctx2 = document.getElementById('categoriesChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Электроника', 'Одежда', 'Авто', 'Недвижимость', 'Услуги', 'Другое'],
+                    datasets: [{
+                        data: [35, 20, 15, 12, 10, 8],
+                        backgroundColor: ['#E84393', '#9B59B6', '#3498DB', '#2ECC71', '#F1C40F', '#E74C3C']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#C4B5D8' }
+                        }
+                    }
+                }
             });
         }
-
-        document.getElementById('listingSearch')?.addEventListener('input', filterListings);
-        document.getElementById('listingStatusFilter')?.addEventListener('change', filterListings);
-
-        function filterListings() {
-            const search = document.getElementById('listingSearch').value.toLowerCase();
-            const status = document.getElementById('listingStatusFilter').value;
-            const rows = document.querySelectorAll('#listingsTable tr');
-
-            rows.forEach(row => {
-                if (row.querySelector('.empty-state')) return;
-                const text = row.textContent.toLowerCase();
-                const statusEl = row.querySelector('.status-badge');
-                const rowStatus = statusEl ? statusEl.textContent.toLowerCase() : '';
-
-                let show = true;
-                if (search && !text.includes(search)) show = false;
-                if (status !== 'all' && !rowStatus.includes(status)) show = false;
-
-                row.style.display = show ? '' : 'none';
-            });
-        }
-
-        document.getElementById('orderStatusFilter')?.addEventListener('change', function() {
-            const status = this.value;
-            const rows = document.querySelectorAll('#ordersTable tr');
-
-            rows.forEach(row => {
-                if (row.querySelector('.empty-state')) return;
-                const statusEl = row.querySelector('.status-badge');
-                const rowStatus = statusEl ? statusEl.textContent.trim() : '';
-
-                let show = true;
-                if (status !== 'all') {
-                    const statusMap = {
-                        'pending': '⏳ Ожидает',
-                        'paid': '✅ Оплачен',
-                        'shipped': '🚚 Отправлен',
-                        'delivered': '📦 Доставлен',
-                        'completed': '🎉 Завершён',
-                        'cancelled': '❌ Отменён'
-                    };
-                    if (!rowStatus.includes(statusMap[status])) show = false;
-                }
-
-                row.style.display = show ? '' : 'none';
-            });
-        });
-
-        document.getElementById('withdrawalStatusFilter')?.addEventListener('change', function() {
-            const status = this.value;
-            const rows = document.querySelectorAll('#withdrawalsTable tr');
-
-            rows.forEach(row => {
-                if (row.querySelector('.empty-state')) return;
-                const statusEl = row.querySelector('.status-badge');
-                const rowStatus = statusEl ? statusEl.textContent.trim() : '';
-
-                let show = true;
-                if (status !== 'all') {
-                    const statusMap = {
-                        'pending': '⏳ Ожидает',
-                        'completed': '✅ Выполнено',
-                        'rejected': '❌ Отклонено'
-                    };
-                    if (!rowStatus.includes(statusMap[status])) show = false;
-                }
-
-                row.style.display = show ? '' : 'none';
-            });
-        });
 
         // ========================================
         // UTILITY
@@ -1570,12 +1694,10 @@
 
         function showNotification(message, type = 'info') {
             document.querySelectorAll('.notification').forEach(el => el.remove());
-
             const notification = document.createElement('div');
             notification.className = `notification notification-${type}`;
             notification.textContent = message;
             document.body.appendChild(notification);
-
             setTimeout(() => {
                 notification.style.opacity = '0';
                 notification.style.transform = 'translateX(100px)';
@@ -1583,7 +1705,76 @@
             }, 3500);
         }
 
-        console.log('✅ Admin panel loaded');
+        // ========================================
+        // SEARCH / FILTER
+        // ========================================
+        document.getElementById('userSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('#usersTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('userRoleFilter')?.addEventListener('change', function() {
+            const role = this.value;
+            document.querySelectorAll('#usersTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const select = row.querySelector('.role-select');
+                const rowRole = select ? select.value : '';
+                row.style.display = (role === 'all' || rowRole === role) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('listingSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('#listingsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('listingStatusFilter')?.addEventListener('change', function() {
+            const status = this.value;
+            document.querySelectorAll('#listingsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const badge = row.querySelector('.status-badge');
+                const rowStatus = badge ? badge.textContent.toLowerCase() : '';
+                let show = status === 'all';
+                if (status === 'active' && rowStatus.includes('active')) show = true;
+                if (status === 'inactive' && rowStatus.includes('inactive')) show = true;
+                if (status === 'archived' && rowStatus.includes('archived')) show = true;
+                if (status === 'pending' && rowStatus.includes('pending')) show = true;
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
+        document.getElementById('logSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('#logsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('logTypeFilter')?.addEventListener('change', function() {
+            const type = this.value;
+            document.querySelectorAll('#logsTable tr').forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const badge = row.querySelector('.status-badge');
+                const rowType = badge ? badge.textContent.toLowerCase() : '';
+                row.style.display = (type === 'all' || rowType.includes(type)) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('moderationSearch')?.addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            document.querySelectorAll('.moderation-item').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(search) ? '' : 'none';
+            });
+        });
+
+        console.log('✅ Admin panel loaded with new features!');
     </script>
 </body>
 </html>
