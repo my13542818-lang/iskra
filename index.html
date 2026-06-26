@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        /* ===== HERO ===== */
         .hero {
             padding: 60px 0 40px;
             text-align: center;
@@ -27,10 +26,7 @@
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 1; }
         }
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
+        .hero-content { position: relative; z-index: 1; }
         .hero h1 {
             font-size: 48px;
             font-weight: 800;
@@ -56,14 +52,8 @@
             flex-wrap: wrap;
         }
 
-        /* ===== CATEGORIES ===== */
-        .categories-section {
-            padding: 40px 0;
-        }
-        .categories-section h2 {
-            font-size: 24px;
-            margin-bottom: 24px;
-        }
+        .categories-section { padding: 40px 0; }
+        .categories-section h2 { font-size: 24px; margin-bottom: 24px; }
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -89,18 +79,9 @@
             transform: translateY(-4px);
             box-shadow: var(--shadow-md);
         }
-        .category-card .icon {
-            font-size: 32px;
-        }
-        .category-card .name {
-            font-size: 13px;
-            font-weight: 500;
-            text-align: center;
-        }
-        .category-card .count {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
+        .category-card .icon { font-size: 32px; }
+        .category-card .name { font-size: 13px; font-weight: 500; text-align: center; }
+        .category-card .count { font-size: 11px; color: var(--text-muted); }
         .category-card .subscribe-btn {
             position: absolute;
             top: 6px;
@@ -112,19 +93,56 @@
             opacity: 0.5;
             transition: var(--transition);
         }
-        .category-card .subscribe-btn:hover {
-            opacity: 1;
-            transform: scale(1.2);
+        .category-card .subscribe-btn:hover { opacity: 1; transform: scale(1.2); }
+        .category-card .subscribe-btn.active { opacity: 1; color: var(--secondary); }
+
+        /* ===== FILTERS ===== */
+        .filters-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            align-items: center;
         }
-        .category-card .subscribe-btn.active {
-            opacity: 1;
-            color: var(--secondary);
+        .filters-bar select,
+        .filters-bar input {
+            padding: 8px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 13px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .filters-bar select:focus,
+        .filters-bar input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
+        }
+        .filters-bar select option { background: var(--bg-card); }
+        .filters-bar .btn-reset {
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+        }
+        .filters-bar .btn-reset:hover {
+            border-color: var(--secondary);
+            color: var(--text-primary);
         }
 
         /* ===== LISTINGS ===== */
-        .listings-section {
-            padding: 40px 0;
-        }
+        .listings-section { padding: 40px 0; }
         .listings-header {
             display: flex;
             justify-content: space-between;
@@ -133,33 +151,8 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .listings-header h2 {
-            font-size: 24px;
-        }
-        .listings-filters {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .listings-filters select,
-        .listings-filters input {
-            padding: 10px 18px;
-            background: var(--bg-input);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-full);
-            color: var(--text-primary);
-            outline: none;
-            font-size: 13px;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        .listings-filters select:focus,
-        .listings-filters input:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.15);
-        }
+        .listings-header h2 { font-size: 24px; }
 
-        /* ===== LISTING CARD ===== */
         .listing-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -193,9 +186,7 @@
             top: 12px;
             left: 12px;
         }
-        .listing-card .body {
-            padding: 16px 20px 20px;
-        }
+        .listing-card .body { padding: 16px 20px 20px; }
         .listing-card .title {
             font-size: 17px;
             font-weight: 600;
@@ -210,6 +201,9 @@
             font-weight: 800;
             color: var(--secondary);
             margin: 8px 0;
+        }
+        .listing-card .price.free {
+            color: #2ECC71;
         }
         .listing-card .meta {
             display: flex;
@@ -238,7 +232,34 @@
             object-fit: cover;
         }
 
-        /* ===== QUICK LINKS ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+        .badge-purple { background: rgba(155, 89, 182, 0.2); color: #9B59B6; }
+        .badge-free { background: rgba(46, 204, 113, 0.2); color: #2ECC71; }
+
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 500;
+        }
+        .fab .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 30px;
+            box-shadow: var(--shadow-xl);
+        }
+
         .quick-links {
             display: flex;
             gap: 16px;
@@ -261,34 +282,28 @@
             color: var(--text-primary);
         }
 
-        /* ===== FAB ===== */
-        .fab {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 500;
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1/-1;
         }
-        .fab .btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            padding: 0;
-            font-size: 30px;
-            box-shadow: var(--shadow-xl);
-        }
+        .empty-state .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 22px; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-muted); }
 
-        /* ===== RESPONSIVE ===== */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
         @media (max-width: 768px) {
             .hero h1 { font-size: 34px; }
             .hero p { font-size: 16px; }
+            .filters-bar { flex-direction: column; align-items: stretch; }
+            .filters-bar select,
+            .filters-bar input { width: 100%; }
             .categories-grid { grid-template-columns: repeat(4, 1fr); }
-            .listings-filters { width: 100%; }
-            .listings-filters select,
-            .listings-filters input { flex: 1; min-width: 100px; }
         }
         @media (max-width: 480px) {
-            .categories-grid { grid-template-columns: repeat(3, 1fr); }
             .hero h1 { font-size: 28px; }
+            .categories-grid { grid-template-columns: repeat(3, 1fr); }
             .fab .btn { width: 52px; height: 52px; font-size: 24px; }
             .quick-links a { font-size: 11px; padding: 6px 14px; }
         }
@@ -300,12 +315,10 @@
     <header class="header">
         <div class="header-container">
             <a href="index.html" class="logo">🍪 Куки</a>
-
             <div class="header-search">
                 <input type="text" id="searchInput" placeholder="🔍 Поиск товаров, услуг...">
                 <button id="searchBtn">Найти</button>
             </div>
-
             <div class="header-actions" id="headerActions">
                 <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
             </div>
@@ -342,34 +355,65 @@
         </div>
     </section>
 
+    <!-- ===== FILTERS ===== -->
+    <div class="container">
+        <div class="filters-bar" id="filtersBar">
+            <select id="categoryFilter">
+                <option value="all">Все категории</option>
+                <option value="электроника">📱 Электроника</option>
+                <option value="одежда">👕 Одежда</option>
+                <option value="обувь">👟 Обувь</option>
+                <option value="авто">🚗 Авто</option>
+                <option value="недвижимость">🏠 Недвижимость</option>
+                <option value="для дома">🛋️ Для дома</option>
+                <option value="спорт">⚽ Спорт</option>
+                <option value="игрушки">🧸 Игрушки</option>
+                <option value="услуги">🔧 Услуги</option>
+            </select>
+
+            <select id="priceFilter">
+                <option value="all">Все цены</option>
+                <option value="free">🎁 Бесплатные</option>
+                <option value="0-1000">До 1000 ₽</option>
+                <option value="1000-5000">1000-5000 ₽</option>
+                <option value="5000-20000">5000-20000 ₽</option>
+                <option value="20000-50000">20000-50000 ₽</option>
+                <option value="50000+">От 50000 ₽</option>
+            </select>
+
+            <select id="districtFilter">
+                <option value="all">Все районы</option>
+                <option value="центр">🏛️ Центр</option>
+                <option value="север">⬆️ Север</option>
+                <option value="юг">⬇️ Юг</option>
+                <option value="восток">➡️ Восток</option>
+                <option value="запад">⬅️ Запад</option>
+            </select>
+
+            <select id="conditionFilter">
+                <option value="all">Любое состояние</option>
+                <option value="new">✨ Новое</option>
+                <option value="used">🔄 Б/У</option>
+            </select>
+
+            <select id="sortFilter">
+                <option value="newest">🆕 Сначала новые</option>
+                <option value="price-asc">💰 По возрастанию</option>
+                <option value="price-desc">💰 По убыванию</option>
+                <option value="popular">🔥 Популярные</option>
+                <option value="rating">⭐ По рейтингу</option>
+            </select>
+
+            <button class="btn-reset" id="resetFiltersBtn">🔄 Сбросить</button>
+        </div>
+    </div>
+
     <!-- ===== LISTINGS ===== -->
     <section class="listings-section" id="listings">
         <div class="container">
             <div class="listings-header">
                 <h2>🔥 Актуальные объявления</h2>
-                <div class="listings-filters">
-                    <select id="categoryFilter">
-                        <option value="all">Все категории</option>
-                        <option value="электроника">📱 Электроника</option>
-                        <option value="одежда">👕 Одежда</option>
-                        <option value="обувь">👟 Обувь</option>
-                        <option value="авто">🚗 Авто</option>
-                        <option value="недвижимость">🏠 Недвижимость</option>
-                        <option value="для дома">🛋️ Для дома</option>
-                        <option value="спорт">⚽ Спорт</option>
-                        <option value="игрушки">🧸 Игрушки</option>
-                        <option value="услуги">🔧 Услуги</option>
-                    </select>
-                    <select id="sortFilter">
-                        <option value="newest">🆕 Сначала новые</option>
-                        <option value="price-asc">💰 По возрастанию</option>
-                        <option value="price-desc">💰 По убыванию</option>
-                        <option value="popular">🔥 Популярные</option>
-                    </select>
-                    <input type="number" id="priceMin" placeholder="Цена от" style="width:100px;">
-                    <input type="number" id="priceMax" placeholder="Цена до" style="width:100px;">
-                    <button class="btn btn-secondary btn-sm" id="applyPriceFilter">Применить</button>
-                </div>
+                <span style="color:var(--text-muted);font-size:14px;" id="listingsCount">0 объявлений</span>
             </div>
             <div class="grid-3" id="listingsGrid">
                 <div class="loading-spinner"></div>
@@ -419,6 +463,9 @@
         </div>
     </footer>
 
+    <!-- ======================================== -->
+    <!-- SCRIPTS -->
+    <!-- ======================================== -->
     <script>
         // ========================================
         // FIREBASE
@@ -442,10 +489,10 @@
         // ========================================
         let currentUser = null;
         let userData = {};
-        let listings = [];
+        let allListings = [];
+        let filteredListings = [];
         let displayedCount = 9;
         const loadMoreStep = 9;
-        let subscriptions = [];
 
         // ========================================
         // DOM REFS
@@ -456,12 +503,9 @@
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const sortFilter = document.getElementById('sortFilter');
-        const priceMin = document.getElementById('priceMin');
-        const priceMax = document.getElementById('priceMax');
-        const applyPriceFilter = document.getElementById('applyPriceFilter');
         const fabBtn = document.getElementById('fabBtn');
+        const listingsCount = document.getElementById('listingsCount');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
 
         // ========================================
         // AUTH
@@ -471,10 +515,6 @@
                 currentUser = user;
                 const doc = await db.collection("users").doc(user.uid).get();
                 userData = doc.data() || {};
-
-                // Загружаем подписки
-                const subDoc = await db.collection("subscriptions").doc(user.uid).get();
-                subscriptions = subDoc.exists ? subDoc.data().categories || [] : [];
 
                 headerActions.innerHTML = `
                     <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
@@ -522,7 +562,7 @@
         // ========================================
         async function loadCategories() {
             const snapshot = await db.collection("listings").where("status", "==", "active").get();
-            const allListings = snapshot.docs.map(doc => doc.data());
+            const allListingsData = snapshot.docs.map(doc => doc.data());
 
             const categories = [
                 { id: 'all', name: 'Все', icon: '🎯' },
@@ -539,17 +579,10 @@
 
             categoriesGrid.innerHTML = categories.map(cat => {
                 const count = cat.id === 'all' ?
-                    allListings.length :
-                    allListings.filter(l => l.category === cat.id).length;
-                const isSubscribed = currentUser && subscriptions.includes(cat.id);
-
+                    allListingsData.length :
+                    allListingsData.filter(l => l.category === cat.id).length;
                 return `
                     <div class="category-card" data-category="${cat.id}">
-                        ${currentUser ? `
-                            <button class="subscribe-btn ${isSubscribed ? 'active' : ''}" onclick="event.stopPropagation(); toggleSubscribe('${cat.id}')" title="Подписаться">
-                                ${isSubscribed ? '🔔' : '🔕'}
-                            </button>
-                        ` : ''}
                         <span class="icon">${cat.icon}</span>
                         <span class="name">${cat.name}</span>
                         <span class="count">${count}</span>
@@ -559,7 +592,7 @@
 
             categoriesGrid.querySelectorAll('.category-card').forEach(el => {
                 el.onclick = () => {
-                    categoryFilter.value = el.dataset.category;
+                    document.getElementById('categoryFilter').value = el.dataset.category;
                     displayedCount = loadMoreStep;
                     loadListings();
                 };
@@ -567,59 +600,79 @@
         }
 
         // ========================================
-        // TOGGLE SUBSCRIBE
-        // ========================================
-        window.toggleSubscribe = async (category) => {
-            if (!currentUser) {
-                showNotification('Войдите в аккаунт', 'warning');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const subRef = db.collection("subscriptions").doc(currentUser.uid);
-            const subDoc = await subRef.get();
-            let cats = subDoc.exists ? subDoc.data().categories || [] : [];
-
-            if (cats.includes(category)) {
-                cats = cats.filter(c => c !== category);
-                showNotification('❌ Отписка от категории', 'info');
-            } else {
-                cats.push(category);
-                showNotification('✅ Подписка на категорию оформлена!', 'success');
-            }
-
-            await subRef.set({ categories: cats, userId: currentUser.uid }, { merge: true });
-            subscriptions = cats;
-            await loadCategories();
-        };
-
-        // ========================================
-        // LISTINGS
+        // LOAD LISTINGS
         // ========================================
         async function loadListings() {
-            const category = categoryFilter.value;
-            const sort = sortFilter.value;
-            const search = searchInput.value.trim().toLowerCase();
-            const minPrice = parseInt(priceMin.value) || 0;
-            const maxPrice = parseInt(priceMax.value) || Infinity;
+            try {
+                const snapshot = await db.collection("listings").where("status", "==", "active").get();
+                allListings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            let query = db.collection("listings").where("status", "==", "active");
-            if (category !== 'all') {
-                query = query.where("category", "==", category);
+                applyFilters();
+
+            } catch (error) {
+                console.error('Error loading listings:', error);
+                listingsGrid.innerHTML = `
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        <span class="icon">❌</span>
+                        <h3>Ошибка загрузки</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="location.reload()">🔄 Обновить</button>
+                    </div>
+                `;
+                loadMoreBtn.style.display = 'none';
             }
+        }
 
-            const snapshot = await query.get();
-            let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // ========================================
+        // APPLY FILTERS
+        // ========================================
+        function applyFilters() {
+            const category = document.getElementById('categoryFilter').value;
+            const priceRange = document.getElementById('priceFilter').value;
+            const district = document.getElementById('districtFilter').value;
+            const condition = document.getElementById('conditionFilter').value;
+            const search = searchInput.value.trim().toLowerCase();
+            const sort = document.getElementById('sortFilter').value;
 
-            // Фильтры
+            let results = [...allListings];
+
+            // Поиск
             if (search) {
                 results = results.filter(l =>
                     l.title.toLowerCase().includes(search) ||
                     (l.description && l.description.toLowerCase().includes(search))
                 );
             }
-            if (minPrice > 0) results = results.filter(l => l.price >= minPrice);
-            if (maxPrice !== Infinity) results = results.filter(l => l.price <= maxPrice);
+
+            // Категория
+            if (category !== 'all') {
+                results = results.filter(l => l.category === category);
+            }
+
+            // Цена
+            if (priceRange !== 'all') {
+                if (priceRange === 'free') {
+                    results = results.filter(l => l.price === 0 || l.price === null);
+                } else {
+                    const [min, max] = priceRange.split('-').map(Number);
+                    if (priceRange.endsWith('+')) {
+                        const minVal = parseInt(priceRange);
+                        results = results.filter(l => l.price >= minVal);
+                    } else if (max) {
+                        results = results.filter(l => l.price >= min && l.price <= max);
+                    }
+                }
+            }
+
+            // Район
+            if (district !== 'all') {
+                results = results.filter(l => l.district === district);
+            }
+
+            // Состояние
+            if (condition !== 'all') {
+                results = results.filter(l => l.condition === condition);
+            }
 
             // Сортировка
             switch (sort) {
@@ -635,75 +688,94 @@
                 case 'popular':
                     results.sort((a, b) => (b.views || 0) - (a.views || 0));
                     break;
+                case 'rating':
+                    results.sort((a, b) => (b.sellerRating || 0) - (a.sellerRating || 0));
+                    break;
                 default:
                     results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             }
 
-            listings = results;
+            filteredListings = results;
             renderListings();
         }
 
+        // ========================================
+        // RENDER LISTINGS
+        // ========================================
         function renderListings() {
-            const toShow = listings.slice(0, displayedCount);
+            const toShow = filteredListings.slice(0, displayedCount);
+            listingsCount.textContent = `${filteredListings.length} объявлений`;
 
             if (toShow.length === 0) {
                 listingsGrid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
-                        <div class="icon">🔍</div>
+                        <span class="icon">🔍</span>
                         <h3>Ничего не найдено</h3>
                         <p>Попробуйте изменить параметры поиска или фильтры</p>
-                        <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+                        <button class="btn btn-secondary" onclick="resetAllFilters()">🔄 Сбросить</button>
                     </div>
                 `;
                 loadMoreBtn.style.display = 'none';
                 return;
             }
 
-            listingsGrid.innerHTML = toShow.map(listing => `
-                <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
-                    <div class="image">
-                        ${listing.mediaFiles && listing.mediaFiles.length > 0
-                            ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
-                            : listing.image && listing.image.startsWith('http')
-                                ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
-                                : '📦'
-                        }
-                        ${listing.condition === 'new' ? `<div class="badge-top"><span class="badge badge-success">✨ Новое</span></div>` : ''}
-                        ${listing.promotedAt ? `<div class="badge-top" style="left:auto;right:12px;"><span class="badge badge-purple">⭐ В ТОПе</span></div>` : ''}
-                    </div>
-                    <div class="body">
-                        <div class="title">${escapeHtml(listing.title)}</div>
-                        <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
-                        <div class="meta">
-                            <span>📍 ${listing.location || 'Не указан'}</span>
-                            <span>👁️ ${listing.views || 0}</span>
-                        </div>
-                        <div class="footer">
-                            <div class="seller">
-                                <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
-                                <span>${listing.sellerName || 'Продавец'}</span>
-                            </div>
-                            <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            listingsGrid.innerHTML = toShow.map(listing => {
+                const isFree = listing.price === 0 || listing.price === null;
+                const priceClass = isFree ? 'free' : '';
+                const priceLabel = isFree ? '🎁 Бесплатно' : Number(listing.price).toLocaleString() + ' ₽';
 
-            loadMoreBtn.style.display = displayedCount < listings.length ? 'block' : 'none';
+                return `
+                    <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
+                        <div class="image">
+                            ${listing.mediaFiles && listing.mediaFiles.length > 0
+                                ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
+                                : listing.image && listing.image.startsWith('http')
+                                    ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
+                                    : '📦'
+                            }
+                            <div class="badge-top">
+                                ${listing.condition === 'new' ? '<span class="badge badge-success">✨ Новое</span>' : ''}
+                                ${isFree ? '<span class="badge badge-free">🎁 Бесплатно</span>' : ''}
+                                ${listing.promotedAt ? '<span class="badge badge-purple">⭐ В ТОПе</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="body">
+                            <div class="title">${escapeHtml(listing.title)}</div>
+                            <div class="price ${priceClass}">${priceLabel}</div>
+                            <div class="meta">
+                                <span>📍 ${listing.location || 'Не указан'}</span>
+                                <span>👁️ ${listing.views || 0}</span>
+                                ${listing.district ? `<span>🏙️ ${escapeHtml(listing.district)}</span>` : ''}
+                            </div>
+                            <div class="footer">
+                                <div class="seller">
+                                    <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
+                                    <span>${listing.sellerName || 'Продавец'}</span>
+                                    ${listing.sellerVerified ? '✅' : ''}
+                                </div>
+                                <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            loadMoreBtn.style.display = displayedCount < filteredListings.length ? 'block' : 'none';
         }
 
         // ========================================
-        // RESET FILTERS
+        // RESET ALL FILTERS
         // ========================================
-        window.resetFilters = function() {
-            priceMin.value = '';
-            priceMax.value = '';
+        function resetAllFilters() {
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('priceFilter').value = 'all';
+            document.getElementById('districtFilter').value = 'all';
+            document.getElementById('conditionFilter').value = 'all';
+            document.getElementById('sortFilter').value = 'newest';
             searchInput.value = '';
-            categoryFilter.value = 'all';
-            sortFilter.value = 'newest';
             displayedCount = loadMoreStep;
-            loadListings();
-        };
+            applyFilters();
+        }
 
         // ========================================
         // LOAD MORE
@@ -716,16 +788,21 @@
         // ========================================
         // EVENTS
         // ========================================
-        categoryFilter.onchange = () => { displayedCount = loadMoreStep;
-            loadListings(); };
-        sortFilter.onchange = () => { displayedCount = loadMoreStep;
-            loadListings(); };
+        document.getElementById('categoryFilter').onchange = () => { displayedCount = loadMoreStep;
+            applyFilters(); };
+        document.getElementById('priceFilter').onchange = () => { displayedCount = loadMoreStep;
+            applyFilters(); };
+        document.getElementById('districtFilter').onchange = () => { displayedCount = loadMoreStep;
+            applyFilters(); };
+        document.getElementById('conditionFilter').onchange = () => { displayedCount = loadMoreStep;
+            applyFilters(); };
+        document.getElementById('sortFilter').onchange = () => { displayedCount = loadMoreStep;
+            applyFilters(); };
         searchBtn.onclick = () => { displayedCount = loadMoreStep;
-            loadListings(); };
+            applyFilters(); };
         searchInput.onkeypress = (e) => { if (e.key === 'Enter') { displayedCount = loadMoreStep;
-                loadListings(); } };
-        applyPriceFilter.onclick = () => { displayedCount = loadMoreStep;
-            loadListings(); };
+                applyFilters(); } };
+        resetFiltersBtn.onclick = resetAllFilters;
 
         // ========================================
         // FAB
