@@ -2,13 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Куки — Современная доска объявлений</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
         /* ===== HERO ===== */
         .hero {
@@ -33,7 +32,7 @@
             z-index: 1;
         }
         .hero h1 {
-            font-size: 52px;
+            font-size: 48px;
             font-weight: 800;
             margin-bottom: 16px;
             line-height: 1.1;
@@ -83,6 +82,7 @@
             transition: var(--transition);
             text-decoration: none;
             color: var(--text-primary);
+            position: relative;
         }
         .category-card:hover {
             border-color: var(--secondary);
@@ -100,6 +100,25 @@
         .category-card .count {
             font-size: 11px;
             color: var(--text-muted);
+        }
+        .category-card .subscribe-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            font-size: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+        .category-card .subscribe-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        .category-card .subscribe-btn.active {
+            opacity: 1;
+            color: var(--secondary);
         }
 
         /* ===== LISTINGS ===== */
@@ -138,9 +157,6 @@
         .listings-filters input:focus {
             border-color: var(--secondary);
             box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.15);
-        }
-        .listings-filters select option {
-            background: var(--bg-card);
         }
 
         /* ===== LISTING CARD ===== */
@@ -222,6 +238,29 @@
             object-fit: cover;
         }
 
+        /* ===== QUICK LINKS ===== */
+        .quick-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0 30px;
+        }
+        .quick-links a {
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .quick-links a:hover {
+            border-color: var(--secondary);
+            color: var(--text-primary);
+        }
+
         /* ===== FAB ===== */
         .fab {
             position: fixed;
@@ -251,366 +290,480 @@
             .categories-grid { grid-template-columns: repeat(3, 1fr); }
             .hero h1 { font-size: 28px; }
             .fab .btn { width: 52px; height: 52px; font-size: 24px; }
+            .quick-links a { font-size: 11px; padding: 6px 14px; }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header class="header">
-    <div class="header-container">
-        <a href="index.html" class="logo">🍪 Куки</a>
-        
-        <div class="header-search">
-            <input type="text" id="searchInput" placeholder="🔍 Поиск товаров, услуг...">
-            <button id="searchBtn">Найти</button>
-        </div>
-        
-        <div class="header-actions" id="headerActions">
-            <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
-        </div>
-    </div>
-</header>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">🍪 Куки</a>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
-    <div class="container hero-content">
-        <h1>Покупайте и продавайте <span>с удовольствием</span></h1>
-        <p>Куки — современная платформа для безопасных сделок. Тысячи объявлений по всей России.</p>
-        <div class="hero-actions">
-            <a href="post-ad.html" class="btn btn-primary btn-lg">📤 Разместить объявление</a>
-            <a href="#listings" class="btn btn-secondary btn-lg">🛍️ Смотреть товары</a>
-        </div>
-    </div>
-</section>
+            <div class="header-search">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск товаров, услуг...">
+                <button id="searchBtn">Найти</button>
+            </div>
 
-<!-- ===== CATEGORIES ===== -->
-<section class="categories-section">
-    <div class="container">
-        <h2>📂 Категории</h2>
-        <div class="categories-grid" id="categoriesGrid">
-            <div class="loading-spinner"></div>
-        </div>
-    </div>
-</section>
-
-<!-- ===== LISTINGS ===== -->
-<section class="listings-section" id="listings">
-    <div class="container">
-        <div class="listings-header">
-            <h2>🔥 Актуальные объявления</h2>
-            <div class="listings-filters">
-                <select id="categoryFilter">
-                    <option value="all">Все категории</option>
-                    <option value="электроника">📱 Электроника</option>
-                    <option value="одежда">👕 Одежда</option>
-                    <option value="обувь">👟 Обувь</option>
-                    <option value="авто">🚗 Авто</option>
-                    <option value="недвижимость">🏠 Недвижимость</option>
-                    <option value="для дома">🛋️ Для дома</option>
-                    <option value="спорт">⚽ Спорт</option>
-                    <option value="игрушки">🧸 Игрушки</option>
-                    <option value="услуги">🔧 Услуги</option>
-                </select>
-                <select id="sortFilter">
-                    <option value="newest">🆕 Сначала новые</option>
-                    <option value="price-asc">💰 По возрастанию</option>
-                    <option value="price-desc">💰 По убыванию</option>
-                    <option value="popular">🔥 Популярные</option>
-                </select>
+            <div class="header-actions" id="headerActions">
+                <div class="loading-spinner" style="width:24px;height:24px;margin:0;"></div>
             </div>
         </div>
-        <div class="grid-3" id="listingsGrid">
-            <div class="loading-spinner"></div>
-        </div>
-        <div style="text-align:center; margin-top: 32px;">
-            <button class="btn btn-secondary" id="loadMoreBtn" style="display:none;">Показать ещё</button>
-        </div>
+    </header>
+
+    <!-- ===== QUICK LINKS ===== -->
+    <div class="container quick-links">
+        <a href="history.html">👁️ История</a>
+        <a href="compare.html">📊 Сравнение</a>
+        <a href="favorites.html">❤️ Избранное</a>
+        <a href="cart.html">🛒 Корзина</a>
     </div>
-</section>
 
-<!-- ===== FAB ===== -->
-<div class="fab">
-    <button class="btn btn-primary" id="fabBtn" title="Создать объявление">➕</button>
-</div>
-
-<!-- ===== FOOTER ===== -->
-<footer style="padding:40px 0; border-top:1px solid var(--border-color); margin-top:40px;">
-    <div class="container">
-        <div class="grid-4">
-            <div>
-                <h4 style="color:var(--text-secondary); margin-bottom:12px;">🍪 Куки</h4>
-                <p style="color:var(--text-muted); font-size:14px;">Современная платформа для безопасных сделок.</p>
-            </div>
-            <div>
-                <h4 style="color:var(--text-secondary); margin-bottom:12px;">Покупателям</h4>
-                <a href="favorites.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">❤️ Избранное</a>
-                <a href="orders.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📦 Заказы</a>
-                <a href="payment.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">💳 Оплата</a>
-            </div>
-            <div>
-                <h4 style="color:var(--text-secondary); margin-bottom:12px;">Продавцам</h4>
-                <a href="post-ad.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📤 Разместить</a>
-                <a href="profile/index.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">👤 Профиль</a>
-                <a href="promotion.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🚀 Продвижение</a>
-            </div>
-            <div>
-                <h4 style="color:var(--text-secondary); margin-bottom:12px;">О нас</h4>
-                <a href="offer.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📜 Оферта</a>
-                <a href="privacy.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🔒 Конфиденциальность</a>
-                <a href="support-chat.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🎫 Поддержка</a>
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="container hero-content">
+            <h1>Покупайте и продавайте <span>с удовольствием</span></h1>
+            <p>Куки — современная платформа для безопасных сделок. Тысячи объявлений по всей России.</p>
+            <div class="hero-actions">
+                <a href="post-ad.html" class="btn btn-primary btn-lg">📤 Разместить объявление</a>
+                <a href="#listings" class="btn btn-secondary btn-lg">🛍️ Смотреть товары</a>
             </div>
         </div>
-        <div style="text-align:center; padding-top:24px; margin-top:24px; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:13px;">
-            © 2026 Куки. Все права защищены. 💜
+    </section>
+
+    <!-- ===== CATEGORIES ===== -->
+    <section class="categories-section">
+        <div class="container">
+            <h2>📂 Категории</h2>
+            <div class="categories-grid" id="categoriesGrid">
+                <div class="loading-spinner"></div>
+            </div>
         </div>
-    </div>
-</footer>
+    </section>
 
-<!-- ===== SCRIPTS ===== -->
-<script type="module">
-    import { 
-        auth, db, getCurrentUser, getUserData, signOutUser, 
-        getListings, addToCart, toggleFavorite 
-    } from './firebase-config.js';
-
-    // ===== STATE =====
-    let currentUser = null;
-    let userData = {};
-    let listings = [];
-    let displayedCount = 9;
-    const loadMoreStep = 9;
-
-    // ===== DOM REFS =====
-    const headerActions = document.getElementById('headerActions');
-    const categoriesGrid = document.getElementById('categoriesGrid');
-    const listingsGrid = document.getElementById('listingsGrid');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const sortFilter = document.getElementById('sortFilter');
-    const fabBtn = document.getElementById('fabBtn');
-
-    // ===== AUTH =====
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            userData = await getUserData(user.uid) || {};
-            
-            headerActions.innerHTML = `
-                <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
-                <a href="cart.html" class="btn btn-secondary btn-sm" title="Корзина">🛒</a>
-                <div class="dropdown">
-                    <div class="header-user" id="userMenuBtn">
-                        <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
-                        <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
-                        <span style="font-size:10px; color:var(--text-muted);">▼</span>
-                    </div>
-                    <div class="dropdown-menu">
-                        <a href="profile/index.html">👤 Мой профиль</a>
-                        <a href="profile/listings.html">📋 Мои объявления</a>
-                        <a href="profile/orders.html">📦 Заказы</a>
-                        <a href="profile/favorites.html">❤️ Избранное</a>
-                        <a href="chat.html">💬 Чаты</a>
-                        <a href="wallet.html">💳 Кошелёк</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" id="logoutBtn">🚪 Выйти</a>
-                    </div>
+    <!-- ===== LISTINGS ===== -->
+    <section class="listings-section" id="listings">
+        <div class="container">
+            <div class="listings-header">
+                <h2>🔥 Актуальные объявления</h2>
+                <div class="listings-filters">
+                    <select id="categoryFilter">
+                        <option value="all">Все категории</option>
+                        <option value="электроника">📱 Электроника</option>
+                        <option value="одежда">👕 Одежда</option>
+                        <option value="обувь">👟 Обувь</option>
+                        <option value="авто">🚗 Авто</option>
+                        <option value="недвижимость">🏠 Недвижимость</option>
+                        <option value="для дома">🛋️ Для дома</option>
+                        <option value="спорт">⚽ Спорт</option>
+                        <option value="игрушки">🧸 Игрушки</option>
+                        <option value="услуги">🔧 Услуги</option>
+                    </select>
+                    <select id="sortFilter">
+                        <option value="newest">🆕 Сначала новые</option>
+                        <option value="price-asc">💰 По возрастанию</option>
+                        <option value="price-desc">💰 По убыванию</option>
+                        <option value="popular">🔥 Популярные</option>
+                    </select>
+                    <input type="number" id="priceMin" placeholder="Цена от" style="width:100px;">
+                    <input type="number" id="priceMax" placeholder="Цена до" style="width:100px;">
+                    <button class="btn btn-secondary btn-sm" id="applyPriceFilter">Применить</button>
                 </div>
-            `;
-            
-            document.getElementById('balanceBtn').onclick = () => window.location.href = 'wallet.html';
-            document.getElementById('logoutBtn').onclick = signOutUser;
-            document.getElementById('userMenuBtn').onclick = () => window.location.href = 'profile/index.html';
-            
-            // Проверка на незаполненный профиль
-            if (!userData.name || !userData.phone) {
-                showNotification('Заполните профиль для полного доступа', 'warning');
-            }
-        } else {
-            currentUser = null;
-            headerActions.innerHTML = `
-                <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
-                <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
-            `;
-        }
-        await loadCategories();
-        await loadListings();
-    });
+            </div>
+            <div class="grid-3" id="listingsGrid">
+                <div class="loading-spinner"></div>
+            </div>
+            <div style="text-align:center; margin-top: 32px;">
+                <button class="btn btn-secondary" id="loadMoreBtn" style="display:none;">Показать ещё</button>
+            </div>
+        </div>
+    </section>
 
-    // ===== CATEGORIES =====
-    async function loadCategories() {
-        const snapshot = await db.collection("listings").where("status", "==", "active").get();
-        const allListings = snapshot.docs.map(doc => doc.data());
-        
-        const categories = [
-            { id: 'all', name: 'Все', icon: '🎯' },
-            { id: 'электроника', name: 'Электроника', icon: '📱' },
-            { id: 'одежда', name: 'Одежда', icon: '👕' },
-            { id: 'обувь', name: 'Обувь', icon: '👟' },
-            { id: 'авто', name: 'Авто', icon: '🚗' },
-            { id: 'недвижимость', name: 'Недвижимость', icon: '🏠' },
-            { id: 'для дома', name: 'Для дома', icon: '🛋️' },
-            { id: 'спорт', name: 'Спорт', icon: '⚽' },
-            { id: 'игрушки', name: 'Игрушки', icon: '🧸' },
-            { id: 'услуги', name: 'Услуги', icon: '🔧' }
-        ];
-        
-        categoriesGrid.innerHTML = categories.map(cat => {
-            const count = cat.id === 'all' 
-                ? allListings.length 
-                : allListings.filter(l => l.category === cat.id).length;
-            return `
-                <div class="category-card" data-category="${cat.id}">
-                    <span class="icon">${cat.icon}</span>
-                    <span class="name">${cat.name}</span>
-                    <span class="count">${count}</span>
-                </div>
-            `;
-        }).join('');
-        
-        categoriesGrid.querySelectorAll('.category-card').forEach(el => {
-            el.onclick = () => {
-                categoryFilter.value = el.dataset.category;
-                displayedCount = loadMoreStep;
-                loadListings();
-            };
-        });
-    }
+    <!-- ===== FAB ===== -->
+    <div class="fab">
+        <button class="btn btn-primary" id="fabBtn" title="Создать объявление">➕</button>
+    </div>
 
-    // ===== LISTINGS =====
-    async function loadListings() {
-        const category = categoryFilter.value;
-        const sort = sortFilter.value;
-        const search = searchInput.value.trim().toLowerCase();
-        
-        let query = db.collection("listings").where("status", "==", "active");
-        if (category !== 'all') {
-            query = query.where("category", "==", category);
-        }
-        
-        const snapshot = await query.get();
-        let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Фильтр по поиску
-        if (search) {
-            results = results.filter(l => 
-                l.title.toLowerCase().includes(search) || 
-                (l.description && l.description.toLowerCase().includes(search))
-            );
-        }
-        
-        // Сортировка
-        switch(sort) {
-            case 'newest':
-                results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                break;
-            case 'price-asc':
-                results.sort((a, b) => (a.price || 0) - (b.price || 0));
-                break;
-            case 'price-desc':
-                results.sort((a, b) => (b.price || 0) - (a.price || 0));
-                break;
-            case 'popular':
-                results.sort((a, b) => (b.views || 0) - (a.views || 0));
-                break;
-            default:
-                results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        }
-        
-        listings = results;
-        renderListings();
-    }
+    <!-- ===== FOOTER ===== -->
+    <footer style="padding:40px 0; border-top:1px solid var(--border-color); margin-top:40px;">
+        <div class="container">
+            <div class="grid-4">
+                <div>
+                    <h4 style="color:var(--text-secondary); margin-bottom:12px;">🍪 Куки</h4>
+                    <p style="color:var(--text-muted); font-size:14px;">Современная платформа для безопасных сделок.</p>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-secondary); margin-bottom:12px;">Покупателям</h4>
+                    <a href="favorites.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">❤️ Избранное</a>
+                    <a href="orders.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📦 Заказы</a>
+                    <a href="compare.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📊 Сравнение</a>
+                    <a href="history.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">👁️ История</a>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-secondary); margin-bottom:12px;">Продавцам</h4>
+                    <a href="post-ad.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📤 Разместить</a>
+                    <a href="profile/index.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">👤 Профиль</a>
+                    <a href="promotion.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🚀 Продвижение</a>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-secondary); margin-bottom:12px;">О нас</h4>
+                    <a href="offer.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">📜 Оферта</a>
+                    <a href="privacy.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🔒 Конфиденциальность</a>
+                    <a href="support-chat.html" style="display:block; color:var(--text-muted); text-decoration:none; padding:4px 0;">🎫 Поддержка</a>
+                </div>
+            </div>
+            <div style="text-align:center; padding-top:24px; margin-top:24px; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:13px;">
+                © 2026 Куки. Все права защищены. 💜
+            </div>
+        </div>
+    </footer>
 
-    function renderListings() {
-        const toShow = listings.slice(0, displayedCount);
-        
-        if (toShow.length === 0) {
-            listingsGrid.innerHTML = `
-                <div class="empty-state" style="grid-column:1/-1;">
-                    <div class="icon">🔍</div>
-                    <h3>Ничего не найдено</h3>
-                    <p>Попробуйте изменить параметры поиска или фильтры</p>
-                    <button class="btn btn-secondary" onclick="window.location.reload()">🔄 Сбросить</button>
-                </div>
-            `;
-            loadMoreBtn.style.display = 'none';
-            return;
-        }
-        
-        listingsGrid.innerHTML = toShow.map(listing => `
-            <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
-                <div class="image">
-                    ${listing.mediaFiles && listing.mediaFiles.length > 0 
-                        ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
-                        : listing.image && listing.image.startsWith('http') 
-                            ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
-                            : '📦'
-                    }
-                    ${listing.condition === 'new' ? `<div class="badge-top"><span class="badge badge-success">✨ Новое</span></div>` : ''}
-                </div>
-                <div class="body">
-                    <div class="title">${escapeHtml(listing.title)}</div>
-                    <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
-                    <div class="meta">
-                        <span>📍 ${listing.location || 'Не указан'}</span>
-                        <span>👁️ ${listing.views || 0}</span>
-                    </div>
-                    <div class="footer">
-                        <div class="seller">
-                            <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
-                            <span>${listing.sellerName || 'Продавец'}</span>
+    <script>
+        // ========================================
+        // FIREBASE
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLN8XTBFl8cKWfnjsc0h_2ZSuZeKc7dhQ",
+            authDomain: "kyki-5e91a.firebaseapp.com",
+            projectId: "kyki-5e91a",
+            storageBucket: "kyki-5e91a.firebasestorage.app",
+            messagingSenderId: "315986487804",
+            appId: "1:315986487804:web:29f131e8a57bffadac2a79",
+            measurementId: "G-ETWXCGL9HK"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ========================================
+        // STATE
+        // ========================================
+        let currentUser = null;
+        let userData = {};
+        let listings = [];
+        let displayedCount = 9;
+        const loadMoreStep = 9;
+        let subscriptions = [];
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const headerActions = document.getElementById('headerActions');
+        const categoriesGrid = document.getElementById('categoriesGrid');
+        const listingsGrid = document.getElementById('listingsGrid');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const applyPriceFilter = document.getElementById('applyPriceFilter');
+        const fabBtn = document.getElementById('fabBtn');
+
+        // ========================================
+        // AUTH
+        // ========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                const doc = await db.collection("users").doc(user.uid).get();
+                userData = doc.data() || {};
+
+                // Загружаем подписки
+                const subDoc = await db.collection("subscriptions").doc(user.uid).get();
+                subscriptions = subDoc.exists ? subDoc.data().categories || [] : [];
+
+                headerActions.innerHTML = `
+                    <div class="balance-badge" id="balanceBtn">💰 ${(userData.balance || 0).toLocaleString()} ₽</div>
+                    <a href="cart.html" class="btn btn-secondary btn-sm" title="Корзина">🛒</a>
+                    <a href="history.html" class="btn btn-secondary btn-sm" title="История">👁️</a>
+                    <a href="compare.html" class="btn btn-secondary btn-sm" title="Сравнение">📊</a>
+                    <div class="dropdown">
+                        <div class="header-user" id="userMenuBtn">
+                            <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + (userData.name || 'User') + '&background=6C3B8E&color=fff'}" class="avatar">
+                            <span class="name">${userData.name?.split(' ')[0] || 'Профиль'}</span>
+                            <span style="font-size:10px; color:var(--text-muted);">▼</span>
                         </div>
-                        <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
+                        <div class="dropdown-menu">
+                            <a href="profile/index.html">👤 Мой профиль</a>
+                            <a href="profile/listings.html">📋 Мои объявления</a>
+                            <a href="orders.html">📦 Заказы</a>
+                            <a href="favorites.html">❤️ Избранное</a>
+                            <a href="chat.html">💬 Чаты</a>
+                            <a href="wallet.html">💳 Кошелёк</a>
+                            <a href="history.html">👁️ История</a>
+                            <a href="compare.html">📊 Сравнение</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="logoutBtn">🚪 Выйти</a>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('balanceBtn').onclick = () => window.location.href = 'wallet.html';
+                document.getElementById('logoutBtn').onclick = () => auth.signOut().then(() => window.location.reload());
+                document.getElementById('userMenuBtn').onclick = () => window.location.href = 'profile/index.html';
+
+            } else {
+                currentUser = null;
+                headerActions.innerHTML = `
+                    <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
+                    <a href="login.html?register=true" class="btn btn-secondary btn-sm">Регистрация</a>
+                `;
+            }
+            await loadCategories();
+            await loadListings();
+        });
+
+        // ========================================
+        // CATEGORIES
+        // ========================================
+        async function loadCategories() {
+            const snapshot = await db.collection("listings").where("status", "==", "active").get();
+            const allListings = snapshot.docs.map(doc => doc.data());
+
+            const categories = [
+                { id: 'all', name: 'Все', icon: '🎯' },
+                { id: 'электроника', name: 'Электроника', icon: '📱' },
+                { id: 'одежда', name: 'Одежда', icon: '👕' },
+                { id: 'обувь', name: 'Обувь', icon: '👟' },
+                { id: 'авто', name: 'Авто', icon: '🚗' },
+                { id: 'недвижимость', name: 'Недвижимость', icon: '🏠' },
+                { id: 'для дома', name: 'Для дома', icon: '🛋️' },
+                { id: 'спорт', name: 'Спорт', icon: '⚽' },
+                { id: 'игрушки', name: 'Игрушки', icon: '🧸' },
+                { id: 'услуги', name: 'Услуги', icon: '🔧' }
+            ];
+
+            categoriesGrid.innerHTML = categories.map(cat => {
+                const count = cat.id === 'all' ?
+                    allListings.length :
+                    allListings.filter(l => l.category === cat.id).length;
+                const isSubscribed = currentUser && subscriptions.includes(cat.id);
+
+                return `
+                    <div class="category-card" data-category="${cat.id}">
+                        ${currentUser ? `
+                            <button class="subscribe-btn ${isSubscribed ? 'active' : ''}" onclick="event.stopPropagation(); toggleSubscribe('${cat.id}')" title="Подписаться">
+                                ${isSubscribed ? '🔔' : '🔕'}
+                            </button>
+                        ` : ''}
+                        <span class="icon">${cat.icon}</span>
+                        <span class="name">${cat.name}</span>
+                        <span class="count">${count}</span>
+                    </div>
+                `;
+            }).join('');
+
+            categoriesGrid.querySelectorAll('.category-card').forEach(el => {
+                el.onclick = () => {
+                    categoryFilter.value = el.dataset.category;
+                    displayedCount = loadMoreStep;
+                    loadListings();
+                };
+            });
+        }
+
+        // ========================================
+        // TOGGLE SUBSCRIBE
+        // ========================================
+        window.toggleSubscribe = async (category) => {
+            if (!currentUser) {
+                showNotification('Войдите в аккаунт', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const subRef = db.collection("subscriptions").doc(currentUser.uid);
+            const subDoc = await subRef.get();
+            let cats = subDoc.exists ? subDoc.data().categories || [] : [];
+
+            if (cats.includes(category)) {
+                cats = cats.filter(c => c !== category);
+                showNotification('❌ Отписка от категории', 'info');
+            } else {
+                cats.push(category);
+                showNotification('✅ Подписка на категорию оформлена!', 'success');
+            }
+
+            await subRef.set({ categories: cats, userId: currentUser.uid }, { merge: true });
+            subscriptions = cats;
+            await loadCategories();
+        };
+
+        // ========================================
+        // LISTINGS
+        // ========================================
+        async function loadListings() {
+            const category = categoryFilter.value;
+            const sort = sortFilter.value;
+            const search = searchInput.value.trim().toLowerCase();
+            const minPrice = parseInt(priceMin.value) || 0;
+            const maxPrice = parseInt(priceMax.value) || Infinity;
+
+            let query = db.collection("listings").where("status", "==", "active");
+            if (category !== 'all') {
+                query = query.where("category", "==", category);
+            }
+
+            const snapshot = await query.get();
+            let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Фильтры
+            if (search) {
+                results = results.filter(l =>
+                    l.title.toLowerCase().includes(search) ||
+                    (l.description && l.description.toLowerCase().includes(search))
+                );
+            }
+            if (minPrice > 0) results = results.filter(l => l.price >= minPrice);
+            if (maxPrice !== Infinity) results = results.filter(l => l.price <= maxPrice);
+
+            // Сортировка
+            switch (sort) {
+                case 'newest':
+                    results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'price-asc':
+                    results.sort((a, b) => (a.price || 0) - (b.price || 0));
+                    break;
+                case 'price-desc':
+                    results.sort((a, b) => (b.price || 0) - (a.price || 0));
+                    break;
+                case 'popular':
+                    results.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    break;
+                default:
+                    results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            }
+
+            listings = results;
+            renderListings();
+        }
+
+        function renderListings() {
+            const toShow = listings.slice(0, displayedCount);
+
+            if (toShow.length === 0) {
+                listingsGrid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="icon">🔍</div>
+                        <h3>Ничего не найдено</h3>
+                        <p>Попробуйте изменить параметры поиска или фильтры</p>
+                        <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+                    </div>
+                `;
+                loadMoreBtn.style.display = 'none';
+                return;
+            }
+
+            listingsGrid.innerHTML = toShow.map(listing => `
+                <div class="listing-card" onclick="window.location.href='product.html?id=${listing.id}'">
+                    <div class="image">
+                        ${listing.mediaFiles && listing.mediaFiles.length > 0
+                            ? `<img src="${listing.mediaFiles[0].url}" alt="${listing.title}" loading="lazy">`
+                            : listing.image && listing.image.startsWith('http')
+                                ? `<img src="${listing.image}" alt="${listing.title}" loading="lazy">`
+                                : '📦'
+                        }
+                        ${listing.condition === 'new' ? `<div class="badge-top"><span class="badge badge-success">✨ Новое</span></div>` : ''}
+                        ${listing.promotedAt ? `<div class="badge-top" style="left:auto;right:12px;"><span class="badge badge-purple">⭐ В ТОПе</span></div>` : ''}
+                    </div>
+                    <div class="body">
+                        <div class="title">${escapeHtml(listing.title)}</div>
+                        <div class="price">${Number(listing.price).toLocaleString()} ₽</div>
+                        <div class="meta">
+                            <span>📍 ${listing.location || 'Не указан'}</span>
+                            <span>👁️ ${listing.views || 0}</span>
+                        </div>
+                        <div class="footer">
+                            <div class="seller">
+                                <img src="${listing.sellerPhoto || 'https://ui-avatars.com/api/?name=' + (listing.sellerName || 'User') + '&background=6C3B8E&color=fff'}" class="avatar" loading="lazy">
+                                <span>${listing.sellerName || 'Продавец'}</span>
+                            </div>
+                            <span style="color:var(--text-muted); font-size:12px;">${new Date(listing.createdAt).toLocaleDateString()}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
-        
-        loadMoreBtn.style.display = displayedCount < listings.length ? 'block' : 'none';
-    }
+            `).join('');
 
-    // ===== LOAD MORE =====
-    loadMoreBtn.onclick = () => {
-        displayedCount += loadMoreStep;
-        renderListings();
-    };
-
-    // ===== FILTERS =====
-    categoryFilter.onchange = () => { displayedCount = loadMoreStep; loadListings(); };
-    sortFilter.onchange = () => { displayedCount = loadMoreStep; loadListings(); };
-    searchBtn.onclick = () => { displayedCount = loadMoreStep; loadListings(); };
-    searchInput.onkeypress = (e) => { if (e.key === 'Enter') { displayedCount = loadMoreStep; loadListings(); } };
-
-    // ===== FAB =====
-    fabBtn.onclick = () => {
-        if (!currentUser) {
-            showNotification('Войдите в аккаунт', 'error');
-            window.location.href = 'login.html';
-            return;
+            loadMoreBtn.style.display = displayedCount < listings.length ? 'block' : 'none';
         }
-        window.location.href = 'post-ad.html';
-    };
 
-    // ===== NOTIFICATION =====
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = message;
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
-    }
+        // ========================================
+        // RESET FILTERS
+        // ========================================
+        window.resetFilters = function() {
+            priceMin.value = '';
+            priceMax.value = '';
+            searchInput.value = '';
+            categoryFilter.value = 'all';
+            sortFilter.value = 'newest';
+            displayedCount = loadMoreStep;
+            loadListings();
+        };
 
-    // ===== UTILITY =====
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-    }
-</script>
+        // ========================================
+        // LOAD MORE
+        // ========================================
+        loadMoreBtn.onclick = () => {
+            displayedCount += loadMoreStep;
+            renderListings();
+        };
+
+        // ========================================
+        // EVENTS
+        // ========================================
+        categoryFilter.onchange = () => { displayedCount = loadMoreStep;
+            loadListings(); };
+        sortFilter.onchange = () => { displayedCount = loadMoreStep;
+            loadListings(); };
+        searchBtn.onclick = () => { displayedCount = loadMoreStep;
+            loadListings(); };
+        searchInput.onkeypress = (e) => { if (e.key === 'Enter') { displayedCount = loadMoreStep;
+                loadListings(); } };
+        applyPriceFilter.onclick = () => { displayedCount = loadMoreStep;
+            loadListings(); };
+
+        // ========================================
+        // FAB
+        // ========================================
+        fabBtn.onclick = () => {
+            if (!currentUser) {
+                showNotification('Войдите в аккаунт', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+            window.location.href = 'post-ad.html';
+        };
+
+        // ========================================
+        // NOTIFICATION
+        // ========================================
+        function showNotification(message, type = 'info') {
+            document.querySelectorAll('.notification').forEach(el => el.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3500);
+        }
+
+        // ========================================
+        // UTILITY
+        // ========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+        }
+    </script>
 </body>
 </html>
