@@ -9,21 +9,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        .payment-page {
-            max-width: 520px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+        .payment-page { max-width: 520px; margin: 30px auto; padding: 0 20px; }
         .payment-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 32px;
         }
-        .payment-card .logo {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+        .payment-card .logo { text-align: center; margin-bottom: 24px; }
         .payment-card .logo h1 {
             font-size: 28px;
             font-weight: 800;
@@ -32,10 +25,7 @@
             background-clip: text;
             color: transparent;
         }
-        .payment-card .logo p {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
+        .payment-card .logo p { color: var(--text-muted); font-size: 14px; }
         .payment-card .balance-display {
             background: var(--bg-input);
             border-radius: 16px;
@@ -45,10 +35,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .payment-card .balance-display .label {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .payment-card .balance-display .label { font-size: 13px; color: var(--text-muted); }
         .payment-card .balance-display .amount {
             font-size: 22px;
             font-weight: 700;
@@ -71,10 +58,7 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .amount-presets button:hover {
-            border-color: var(--secondary);
-            background: var(--bg-card-hover);
-        }
+        .amount-presets button:hover { border-color: var(--secondary); background: var(--bg-card-hover); }
         .amount-presets button.active {
             border-color: var(--secondary);
             background: rgba(232, 67, 147, 0.15);
@@ -96,12 +80,8 @@
             outline: none;
             transition: var(--transition);
         }
-        .custom-amount input:focus {
-            border-color: var(--secondary);
-        }
-        .custom-amount input::placeholder {
-            color: var(--text-muted);
-        }
+        .custom-amount input:focus { border-color: var(--secondary); }
+        .custom-amount input::placeholder { color: var(--text-muted); }
         .btn-pay {
             width: 100%;
             padding: 16px;
@@ -129,9 +109,7 @@
             font-size: 13px;
             color: var(--text-muted);
         }
-        .secure-badge .lock {
-            color: #2ECC71;
-        }
+        .secure-badge .lock { color: #2ECC71; }
         .payment-info {
             background: rgba(52, 152, 219, 0.08);
             border: 1px solid rgba(52, 152, 219, 0.2);
@@ -144,9 +122,7 @@
             align-items: center;
             gap: 10px;
         }
-        .payment-info .icon {
-            font-size: 20px;
-        }
+        .payment-info .icon { font-size: 20px; }
         .back-link {
             display: block;
             text-align: center;
@@ -156,16 +132,20 @@
             font-size: 14px;
             transition: var(--transition);
         }
-        .back-link:hover {
-            color: var(--secondary);
+        .back-link:hover { color: var(--secondary); }
+        .production-badge {
+            display: inline-block;
+            background: #2ECC71;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
         }
         @media (max-width: 480px) {
-            .amount-presets {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .payment-card {
-                padding: 20px;
-            }
+            .amount-presets { grid-template-columns: repeat(2, 1fr); }
+            .payment-card { padding: 20px; }
         }
     </style>
 </head>
@@ -183,7 +163,7 @@
     <div class="payment-page">
         <div class="payment-card">
             <div class="logo">
-                <h1>💰 Пополнение баланса</h1>
+                <h1>💰 Пополнение баланса <span class="production-badge">БОЕВОЙ РЕЖИМ</span></h1>
                 <p>Выберите сумму и перейдите к оплате</p>
             </div>
 
@@ -194,7 +174,7 @@
 
             <div class="payment-info">
                 <span class="icon">ℹ️</span>
-                <span>Оплата через систему PayAnyWay (Монета). Деньги поступят сразу после оплаты.</span>
+                <span>Оплата через PayAnyWay. <strong>Реальные деньги</strong> будут списаны с карты.</span>
             </div>
 
             <label style="font-size:13px;color:var(--text-secondary);font-weight:500;display:block;margin-bottom:8px;">Сумма пополнения</label>
@@ -238,17 +218,19 @@
         const db = firebase.firestore();
 
         // ========================================
-        // ПАРАМЕТРЫ PAYANYWAY
+        // ПАРАМЕТРЫ PAYANYWAY — БОЕВОЙ РЕЖИМ
         // ========================================
         const PAYANYWAY_CONFIG = {
-            MNT_ID: '99389874',                    // Бизнес-счёт
-            MNT_INTEGRITY_CODE: '12345',          // Код проверки целостности
+            MNT_ID: '99389874',
+            MNT_INTEGRITY_CODE: '12345',
             MNT_CURRENCY_CODE: 'RUB',
-            MNT_TEST_MODE: '0',                   // 1 - тестовый режим, 0 - боевой
+            MNT_TEST_MODE: '0',          // 🔥 БОЕВОЙ РЕЖИМ!
             PAY_URL: 'https://payanyway.ru/assistant.htm',
             SUCCESS_URL: 'https://iskrakor.ru/payment-success.html',
             FAIL_URL: 'https://iskrakor.ru/payment-fail.html'
         };
+
+        console.log('🚀 БОЕВОЙ РЕЖИМ ВКЛЮЧЕН!');
 
         // ========================================
         // DOM REFS
@@ -302,7 +284,17 @@
         });
 
         // ========================================
-        // PAYMENT — ПЕРЕХОД НА PAYANYWAY
+        // ФУНКЦИЯ MD5
+        // ========================================
+        async function md5(string) {
+            const msgBuffer = new TextEncoder().encode(string);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+        }
+
+        // ========================================
+        // PAYMENT
         // ========================================
         payBtn.onclick = async () => {
             const amount = selectedAmount || parseInt(customAmount.value);
@@ -323,12 +315,11 @@
             payBtn.textContent = '⏳ Перенаправление...';
 
             try {
-                // Формируем уникальный ID заказа
                 const transactionId = `${Date.now()}|${user.uid.substring(0, 8)}|${amount}`;
 
-                // Создаём сигнатуру по документации PayAnyWay
-                // MNT_SIGNATURE = md5(MNT_ID + MNT_TRANSACTION_ID + MNT_AMOUNT + MNT_CURRENCY_CODE + MNT_SUBSCRIBER_ID + MNT_TEST_MODE + MNT_INTEGRITY_CODE)
-                const signatureData = PAYANYWAY_CONFIG.MNT_ID +
+                // Формируем подпись
+                const signatureData = 
+                    PAYANYWAY_CONFIG.MNT_ID +
                     transactionId +
                     amount.toFixed(2) +
                     PAYANYWAY_CONFIG.MNT_CURRENCY_CODE +
@@ -338,7 +329,7 @@
 
                 const signature = await md5(signatureData);
 
-                // Сохраняем платёж в Firestore
+                // Сохраняем платёж
                 await db.collection("payments").add({
                     userId: user.uid,
                     userEmail: user.email,
@@ -348,7 +339,7 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // Формируем URL для перехода на PayAnyWay
+                // Формируем URL
                 const params = new URLSearchParams({
                     MNT_ID: PAYANYWAY_CONFIG.MNT_ID,
                     MNT_TRANSACTION_ID: transactionId,
@@ -364,37 +355,23 @@
 
                 const payUrl = `${PAYANYWAY_CONFIG.PAY_URL}?${params.toString()}`;
 
-                // Перенаправляем на PayAnyWay
                 window.location.href = payUrl;
 
             } catch (error) {
                 console.error('Payment error:', error);
-                alert('❌ Ошибка при создании платежа. Попробуйте позже.');
+                alert('❌ Ошибка при создании платежа: ' + error.message);
                 payBtn.disabled = false;
                 payBtn.textContent = '💳 Перейти к оплате';
             }
         };
 
-        // ========================================
-        // MD5 ХЕШ (простая реализация для браузера)
-        // ========================================
-        async function md5(string) {
-            const msgBuffer = new TextEncoder().encode(string);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
-        }
-
-        // ========================================
-        // ENTER KEY
-        // ========================================
         customAmount.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') payBtn.click();
         });
 
-        console.log('✅ Платёжная форма PayAnyWay загружена');
+        console.log('✅ Платёжная форма загружена (БОЕВОЙ РЕЖИМ)');
         console.log('📌 Бизнес-счёт:', PAYANYWAY_CONFIG.MNT_ID);
-        console.log('📌 Pay URL:', PAYANYWAY_CONFIG.PAY_URL);
+        console.log('⚠️ ВНИМАНИЕ: Реальные деньги будут списаны с карты!');
     </script>
 </body>
 </html>
